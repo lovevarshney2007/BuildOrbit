@@ -1,6 +1,6 @@
 # BuildOrbit — Architecture
 
-> **Status:** PLANNED — This document describes the intended architecture. Nothing described here has been implemented yet. Each section will be updated as implementation progresses.
+> **Status:** FOUNDATION INITIALIZED — Next.js 16.3.6 with App Router is initialized and verified running at `http://localhost:3000`. The directory structure below shows the **planned** layout; only the base scaffold (`src/app/`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`) exists at this time. All other paths are planned and not yet created.
 
 ---
 
@@ -25,55 +25,56 @@ PostgreSQL Database
 
 ---
 
-## Directory Structure (Planned)
+## Directory Structure (Planned — Only Scaffold Currently Exists)
 
 ```
 buildorbit/
-├── app/
-│   ├── (auth)/                  # Auth routes (login, register)
-│   │   ├── login/
-│   │   └── register/
-│   ├── (dashboard)/             # Protected application routes
-│   │   ├── dashboard/
-│   │   ├── workforce/
-│   │   ├── crm/
-│   │   ├── reports/
-│   │   ├── hr/
-│   │   └── admin/
-│   ├── api/                     # Next.js Route Handlers
-│   │   ├── auth/
-│   │   ├── users/
-│   │   ├── workforce/
-│   │   ├── crm/
-│   │   ├── hr/
-│   │   └── admin/
-│   ├── layout.tsx               # Root layout
-│   └── globals.css              # Global styles
+├── src/
+│   └── app/                         # ✅ Exists — Next.js App Router root
+│       ├── layout.tsx               # ✅ Root layout (scaffold)
+│       ├── page.tsx                 # ✅ Root page (scaffold)
+│       ├── globals.css              # ✅ Global styles (Tailwind v4)
+│       ├── (auth)/                  # ❌ Planned — Auth routes (login, register)
+│       │   ├── login/
+│       │   └── register/
+│       ├── (dashboard)/             # ❌ Planned — Protected application routes
+│       │   ├── dashboard/
+│       │   ├── workforce/
+│       │   ├── crm/
+│       │   ├── reports/
+│       │   ├── hr/
+│       │   └── admin/
+│       └── api/                     # ❌ Planned — Next.js Route Handlers
+│           ├── auth/
+│           ├── users/
+│           ├── workforce/
+│           ├── crm/
+│           ├── hr/
+│           └── admin/
 │
-├── components/
-│   ├── ui/                      # shadcn/ui base components
-│   ├── layout/                  # AppShell, Sidebar, Header, etc.
-│   └── shared/                  # Reusable domain-agnostic components
+├── components/                      # ❌ Planned
+│   ├── ui/                          # shadcn/ui base components
+│   ├── layout/                      # AppShell, Sidebar, Header, etc.
+│   └── shared/                      # Reusable domain-agnostic components
 │
-├── lib/
-│   ├── prisma.ts                # Prisma client singleton
-│   ├── auth.ts                  # Auth utilities
-│   ├── validations/             # Zod schemas
-│   └── utils.ts                 # General utilities
+├── lib/                             # ❌ Planned
+│   ├── prisma.ts                    # Prisma client singleton
+│   ├── auth.ts                      # Auth utilities
+│   ├── validations/                 # Zod schemas
+│   └── utils.ts                     # General utilities
 │
-├── prisma/
-│   ├── schema.prisma            # Database schema
-│   └── migrations/              # Prisma migration files
+├── prisma/                          # ❌ Planned
+│   ├── schema.prisma                # Database schema
+│   └── migrations/                  # Prisma migration files
 │
-├── docs/                        # Project documentation (this folder)
+├── docs/                            # ✅ Project documentation (this folder)
 │
-├── public/                      # Static assets
-├── .env                         # Environment variables (not committed)
-├── .env.example                 # Environment variable template
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
+├── public/                          # ✅ Static assets (scaffold)
+├── .env                             # ❌ Not yet created
+├── .env.example                     # ❌ Not yet created
+├── next.config.ts                   # ✅ Exists
+├── tsconfig.json                    # ✅ Exists
+└── package.json                     # ✅ Exists
 ```
 
 ---
@@ -124,4 +125,4 @@ See `DECISIONS.md` for a log of all architectural decisions and their rationale.
 
 ---
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-28 — Next.js project initialization verified. Directory structure updated to reflect actual `src/app` layout._

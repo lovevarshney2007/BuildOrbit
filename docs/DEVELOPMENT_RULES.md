@@ -86,4 +86,4 @@ Git commits are made explicitly by the developer with a deliberate message. No a
 
 ---
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-28 — Rules unchanged. Next.js project initialization verified._
