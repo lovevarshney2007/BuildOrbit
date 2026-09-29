@@ -1,0 +1,335 @@
+// BuildOrbit — Prisma Schema (Full)
+// Database: PostgreSQL | ORM: Prisma 5.22.0
+// See docs/DATABASE.md for documentation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================================================
+// Enums
+// ===========================================================================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  HR
+  LEAD
+  ENGINEER
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  ON_LEAVE
+  HOLIDAY
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PayrollStatus {
+  DRAFT
+  PROCESSED
+  PAID
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  EMAIL
+  COLD_CALL
+  EVENT
+  OTHER
+}
+
+// ===========================================================================
+// Core / Auth
+// ===========================================================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(ENGINEER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  employee       Employee?
+  loginActivities LoginActivity[]
+  leaveRequests  LeaveRequest[]  @relation("RequesterLeaveRequests")
+  approvedLeaves LeaveRequest[]  @relation("ApproverLeaveRequests")
+  assignedLeads  Lead[]          @relation("AssignedLeads")
+  createdLeads   Lead[]          @relation("CreatedLeads")
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model LoginActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  email     String
+  role      Role
+  ipAddress String?
+  userAgent String?
+  browser   String?
+  os        String?
+  device    String?
+  loginAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([loginAt])
+  @@map("login_activities")
+}
+
+// ===========================================================================
+// Organization Structure
+// ===========================================================================
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees Employee[]
+
+  @@map("departments")
+}
+
+model Designation {
+  id          String   @id @default(cuid())
+  title       String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees Employee[]
+
+  @@map("designations")
+}
+
+// ===========================================================================
+// Workforce
+// ===========================================================================
+
+model Employee {
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  employeeCode  String         @unique
+  phone         String?
+  address       String?
+  dateOfBirth   DateTime?
+  joiningDate   DateTime
+  departmentId  String?
+  designationId String?
+  status        EmployeeStatus @default(ACTIVE)
+  basicSalary   Decimal        @default(0) @db.Decimal(10, 2)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department     Department?   @relation(fields: [departmentId], references: [id])
+  designation    Designation?  @relation(fields: [designationId], references: [id])
+  attendances    Attendance[]
+  leaveBalances  LeaveBalance[]
+  payrolls       Payroll[]
+
+  @@index([departmentId])
+  @@index([status])
+  @@map("employees")
+}
+
+// ===========================================================================
+// Attendance
+// ===========================================================================
+
+model Attendance {
+  id          String           @id @default(cuid())
+  employeeId  String
+  date        DateTime         @db.Date
+  status      AttendanceStatus @default(PRESENT)
+  checkIn     DateTime?
+  checkOut    DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+  @@map("attendances")
+}
+
+// ===========================================================================
+// Leave Management
+// ===========================================================================
+
+model LeaveType {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  daysAllowed Int      @default(0)
+  isPaid      Boolean  @default(true)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+
+  @@map("leave_types")
+}
+
+model LeaveBalance {
+  id          String   @id @default(cuid())
+  employeeId  String
+  leaveTypeId String
+  year        Int
+  totalDays   Int
+  usedDays    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employee  Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@map("leave_balances")
+}
+
+model LeaveRequest {
+  id          String      @id @default(cuid())
+  requesterId String
+  leaveTypeId String
+  startDate   DateTime    @db.Date
+  endDate     DateTime    @db.Date
+  days        Int
+  reason      String
+  status      LeaveStatus @default(PENDING)
+  approverId  String?
+  approverNote String?
+  approvedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  requester User       @relation("RequesterLeaveRequests", fields: [requesterId], references: [id])
+  approver  User?      @relation("ApproverLeaveRequests", fields: [approverId], references: [id])
+  leaveType LeaveType  @relation(fields: [leaveTypeId], references: [id])
+
+  @@index([requesterId])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+// ===========================================================================
+// Payroll
+// ===========================================================================
+
+model Payroll {
+  id           String        @id @default(cuid())
+  employeeId   String
+  month        Int           // 1-12
+  year         Int
+  basicSalary  Decimal       @db.Decimal(10, 2)
+  allowances   Decimal       @default(0) @db.Decimal(10, 2)
+  deductions   Decimal       @default(0) @db.Decimal(10, 2)
+  netSalary    Decimal       @db.Decimal(10, 2)
+  status       PayrollStatus @default(DRAFT)
+  paidAt       DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, month, year])
+  @@index([employeeId])
+  @@index([year, month])
+  @@map("payrolls")
+}
+
+// ===========================================================================
+// CRM / Leads
+// ===========================================================================
+
+model Lead {
+  id            String     @id @default(cuid())
+  title         String
+  contactName   String
+  contactEmail  String?
+  contactPhone  String?
+  company       String?
+  source        LeadSource @default(OTHER)
+  status        LeadStatus @default(NEW)
+  value         Decimal?   @db.Decimal(10, 2)
+  notes         String?
+  assignedToId  String?
+  createdById   String
+  expectedClose DateTime?  @db.Date
+  convertedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  assignedTo User?          @relation("AssignedLeads", fields: [assignedToId], references: [id])
+  createdBy  User           @relation("CreatedLeads", fields: [createdById], references: [id])
+  followUps  LeadFollowUp[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@map("leads")
+}
+
+model LeadFollowUp {
+  id          String   @id @default(cuid())
+  leadId      String
+  notes       String
+  followUpDate DateTime @db.Date
+  isDone      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([followUpDate])
+  @@map("lead_follow_ups")
+}

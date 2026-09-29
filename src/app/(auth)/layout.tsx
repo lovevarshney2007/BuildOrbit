@@ -1,0 +1,17 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Login",
+}
+
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#F8F9FA]">
+      {children}
+    </div>
+  )
+}

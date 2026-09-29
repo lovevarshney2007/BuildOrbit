@@ -8,14 +8,14 @@ import {
   FileText,
   BarChart2,
   Settings,
-  Building2,
+  Activity,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react"
 
 // Roles that can see a given nav item.
 // An empty array means the item is visible to all roles.
-// When auth is implemented, filter navConfig by the current user's role.
-export type AppRole = "super_admin" | "admin" | "hr" | "lead" | "employee"
+export type AppRole = "SUPER_ADMIN" | "ADMIN" | "HR" | "LEAD" | "ENGINEER"
 
 export interface NavItem {
   label: string
@@ -27,6 +27,7 @@ export interface NavItem {
 export interface NavGroup {
   title: string
   items: NavItem[]
+  roles?: AppRole[] // hide the entire group for certain roles
 }
 
 export const navConfig: NavGroup[] = [
@@ -48,42 +49,42 @@ export const navConfig: NavGroup[] = [
         label: "Employees",
         href: "/workforce/employees",
         icon: Users,
-        roles: ["super_admin", "admin", "hr", "lead"],
+        roles: ["SUPER_ADMIN", "ADMIN", "HR", "LEAD"],
       },
       {
-        label: "Departments",
-        href: "/workforce/departments",
-        icon: Building2,
-        roles: ["super_admin", "admin", "hr"],
+        label: "Attendance",
+        href: "/workforce/attendance",
+        icon: CalendarDays,
+        roles: [],
       },
       {
-        label: "Roles & Access",
-        href: "/workforce/roles",
-        icon: UserCheck,
-        roles: ["super_admin", "admin"],
+        label: "Leave Requests",
+        href: "/workforce/leave",
+        icon: FileText,
+        roles: [],
       },
     ],
   },
   {
-    title: "HR",
+    title: "HR & Payroll",
     items: [
       {
-        label: "Attendance",
-        href: "/hr/attendance",
-        icon: CalendarDays,
-        roles: ["super_admin", "admin", "hr", "lead"],
+        label: "Leave Master",
+        href: "/hr/leave-types",
+        icon: ClipboardList,
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
-        label: "Leave",
-        href: "/hr/leave",
-        icon: FileText,
-        roles: [],
+        label: "Leave Approval",
+        href: "/hr/leave-approval",
+        icon: UserCheck,
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
         label: "Payroll",
         href: "/hr/payroll",
         icon: DollarSign,
-        roles: ["super_admin", "admin", "hr"],
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
     ],
   },
@@ -91,16 +92,10 @@ export const navConfig: NavGroup[] = [
     title: "CRM",
     items: [
       {
-        label: "Clients",
-        href: "/crm/clients",
+        label: "Lead Follow-ups",
+        href: "/crm/leads",
         icon: Briefcase,
-        roles: ["super_admin", "admin", "lead"],
-      },
-      {
-        label: "Projects",
-        href: "/crm/projects",
-        icon: Building2,
-        roles: ["super_admin", "admin", "hr", "lead"],
+        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
       },
     ],
   },
@@ -108,10 +103,22 @@ export const navConfig: NavGroup[] = [
     title: "Reports",
     items: [
       {
-        label: "Analytics",
-        href: "/reports/analytics",
+        label: "Attendance Report",
+        href: "/reports/attendance",
         icon: BarChart2,
-        roles: ["super_admin", "admin", "hr"],
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
+        label: "Payroll Summary",
+        href: "/reports/payroll",
+        icon: DollarSign,
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
+        label: "Lead Reports",
+        href: "/reports/leads",
+        icon: BarChart2,
+        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
       },
     ],
   },
@@ -122,8 +129,28 @@ export const navConfig: NavGroup[] = [
         label: "Settings",
         href: "/admin/settings",
         icon: Settings,
-        roles: ["super_admin", "admin"],
+        roles: ["SUPER_ADMIN", "ADMIN"],
+      },
+      {
+        label: "Login Activity",
+        href: "/admin/login-activity",
+        icon: Activity,
+        roles: ["SUPER_ADMIN", "ADMIN"],
       },
     ],
   },
 ]
+
+/**
+ * Filter the nav config to only show items the user's role can see.
+ */
+export function getNavForRole(role: AppRole): NavGroup[] {
+  return navConfig
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => item.roles.length === 0 || item.roles.includes(role),
+      ),
+    }))
+    .filter((group) => group.items.length > 0)
+}

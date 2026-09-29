@@ -7,39 +7,52 @@ import {
   ChevronRight,
   Orbit,
   LogOut,
-  User,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { navConfig, type NavGroup } from "@/lib/navigation"
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+import { getNavForRole, type NavGroup, type AppRole } from "@/lib/navigation"
+import type { SessionPayload } from "@/lib/session"
+import { logoutAction } from "@/lib/actions/auth"
 
 interface SidebarProps {
-  /** Controlled open state for mobile overlay */
+  user: SessionPayload
   mobileOpen?: boolean
   onMobileClose?: () => void
-  /** Controlled collapsed state (managed by AppShell for Header sync) */
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
 }
 
-// ---------------------------------------------------------------------------
-// Sidebar
-// ---------------------------------------------------------------------------
+// Role display label
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
+  HR: "HR",
+  LEAD: "Lead",
+  ENGINEER: "Engineer",
+}
 
 export function Sidebar({
+  user,
   mobileOpen = false,
   onMobileClose,
   collapsed,
   onCollapsedChange,
 }: SidebarProps) {
   const pathname = usePathname()
+  const filteredNav = getNavForRole(user.role as AppRole)
+
+  // Get initials from name or email
+  const initials = user.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : user.email.slice(0, 2).toUpperCase()
 
   return (
     <>
-      {/* ---- Mobile overlay backdrop ---- */}
+      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           aria-hidden="true"
@@ -48,22 +61,18 @@ export function Sidebar({
         />
       )}
 
-      {/* ---- Sidebar panel ---- */}
       <aside
         id="app-sidebar"
         aria-label="Main navigation"
         className={cn(
-          // Base layout
           "fixed inset-y-0 left-0 z-40 flex flex-col bg-[#1E293B] text-white",
           "transition-[width] duration-200 ease-in-out",
-          // Width: expanded or collapsed
           collapsed ? "w-16" : "w-60",
-          // Mobile: hidden by default, shown when mobileOpen
           "-translate-x-full lg:translate-x-0",
           mobileOpen && "translate-x-0",
         )}
       >
-        {/* ---- Branding ---- */}
+        {/* Branding */}
         <div
           className={cn(
             "flex h-14 shrink-0 items-center border-b border-white/10",
@@ -80,12 +89,12 @@ export function Sidebar({
           )}
         </div>
 
-        {/* ---- Navigation ---- */}
+        {/* Navigation */}
         <nav
           aria-label="Sidebar navigation"
           className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3"
         >
-          {navConfig.map((group: NavGroup) => (
+          {filteredNav.map((group: NavGroup) => (
             <NavGroupSection
               key={group.title}
               group={group}
@@ -95,7 +104,7 @@ export function Sidebar({
           ))}
         </nav>
 
-        {/* ---- User / logout area ---- */}
+        {/* User / logout */}
         <div className="shrink-0 border-t border-white/10 px-2 py-3">
           <div
             className={cn(
@@ -103,31 +112,49 @@ export function Sidebar({
               collapsed && "justify-center",
             )}
           >
-            {/* Avatar placeholder */}
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-600">
-              <User className="size-4 text-slate-300" aria-hidden="true" />
+            {/* Avatar */}
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
+              {initials}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13px] font-medium text-white">
-                  John Doe
+                  {user.name || user.email}
                 </p>
-                <p className="truncate text-[11px] text-slate-400">Admin</p>
+                <p className="truncate text-[11px] text-slate-400">
+                  {ROLE_LABELS[user.role] || user.role}
+                </p>
               </div>
             )}
             {!collapsed && (
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  aria-label="Log out"
+                  title="Log out"
+                  className="ml-auto rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                >
+                  <LogOut className="size-4" aria-hidden="true" />
+                </button>
+              </form>
+            )}
+          </div>
+          {/* Logout when collapsed */}
+          {collapsed && (
+            <form action={logoutAction} className="mt-1 flex justify-center">
               <button
+                type="submit"
                 aria-label="Log out"
                 title="Log out"
-                className="ml-auto rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
               >
                 <LogOut className="size-4" aria-hidden="true" />
               </button>
-            )}
-          </div>
+            </form>
+          )}
         </div>
 
-        {/* ---- Collapse toggle (desktop only) ---- */}
+        {/* Collapse toggle */}
         <button
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           id="sidebar-collapse-toggle"
@@ -149,10 +176,6 @@ export function Sidebar({
   )
 }
 
-// ---------------------------------------------------------------------------
-// NavGroupSection — one labelled group of nav items
-// ---------------------------------------------------------------------------
-
 function NavGroupSection({
   group,
   collapsed,
@@ -164,13 +187,11 @@ function NavGroupSection({
 }) {
   return (
     <div className="mb-1">
-      {/* Section label — hidden when collapsed */}
       {!collapsed && (
         <p className="mb-0.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
           {group.title}
         </p>
       )}
-      {/* Divider in collapsed mode */}
       {collapsed && (
         <div className="mx-auto mb-1 mt-2 h-px w-8 bg-white/10" />
       )}
@@ -188,10 +209,8 @@ function NavGroupSection({
                   "group relative flex items-center gap-2.5 rounded-md px-2 py-1.5",
                   "text-[13px] font-medium transition-colors duration-100",
                   isActive
-                    ? // Active: accent left border + subtle highlight
-                      "bg-white/10 text-white before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-r before:bg-blue-400"
-                    : // Default: dim text, hover highlight
-                      "text-slate-400 hover:bg-white/5 hover:text-slate-200",
+                    ? "bg-white/10 text-white before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-r before:bg-blue-400"
+                    : "text-slate-400 hover:bg-white/5 hover:text-slate-200",
                   collapsed && "justify-center",
                 )}
               >

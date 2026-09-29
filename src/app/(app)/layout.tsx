@@ -1,15 +1,17 @@
+import { getCurrentUser } from "@/lib/session"
+import { redirect } from "next/navigation"
 import { AppShell } from "@/components/layout/AppShell"
 
-interface AppLayoutProps {
+export default async function AppLayout({
+  children,
+}: {
   children: React.ReactNode
-}
+}) {
+  // Server-side auth check — redirect to login if not authenticated
+  const user = await getCurrentUser()
+  if (!user) {
+    redirect("/login")
+  }
 
-/**
- * The (app) route group layout wraps every protected application page
- * with the AppShell (Sidebar + Header + main content area).
- *
- * When authentication is implemented, session checks will be added here.
- */
-export default function AppLayout({ children }: AppLayoutProps) {
-  return <AppShell>{children}</AppShell>
+  return <AppShell user={user}>{children}</AppShell>
 }
