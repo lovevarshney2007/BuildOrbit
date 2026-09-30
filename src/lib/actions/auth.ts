@@ -23,8 +23,11 @@ export type AuthState = {
     name?: string[]
     email?: string[]
     password?: string[]
+    otp?: string[]
   }
   message?: string
+  step?: "REGISTER" | "VERIFY_OTP"
+  data?: any
 } | null
 
 // ---------------------------------------------------------------------------
@@ -143,9 +146,9 @@ const RegisterSchema = z.object({
 })
 
 export async function sendOtpAction(
-  _prevState: AuthState & { step?: "REGISTER" | "VERIFY_OTP", data?: any },
+  _prevState: AuthState,
   formData: FormData,
-): Promise<AuthState & { step?: "REGISTER" | "VERIFY_OTP", data?: any }> {
+): Promise<AuthState> {
   // 1. Validate inputs
   const validated = RegisterSchema.safeParse({
     name: formData.get("name"),
@@ -226,9 +229,9 @@ const VerifyOtpSchema = z.object({
 })
 
 export async function verifyOtpAction(
-  _prevState: AuthState & { step?: "REGISTER" | "VERIFY_OTP", data?: any },
+  _prevState: AuthState,
   formData: FormData,
-): Promise<AuthState & { step?: "REGISTER" | "VERIFY_OTP", data?: any }> {
+): Promise<AuthState> {
   const validated = VerifyOtpSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),

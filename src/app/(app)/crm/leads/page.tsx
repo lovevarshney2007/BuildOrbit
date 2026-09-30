@@ -33,7 +33,7 @@ export default async function LeadsPage() {
     LOST: leads.filter(l => l.status === "LOST")
   }
   
-  const totalARR = leads.filter(l => l.status !== "LOST").reduce((sum, l) => sum + (l.value || 0), 0)
+  const totalARR = leads.filter(l => l.status !== "LOST").reduce((sum, l) => sum + Number(l.value || 0), 0)
 
   return (
     <main className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden w-full">

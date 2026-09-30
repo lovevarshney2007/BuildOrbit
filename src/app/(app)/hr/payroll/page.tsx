@@ -50,9 +50,9 @@ export default async function PayrollPage({
     val ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(val)) : "—"
 
   // Quick stats calculations
-  const totalGross = records.reduce((sum, rec) => sum + (rec.basicSalary || 0) + (rec.allowances || 0), 0)
-  const totalDeductions = records.reduce((sum, rec) => sum + (rec.deductions || 0), 0)
-  const totalNet = records.reduce((sum, rec) => sum + (rec.netSalary || 0), 0)
+  const totalGross = records.reduce((sum, rec) => sum + Number(rec.basicSalary || 0) + Number(rec.allowances || 0), 0)
+  const totalDeductions = records.reduce((sum, rec) => sum + Number(rec.deductions || 0), 0)
+  const totalNet = records.reduce((sum, rec) => sum + Number(rec.netSalary || 0), 0)
 
   return (
     <main className="flex-1 flex flex-col h-[calc(100vh-3rem)] overflow-hidden bg-background w-full">
@@ -201,7 +201,7 @@ export default async function PayrollPage({
                 </thead>
                 <tbody className="divide-y divide-outline-variant font-tabular-data text-tabular-data">
                   {records.map((rec) => {
-                    const gross = (rec.basicSalary || 0) + (rec.allowances || 0)
+                    const gross = Number(rec.basicSalary || 0) + Number(rec.allowances || 0)
                     return (
                       <tr key={rec.id} className="bg-surface-container-lowest hover:bg-surface-bright transition-colors group">
                         <td className="py-3 px-4 text-center">

@@ -1,4 +1,4 @@
-import { registerAction, loginAction, type AuthState } from "../src/lib/actions/auth";
+import { sendOtpAction, verifyOtpAction, loginAction, type AuthState } from "../src/lib/actions/auth";
 import { prisma } from "../src/lib/prisma";
 
 // Note: Testing Server Actions in a plain script
@@ -15,44 +15,48 @@ async function runTests() {
     where: { email: { contains: "testuser_" } }
   });
 
-  console.log("\n[1] Testing Registration...");
+  console.log("\n[1] Testing Registration (OTP Send)...");
   const formDataReg = new FormData();
   formDataReg.append("name", "Test User");
   formDataReg.append("email", testEmail);
   formDataReg.append("password", testPassword);
 
-  let registerSuccess = false;
   try {
-    const res = await registerAction(null, formDataReg);
-    if (res?.errors || res?.message) {
-      console.error("❌ Registration failed:", res);
+    const res = await sendOtpAction(null, formDataReg);
+    if (res?.step === "VERIFY_OTP") {
+      console.log("✅ OTP successfully sent and stored.");
     } else {
-      console.log("❌ Registration didn't redirect (Unexpected)");
+      console.error("❌ OTP sending failed:", res);
     }
   } catch (e: any) {
-    if (e.message && e.message.includes("NEXT_REDIRECT")) {
-      console.log("✅ Registration succeeded and redirected to dashboard");
-      registerSuccess = true;
-    } else {
-      console.error("❌ Registration threw error:", e);
-    }
+    console.error("❌ OTP sending threw error:", e);
   }
 
-  console.log("\n[2] Testing Duplicate Registration...");
-  const formDataRegDup = new FormData();
-  formDataRegDup.append("name", "Test User 2");
-  formDataRegDup.append("email", testEmail); // Same email
-  formDataRegDup.append("password", testPassword);
+  console.log("\n[2] Testing OTP Verification...");
+  const otpRecord = await prisma.otpVerification.findUnique({ where: { email: testEmail } });
+  if (!otpRecord) {
+    console.error("❌ No OTP found in database for test email.");
+  } else {
+    const formDataVerify = new FormData();
+    formDataVerify.append("name", "Test User");
+    formDataVerify.append("email", testEmail);
+    formDataVerify.append("password", testPassword);
+    formDataVerify.append("otp", otpRecord.otp);
 
-  try {
-    const resDup = await registerAction(null, formDataRegDup);
-    if (resDup?.message === "An account with this email already exists.") {
-      console.log("✅ Duplicate registration correctly prevented.");
-    } else {
-      console.error("❌ Duplicate registration didn't return expected error:", resDup);
+    try {
+      const resVerify = await verifyOtpAction(null, formDataVerify);
+      if (resVerify?.errors || resVerify?.message) {
+         console.error("❌ OTP Verification failed:", resVerify);
+      } else {
+         console.log("❌ OTP Verification didn't redirect (Unexpected)");
+      }
+    } catch (e: any) {
+      if (e.message && e.message.includes("NEXT_REDIRECT")) {
+        console.log("✅ OTP Verification succeeded, user created, and redirected to dashboard");
+      } else {
+        console.error("❌ OTP Verification threw error:", e);
+      }
     }
-  } catch (e) {
-    console.error("❌ Duplicate registration threw unexpected error:", e);
   }
 
   console.log("\n[3] Testing Login with Correct Credentials...");
