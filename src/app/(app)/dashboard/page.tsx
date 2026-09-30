@@ -1,10 +1,114 @@
 import { getCurrentUser } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { AnimatedCard } from "@/components/ui/PageAnimator"
+import { prisma } from "@/lib/prisma"
+import Link from "next/link"
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
+
+  if (user.role === "ENGINEER") {
+    const employee = await prisma.employee.findUnique({
+      where: { userId: user.userId },
+      include: { department: true }
+    })
+
+    if (!employee) {
+      return (
+        <div className="p-8 text-center text-secondary">
+          <p>Your employee profile has not been fully configured yet.</p>
+          <p>Please contact HR.</p>
+        </div>
+      )
+    }
+
+    const recentAttendance = await prisma.attendance.findMany({
+      where: { employeeId: employee.id },
+      orderBy: { date: 'desc' },
+      take: 5
+    })
+
+    const recentLeaves = await prisma.leaveRequest.findMany({
+      where: { requesterId: user.userId },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+      include: { leaveType: true }
+    })
+
+    return (
+      <div className="flex flex-col gap-8 w-full">
+        <header className="bg-surface-container-lowest border border-outline-variant p-8 rounded-xl shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl font-bold">
+              {user.name.charAt(0)}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-on-surface">Welcome back, {user.name}</h1>
+              <p className="text-secondary mt-1 font-medium">{employee.department?.name || 'Engineering'} • ID: {employee.employeeCode}</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Attendance Widget */}
+          <AnimatedCard delay={0.05} className="p-6 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col">
+             <div className="flex items-center justify-between mb-5">
+               <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2">
+                 <span className="material-symbols-outlined text-primary">calendar_clock</span>
+                 Recent Attendance
+               </h3>
+               <Link href="/workforce/attendance" className="text-sm font-semibold text-primary hover:underline">View All</Link>
+             </div>
+             <div className="space-y-3 flex-1">
+               {recentAttendance.map(att => (
+                 <div key={att.id} className="flex justify-between items-center p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <span className="font-medium text-on-surface">{att.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider
+                      ${att.status === 'PRESENT' ? 'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]' : 
+                        att.status === 'ABSENT' ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]' : 
+                        'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+                      {att.status}
+                    </span>
+                 </div>
+               ))}
+               {recentAttendance.length === 0 && <p className="text-secondary text-sm py-4 text-center">No recent attendance records.</p>}
+             </div>
+          </AnimatedCard>
+
+          {/* Leaves Widget */}
+          <AnimatedCard delay={0.10} className="p-6 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col">
+             <div className="flex items-center justify-between mb-5">
+               <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2">
+                 <span className="material-symbols-outlined text-[#D97706]">event_busy</span>
+                 Recent Leave Requests
+               </h3>
+               <Link href="/workforce/leave/new" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+                 <span className="material-symbols-outlined text-sm">add</span> New
+               </Link>
+             </div>
+             <div className="space-y-3 flex-1">
+               {recentLeaves.map(leave => (
+                 <div key={leave.id} className="flex justify-between items-start p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <div>
+                      <span className="font-semibold text-on-surface block">{leave.leaveType.name}</span>
+                      <span className="text-xs text-secondary mt-0.5 block">{leave.startDate.toLocaleDateString()} &mdash; {leave.endDate.toLocaleDateString()} ({leave.days} days)</span>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider
+                      ${leave.status === 'APPROVED' ? 'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]' : 
+                        leave.status === 'REJECTED' ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]' : 
+                        'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'}`}>
+                      {leave.status}
+                    </span>
+                 </div>
+               ))}
+               {recentLeaves.length === 0 && <p className="text-secondary text-sm py-4 text-center">No recent leave requests.</p>}
+             </div>
+          </AnimatedCard>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
