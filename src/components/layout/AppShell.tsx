@@ -17,10 +17,11 @@ interface AppShellProps {
 export function AppShell({ children, user }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isSplashFinished, setIsSplashFinished] = useState(false)
 
   return (
     <div className="flex w-full flex-1 min-h-screen bg-transparent text-on-surface antialiased flex-row relative z-0">
-      <SplashScreen />
+      <SplashScreen onFinish={() => setIsSplashFinished(true)} />
       <BackgroundBubbles />
       <Sidebar
         user={user}
@@ -28,6 +29,7 @@ export function AppShell({ children, user }: AppShellProps) {
         onMobileClose={() => setMobileOpen(false)}
         collapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
+        isSplashFinished={isSplashFinished}
       />
 
       <div
@@ -43,7 +45,7 @@ export function AppShell({ children, user }: AppShellProps) {
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        <PageAnimator>
+        <PageAnimator isSplashFinished={isSplashFinished}>
           <main className="flex-1 px-4 sm:px-6 lg:px-10 pt-6 pb-10 flex flex-col gap-8 max-w-[1920px] mx-auto w-full">
             {children}
           </main>

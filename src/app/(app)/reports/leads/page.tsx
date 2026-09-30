@@ -1,6 +1,5 @@
 import { getCurrentUser } from "@/lib/session"
 import { redirect } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
 import { prisma } from "@/lib/prisma"
 import { LeadAnalyticsClient } from "./client"
 
@@ -33,18 +32,26 @@ export default async function LeadReportsPage() {
   statusData.sort((a, b) => funnelOrder.indexOf(a.name) - funnelOrder.indexOf(b.name))
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <PageHeader
-        title="Lead Analytics"
-        description="Conversion rates, pipeline velocity, and source tracking."
-      />
+    <main className="flex-1 p-6 flex flex-col gap-6 w-full">
+      {/* Header & Page Controls Banner */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Lead Analytics</h1>
+            <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">CRM Pipeline</span>
+          </div>
+          <p className="font-body-md text-body-md text-secondary mt-0.5">Conversion rates, pipeline velocity, and source tracking.</p>
+        </div>
+      </div>
       
-      <LeadAnalyticsClient 
-        statusData={statusData} 
-        sourceData={sourceData} 
-        totalLeads={leads.length}
-        totalValue={totalValue}
-      />
-    </div>
+      <div className="w-full">
+        <LeadAnalyticsClient 
+          statusData={statusData} 
+          sourceData={sourceData} 
+          totalLeads={leads.length}
+          totalValue={totalValue}
+        />
+      </div>
+    </main>
   )
 }

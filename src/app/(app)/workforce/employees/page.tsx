@@ -1,16 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
-import { Badge } from "@/components/ui/badge"
 import { EmployeeStatus } from "@prisma/client"
-
-const STATUS_CONFIG: Record<EmployeeStatus, { variant: "success" | "error" | "warning" | "info"; label: string }> = {
-  ACTIVE: { variant: "success", label: "Active" },
-  INACTIVE: { variant: "error", label: "Inactive" },
-  ON_LEAVE: { variant: "warning", label: "On Leave" },
-  TERMINATED: { variant: "error", label: "Terminated" },
-}
 
 interface SearchParams {
   search?: string
@@ -61,109 +52,198 @@ export default async function EmployeesPage({
 
   const formatDate = (dt: Date) =>
     new Date(dt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    
+  const activeCount = employees.filter(e => e.status === "ACTIVE").length
+  const leaveCount = employees.filter(e => e.status === "ON_LEAVE").length
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <PageHeader
-        title="Employees"
-        description={`${employees.length} employee${employees.length !== 1 ? "s" : ""} found`}
-      />
-
-      {/* Filters */}
-      <form method="GET" className="flex flex-wrap gap-3">
-        <input
-          name="search"
-          placeholder="Search by name or email…"
-          defaultValue={search}
-          className="h-9 w-64 rounded-md border border-outline-variant px-3 text-[13px] focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-        />
-        <select
-          name="department"
-          defaultValue={departmentId ?? ""}
-          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
-        >
-          <option value="">All Departments</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>{d.name}</option>
-          ))}
-        </select>
-        <select
-          name="status"
-          defaultValue={statusFilter ?? ""}
-          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
-        >
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-          <option value="ON_LEAVE">On Leave</option>
-          <option value="TERMINATED">Terminated</option>
-        </select>
-        <button
-          type="submit"
-          className="h-9 rounded-md bg-primary px-4 text-[13px] font-medium text-white hover:bg-primary/90"
-        >
-          Filter
-        </button>
-        <a
-          href="/workforce/employees"
-          className="inline-flex h-9 items-center rounded-md border border-outline-variant px-4 text-[13px] text-secondary hover:bg-secondary"
-        >
-          Reset
-        </a>
-      </form>
-
-      {/* Table */}
-      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
-        {employees.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16">
-            <p className="text-[14px] font-medium text-on-surface">No employees found</p>
-            <p className="text-[13px] text-secondary">Try adjusting your search or filters.</p>
+    <main className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4 w-full">
+      {/* Page Header: Title + Subtitle Badge + Quick Metric Ribbon */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-1 border-b border-outline-variant">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Employee Directory</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container border border-outline-variant text-secondary">
+              Total: {employees.length} active employees
+            </span>
           </div>
-        ) : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-outline-variant bg-surface-container-low">
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Code</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Department</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Designation</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Joining Date</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {employees.map((emp) => {
-                const config = STATUS_CONFIG[emp.status]
-                return (
-                  <tr key={emp.id} className="hover:bg-surface-container-low">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-on-surface">
-                        {emp.user.name || emp.user.email}
-                      </p>
-                      <p className="text-[11px] text-secondary">{emp.user.email}</p>
+          <p className="font-body-sm text-body-sm text-secondary mt-0.5">
+            Operational personnel registry across global hubs, reporting lines, compliance credentials, and real-time shifts.
+          </p>
+        </div>
+        {/* MetricStrip Preview */}
+        <div className="flex items-center divide-x divide-outline-variant bg-surface-container-lowest border border-outline-variant rounded shadow-none text-left">
+          <div className="px-3 py-1.5">
+            <span className="font-label-sm text-label-sm text-secondary block">Attendance Today</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-headline-sm text-headline-sm font-tabular-data text-on-surface">
+                {employees.length > 0 ? Math.round((activeCount / employees.length) * 100) : 0}%
+              </span>
+              <span className="text-[10px] font-semibold text-primary">{activeCount} in</span>
+            </div>
+          </div>
+          <div className="px-3 py-1.5">
+            <span className="font-label-sm text-label-sm text-secondary block">On Leave</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-headline-sm text-headline-sm font-tabular-data text-on-surface">{leaveCount}</span>
+            </div>
+          </div>
+          <div className="px-3 py-1.5">
+            <span className="font-label-sm text-label-sm text-secondary block">Hubs Operational</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-headline-sm text-headline-sm font-tabular-data text-on-surface">Global</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Multi-parameter Filter Bar Card */}
+      <section className="bg-surface-container-lowest border border-outline-variant rounded p-3 flex flex-col gap-2.5">
+        <form method="GET" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-2">
+          {/* Search Input: Name, ID, email, role */}
+          <div className="lg:col-span-4 relative flex">
+            <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-secondary">
+              <span className="material-symbols-outlined text-[16px]">search</span>
+            </span>
+            <input name="search" defaultValue={search} className="w-full pl-8 pr-3 py-1.5 bg-surface-bright border border-outline-variant rounded font-body-sm text-body-sm text-on-surface placeholder-secondary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none" placeholder="Filter by name, ID, email, role..." type="text"/>
+          </div>
+          {/* Department dropdown */}
+          <div className="lg:col-span-3 relative flex">
+            <select name="department" defaultValue={departmentId ?? ""} className="w-full py-1.5 px-2 bg-surface-bright border border-outline-variant rounded font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
+              <option value="">Department: All</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
+          {/* Employment Status dropdown */}
+          <div className="lg:col-span-3 relative flex">
+            <select name="status" defaultValue={statusFilter ?? ""} className="w-full py-1.5 px-2 bg-surface-bright border border-outline-variant rounded font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
+              <option value="">Status: All Types</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="ON_LEAVE">On Leave</option>
+              <option value="TERMINATED">Terminated</option>
+            </select>
+          </div>
+          <div className="lg:col-span-2 flex items-center gap-2">
+            <button type="submit" className="w-full py-1.5 px-2 bg-primary text-on-primary rounded font-label-sm font-semibold transition-colors">
+              Filter
+            </button>
+            <a href="/workforce/employees" className="w-full py-1.5 px-2 bg-surface-container text-on-surface rounded font-label-sm font-semibold text-center hover:bg-surface-container-high transition-colors">
+              Reset
+            </a>
+          </div>
+        </form>
+      </section>
+
+      {/* HIGH-DENSITY DATATABLE */}
+      <div className="bg-surface-container-lowest border border-outline-variant rounded flex flex-col flex-1 overflow-hidden shadow-none">
+        <div className="overflow-x-auto flex-1">
+          {employees.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-16">
+              <p className="text-[14px] font-medium text-on-surface">No employees found</p>
+              <p className="text-[13px] text-secondary">Try adjusting your search or filters.</p>
+            </div>
+          ) : (
+            <table className="w-full border-collapse text-left text-on-surface">
+              <thead className="bg-surface-container border-b border-outline-variant sticky top-0 z-10 select-none">
+                <tr className="h-9">
+                  <th className="w-10 px-3 py-1" scope="col">
+                    <input className="rounded border-outline text-primary focus:ring-primary w-4 h-4 cursor-pointer" type="checkbox"/>
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold min-w-[220px]" scope="col">
+                    Employee
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold min-w-[170px]" scope="col">
+                    Department
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold min-w-[190px]" scope="col">
+                    Role
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold min-w-[130px]" scope="col">
+                    Location
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold min-w-[110px]" scope="col">
+                    Status
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold min-w-[110px]" scope="col">
+                    Joined
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary text-right pr-4 min-w-[110px]" scope="col">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant font-body-md text-body-md">
+                {employees.map((emp) => (
+                  <tr key={emp.id} className="h-10 hover:bg-surface-bright bg-surface-container-lowest transition-colors">
+                    <td className="px-3 py-1.5">
+                      <input className="row-checkbox rounded border-outline text-primary focus:ring-primary w-4 h-4 cursor-pointer" type="checkbox"/>
                     </td>
-                    <td className="px-4 py-3 font-mono text-[12px] text-secondary">
-                      {emp.employeeCode}
+                    <td className="px-3 py-1.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex flex-col leading-tight">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-medium text-on-surface">{emp.user.name || emp.user.email}</span>
+                            <span className="font-tabular-data text-[11px] text-secondary">{emp.employeeCode}</span>
+                          </div>
+                          <span className="font-body-sm text-[11px] text-secondary truncate max-w-[170px]">{emp.user.email}</span>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-secondary">
-                      {emp.department?.name ?? "—"}
+                    <td className="px-3 py-1.5">
+                      <div className="flex flex-col leading-tight">
+                        <span className="font-medium text-on-surface">{emp.department?.name || "—"}</span>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-secondary">
-                      {emp.designation?.title ?? "—"}
+                    <td className="px-3 py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate max-w-[140px]">{emp.designation?.title || "—"}</span>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-secondary">
+                    <td className="px-3 py-1.5">
+                      <div className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-secondary">business</span>
+                        <span className="font-body-sm">HQ</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-1.5">
+                      {emp.status === "ACTIVE" ? (
+                        <span className="inline-flex items-center gap-1.5 h-5 px-1.5 rounded font-label-sm text-label-sm bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#059669]"></span>
+                          <span>Active</span>
+                        </span>
+                      ) : emp.status === "ON_LEAVE" ? (
+                        <span className="inline-flex items-center gap-1.5 h-5 px-1.5 rounded font-label-sm text-label-sm bg-surface-container border border-outline-variant text-secondary">
+                          <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                          <span>On Leave</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 h-5 px-1.5 rounded font-label-sm text-label-sm bg-error-container border border-error text-on-error-container">
+                          <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
+                          <span>{emp.status}</span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-1.5 font-tabular-data text-tabular-data text-secondary">
                       {formatDate(emp.joiningDate)}
                     </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={config.variant}>{config.label}</Badge>
+                    <td className="px-3 py-1.5 text-right pr-4">
+                      <div className="inline-flex items-center gap-1">
+                        <button className="text-primary hover:underline font-label-sm text-label-sm mr-1" type="button">View</button>
+                        <button className="p-1 hover:bg-surface-container rounded text-secondary hover:text-on-surface" type="button">
+                          <span className="material-symbols-outlined text-[16px]">more_vert</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   )
 }

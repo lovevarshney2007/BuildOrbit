@@ -3,17 +3,21 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-export function SplashScreen() {
+export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
     // Exactly 1 second duration
     const timer = setTimeout(() => {
       setIsVisible(false)
+      // Call onFinish slightly after start of fade out, or after it's done
+      setTimeout(() => {
+        if (onFinish) onFinish()
+      }, 500)
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [onFinish])
 
   return (
     <AnimatePresence>

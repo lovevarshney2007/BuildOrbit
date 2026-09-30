@@ -1,16 +1,14 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
-import { Badge } from "@/components/ui/badge"
 import { LeaveStatus } from "@prisma/client"
 import Link from "next/link"
 
-const STATUS_CONFIG: Record<LeaveStatus, { variant: "success" | "error" | "warning" | "info"; label: string }> = {
-  PENDING: { variant: "warning", label: "Pending" },
-  APPROVED: { variant: "success", label: "Approved" },
-  REJECTED: { variant: "error", label: "Rejected" },
-  CANCELLED: { variant: "default" as "info", label: "Cancelled" },
+const STATUS_CONFIG: Record<LeaveStatus, { color: string; label: string }> = {
+  PENDING: { color: "amber", label: "Pending" },
+  APPROVED: { color: "emerald", label: "Approved" },
+  REJECTED: { color: "red", label: "Rejected" },
+  CANCELLED: { color: "slate", label: "Cancelled" },
 }
 
 interface SearchParams {
@@ -31,7 +29,6 @@ export default async function LeaveRequestsPage({
 
   const requests = await prisma.leaveRequest.findMany({
     where: {
-      // Engineers only see their own; admins see all
       ...(!isAdminLike ? { requesterId: user.userId } : {}),
       status: statusFilter ?? undefined,
     },
@@ -47,88 +44,120 @@ export default async function LeaveRequestsPage({
     new Date(dt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <PageHeader
-        title="Leave Requests"
-        description={isAdminLike ? "All employee leave requests" : "Your leave requests"}
-        action={
-          <Link
-            href="/workforce/leave/new"
-            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-[13px] font-medium text-white hover:bg-primary/90"
-          >
-            Apply Leave
+    <main className="flex-1 p-6 flex flex-col gap-6 w-full">
+      {/* Header & Page Controls Banner */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+              {isAdminLike ? "All Leave Requests" : "My Leave Requests"}
+            </h1>
+            <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Cycle Q4-2026</span>
+          </div>
+          <p className="font-body-md text-body-md text-secondary mt-0.5">
+            {isAdminLike ? "View all employee leave requests." : "Track and manage your time-off requests."}
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Link href="/workforce/leave/new">
+            <button className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150" type="button">
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              <span>+ Apply Leave</span>
+            </button>
           </Link>
-        }
-      />
+        </div>
+      </div>
 
-      {/* Status filter */}
-      <div className="flex gap-2">
-        {["", "PENDING", "APPROVED", "REJECTED"].map((s) => (
-          <a
-            key={s}
-            href={s ? `?status=${s}` : "/workforce/leave"}
-            className={`rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${
-              (statusFilter ?? "") === s
-                ? "bg-primary text-white"
-                : "bg-surface-container-lowest border border-outline-variant text-secondary hover:bg-secondary"
-            }`}
-          >
-            {s === "" ? "All" : STATUS_CONFIG[s as LeaveStatus]?.label ?? s}
-          </a>
-        ))}
+      {/* Filter Bar & Segmented Tabs */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest p-2 border border-outline-variant rounded">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {["", "PENDING", "APPROVED", "REJECTED"].map((s) => {
+            const isActive = (statusFilter ?? "") === s
+            return (
+              <Link key={s} href={s ? `?status=${s}` : "/workforce/leave"}>
+                <button
+                  className={`px-3 py-1.5 rounded font-label-md text-label-md shadow-xs flex items-center gap-1.5 transition-colors ${
+                    isActive
+                      ? "bg-primary text-on-primary"
+                      : "text-secondary hover:text-on-surface hover:bg-surface-container"
+                  }`}
+                  type="button"
+                >
+                  <span>{s === "" ? "All Requests" : STATUS_CONFIG[s as LeaveStatus]?.label}</span>
+                </button>
+              </Link>
+            )
+          })}
+        </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
-        {requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16">
-            <p className="text-[14px] font-medium text-on-surface">No leave requests found</p>
-            <p className="text-[13px] text-secondary">
-              {isAdminLike ? "No requests match the selected filter." : "You have no leave requests yet."}
-            </p>
+      <div className="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden shadow-xs flex flex-col">
+        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant text-secondary">
+          <div className="flex items-center gap-3">
+            <span className="font-label-sm text-label-sm text-on-surface font-medium">{requests.length} records</span>
           </div>
-        ) : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-outline-variant bg-surface-container-low">
-                {isAdminLike && <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>}
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Leave Type</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">From</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">To</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Days</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Reason</th>
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {requests.map((req) => {
-                const config = STATUS_CONFIG[req.status]
-                return (
-                  <tr key={req.id} className="hover:bg-surface-container-low">
-                    {isAdminLike && (
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-on-surface">
-                          {req.requester.name || req.requester.email}
-                        </p>
+        </div>
+        
+        <div className="overflow-x-auto">
+          {requests.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-16">
+              <p className="text-[14px] font-medium text-on-surface">No records found</p>
+              <p className="text-[13px] text-secondary">No leave requests match the current filter.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-bright border-b border-outline-variant text-secondary font-label-sm text-label-sm select-none">
+                  {isAdminLike && <th className="py-2.5 px-4 font-semibold">Employee</th>}
+                  <th className="py-2.5 px-4 font-semibold">Leave Type</th>
+                  <th className="py-2.5 px-4 font-semibold">Duration &amp; Dates</th>
+                  <th className="py-2.5 px-4 font-semibold">Reason</th>
+                  <th className="py-2.5 px-4 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant font-body-md text-body-md">
+                {requests.map((req) => {
+                  const config = STATUS_CONFIG[req.status]
+                  return (
+                    <tr key={req.id} className="hover:bg-surface-bright/70 transition-colors">
+                      {isAdminLike && (
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-on-surface font-label-md leading-tight">{req.requester.name || req.requester.email}</span>
+                            <span className="text-secondary font-label-sm text-[11px]">{req.requester.email}</span>
+                          </div>
+                        </td>
+                      )}
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                          {req.leaveType.name}
+                        </span>
                       </td>
-                    )}
-                    <td className="px-4 py-3 text-on-surface">{req.leaveType.name}</td>
-                    <td className="px-4 py-3 text-secondary">{formatDate(req.startDate)}</td>
-                    <td className="px-4 py-3 text-secondary">{formatDate(req.endDate)}</td>
-                    <td className="px-4 py-3 text-secondary">{req.days}</td>
-                    <td className="max-w-[200px] px-4 py-3 text-secondary">
-                      <p className="truncate">{req.reason}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={config.variant}>{config.label}</Badge>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-on-surface font-tabular-data">{formatDate(req.startDate)} – {formatDate(req.endDate)}</span>
+                          <span className="text-secondary font-label-sm text-[11px]">{req.days} Days</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 max-w-[210px]">
+                        <p className="truncate text-secondary" title={req.reason || ""}>{req.reason || "—"}</p>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-${config.color}-200 bg-${config.color}-50 text-${config.color}-700 font-label-sm text-label-sm`}>
+                          <span className={`w-1 h-1 rounded-full bg-${config.color}-600`}></span>
+                          {config.label}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   )
 }

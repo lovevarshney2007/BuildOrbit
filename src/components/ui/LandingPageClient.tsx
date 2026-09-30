@@ -110,27 +110,13 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
             className="relative lg:ml-auto w-full max-w-2xl perspective-1000 mt-20 lg:mt-0"
           >
             {/* Main App Window Mockup */}
-            <div className="relative rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden aspect-[4/3] flex flex-col transform hover:-translate-y-2 transition-transform duration-500">
-              {/* Window Header */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <div className="w-3 h-3 rounded-full bg-slate-300" />
-                <div className="w-3 h-3 rounded-full bg-slate-300" />
-                <div className="w-3 h-3 rounded-full bg-slate-300" />
-              </div>
-              {/* Fake Dashboard Content */}
-              <div className="flex-1 p-6 flex flex-col gap-4">
-                <div className="h-8 w-1/3 bg-slate-100 rounded-md" />
-                <div className="flex gap-4 mb-4">
-                  <div className="h-24 flex-1 bg-slate-50 rounded-xl border border-slate-200" />
-                  <div className="h-24 flex-1 bg-slate-50 rounded-xl border border-slate-200" />
-                  <div className="h-24 flex-1 bg-slate-50 rounded-xl border border-slate-200" />
-                </div>
-                <div className="flex-1 bg-slate-50 rounded-xl border border-slate-100 p-4">
-                  <div className="h-4 w-full bg-slate-200 rounded-sm mb-4" />
-                  <div className="h-4 w-5/6 bg-slate-200 rounded-sm mb-4" />
-                  <div className="h-4 w-4/6 bg-slate-200 rounded-sm" />
-                </div>
-              </div>
+            <div className="relative rounded-2xl border border-slate-200/50 bg-white shadow-2xl overflow-hidden aspect-[4/3] flex flex-col transform hover:-translate-y-2 transition-transform duration-500 group">
+              <img 
+                src="/dashboard-mockup.jpg" 
+                alt="BuildOrbit Enterprise Dashboard" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
 
             {/* Floating Element 1 */}

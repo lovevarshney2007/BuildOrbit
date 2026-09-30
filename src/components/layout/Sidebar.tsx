@@ -14,6 +14,7 @@ interface SidebarProps {
   onMobileClose?: () => void
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
+  isSplashFinished?: boolean
 }
 
 // Role display label
@@ -31,6 +32,7 @@ export function Sidebar({
   onMobileClose,
   collapsed,
   onCollapsedChange,
+  isSplashFinished = true,
 }: SidebarProps) {
   const pathname = usePathname()
   const filteredNav = getNavForRole(user.role as AppRole)
@@ -91,6 +93,7 @@ export function Sidebar({
                 collapsed={collapsed}
                 pathname={pathname}
                 baseIndex={groupIndex * 5}
+                isSplashFinished={isSplashFinished}
               />
             ))}
           </nav>
@@ -153,11 +156,13 @@ function NavGroupSection({
   collapsed,
   pathname,
   baseIndex = 0,
+  isSplashFinished = true,
 }: {
   group: NavGroup
   collapsed: boolean
   pathname: string
   baseIndex?: number
+  isSplashFinished?: boolean
 }) {
   return (
     <div className="mb-2">
@@ -177,8 +182,8 @@ function NavGroupSection({
             <motion.li 
               key={item.href}
               initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: (baseIndex + index) * 0.05 }}
+              animate={isSplashFinished ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+              transition={{ duration: 0.3, delay: isSplashFinished ? (baseIndex + index) * 0.05 : 0 }}
             >
               <Link
                 href={item.href}

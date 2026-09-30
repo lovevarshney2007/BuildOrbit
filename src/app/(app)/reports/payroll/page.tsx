@@ -1,9 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { redirect } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
 import { prisma } from "@/lib/prisma"
 import { PayrollAnalyticsClient } from "./client"
-import { AnimatedCard } from "@/components/ui/PageAnimator"
 
 export default async function PayrollReportPage() {
   const user = await getCurrentUser()
@@ -44,22 +42,26 @@ export default async function PayrollReportPage() {
     .map(k => monthlyDataMap[k])
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <AnimatedCard delay={0.05}>
-        <PageHeader
-          title="Payroll Summary Report"
-          description="View aggregate payroll costs and tax summaries."
-        />
-      </AnimatedCard>
+    <main className="flex-1 p-6 flex flex-col gap-6 w-full">
+      {/* Header & Page Controls Banner */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Payroll Summary Report</h1>
+            <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Financial Insights</span>
+          </div>
+          <p className="font-body-md text-body-md text-secondary mt-0.5">View aggregate payroll costs and tax summaries over time.</p>
+        </div>
+      </div>
       
-      <AnimatedCard delay={0.15} className="w-full">
+      <div className="w-full">
         <PayrollAnalyticsClient 
           trendData={trendData} 
           totalCost={totalCost} 
           totalDeductions={totalDeductions}
           recordCount={payrolls.length}
         />
-      </AnimatedCard>
-    </div>
+      </div>
+    </main>
   )
 }

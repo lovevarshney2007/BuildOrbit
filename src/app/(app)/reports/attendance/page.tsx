@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { PageHeader } from "@/components/ui/page-header"
 
 export default async function ReportsPage() {
   const user = await getCurrentUser()
@@ -50,44 +49,73 @@ export default async function ReportsPage() {
   const reportData = Array.from(reportMap.values())
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <PageHeader
-        title="Attendance Report"
-        description="Monthly summary of employee attendance."
-      />
-
-      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
-        {reportData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-secondary text-[13px]">
-            No data available for this month.
+    <main className="flex-1 p-6 flex flex-col gap-6 w-full">
+      {/* Header & Page Controls Banner */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Attendance Report</h1>
+            <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Monthly Aggregation</span>
           </div>
-        ) : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-outline-variant bg-surface-container-low">
-                <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>
-                <th className="px-4 py-3 text-right font-semibold text-secondary">Present (Days)</th>
-                <th className="px-4 py-3 text-right font-semibold text-secondary">Absent (Days)</th>
-                <th className="px-4 py-3 text-right font-semibold text-secondary">On Leave (Days)</th>
-                <th className="px-4 py-3 text-right font-semibold text-secondary">Total Recorded</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {reportData.map((row, idx) => (
-                <tr key={idx} className="hover:bg-surface-container-low">
-                  <td className="px-4 py-3 font-medium text-on-surface">{row.name}</td>
-                  <td className="px-4 py-3 text-right text-green-600 font-medium">{row.present}</td>
-                  <td className="px-4 py-3 text-right text-red-600 font-medium">{row.absent}</td>
-                  <td className="px-4 py-3 text-right text-amber-600 font-medium">{row.leave}</td>
-                  <td className="px-4 py-3 text-right font-medium text-on-surface">
-                    {row.present + row.absent + row.leave}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+          <p className="font-body-md text-body-md text-secondary mt-0.5">Summary of employee attendance for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}.</p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <button className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150" type="button">
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span>Export CSV</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Table */}
+      <div className="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden shadow-xs flex flex-col">
+        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant text-secondary">
+          <div className="flex items-center gap-3">
+            <span className="font-label-sm text-label-sm text-on-surface font-medium">{reportData.length} records generated</span>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          {reportData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-16">
+              <p className="text-[14px] font-medium text-on-surface">No data available for this month.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-bright border-b border-outline-variant text-secondary font-label-sm text-label-sm select-none">
+                  <th className="py-2.5 px-4 font-semibold">Employee</th>
+                  <th className="py-2.5 px-4 font-semibold text-right">Present (Days)</th>
+                  <th className="py-2.5 px-4 font-semibold text-right">Absent (Days)</th>
+                  <th className="py-2.5 px-4 font-semibold text-right">On Leave (Days)</th>
+                  <th className="py-2.5 px-4 font-semibold text-right">Total Recorded</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant font-body-md text-body-md">
+                {reportData.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-surface-bright/70 transition-colors">
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-on-surface">{row.name}</span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-tabular-data text-emerald-600 font-medium">{row.present}</span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-tabular-data text-red-600 font-medium">{row.absent}</span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-tabular-data text-amber-600 font-medium">{row.leave}</span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-tabular-data text-on-surface font-medium">{row.present + row.absent + row.leave}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </main>
   )
 }

@@ -333,3 +333,17 @@ model LeadFollowUp {
   @@index([followUpDate])
   @@map("lead_follow_ups")
 }
+
+// ===========================================================================
+// OTP Verification
+// ===========================================================================
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("otp_verifications")
+}

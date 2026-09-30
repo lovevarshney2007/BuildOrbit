@@ -1,8 +1,8 @@
-import { Resend } from "resend";
-import { ReactElement } from "react";
+import nodemailer from "nodemailer"
+import { Resend } from "resend"
+import { ReactElement } from "react"
 
-// Initialize Resend client. It will use the RESEND_API_KEY environment variable.
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 interface SendEmailOptions {
   to: string | string[];
@@ -23,5 +23,46 @@ export async function sendEmail({ to, subject, react }: SendEmailOptions) {
   } catch (error) {
     console.error("Failed to send email:", error);
     return { success: false, error };
+  }
+}
+
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+})
+
+export async function sendOTP(email: string, otp: string) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn("Email credentials not set. OTP to", email, "is", otp)
+    return
+  }
+
+  const mailOptions = {
+    from: `"BuildOrbit" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Your BuildOrbit Verification Code",
+    html: `
+      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #0f172a; margin-top: 0;">Welcome to BuildOrbit!</h2>
+        <p style="color: #475569; font-size: 16px;">Please use the verification code below to complete your registration.</p>
+        
+        <div style="background-color: #f8fafc; padding: 16px; border-radius: 6px; text-align: center; margin: 24px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #10b981;">${otp}</span>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+      </div>
+    `,
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
+  } catch (error) {
+    console.error("Error sending OTP email:", error)
+    throw new Error("Failed to send verification email.")
   }
 }
