@@ -31,7 +31,7 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
           <option value="">Select leave type…</option>
           {leaveTypes.map((lt) => (
             <option key={lt.id} value={lt.id}>
-              {lt.name} ({lt.daysAllowed} days allowed)
+              {lt.name}
             </option>
           ))}
         </select>
