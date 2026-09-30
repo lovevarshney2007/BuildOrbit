@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { PageHeader } from "@/components/ui/page-header"
 import { Badge } from "@/components/ui/badge"
+import { AnimatedCard } from "@/components/ui/PageAnimator"
 
 export default async function LeaveTypesPage() {
   const user = await getCurrentUser()
@@ -15,12 +16,15 @@ export default async function LeaveTypesPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <PageHeader
-        title="Leave Master"
-        description="Configure allowed leave types and balances."
-      />
+      <AnimatedCard delay={0.05}>
+        <PageHeader
+          title="Leave Master"
+          description="Configure allowed leave types and balances."
+        />
+      </AnimatedCard>
 
-      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
+      <AnimatedCard delay={0.15} className="w-full">
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest overflow-hidden">
         <table className="w-full text-[13px]">
           <thead>
             <tr className="border-b border-outline-variant bg-surface-container-low">
@@ -56,6 +60,7 @@ export default async function LeaveTypesPage() {
           </tbody>
         </table>
       </div>
+      </AnimatedCard>
     </div>
   )
 }
