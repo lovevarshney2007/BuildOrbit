@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { AttendanceStatus } from "@prisma/client"
 import { AttendanceFilters } from "@/components/attendance/AttendanceFilters"
+import { MarkAttendanceForm } from "@/components/attendance/MarkAttendanceForm"
 
 const STATUS_CONFIG: Record<AttendanceStatus, { color: string; label: string }> = {
   PRESENT: { color: "emerald", label: "Present" },
@@ -78,6 +79,12 @@ export default async function AttendancePage({
           <p className="font-body-md text-body-md text-secondary mt-0.5">Showing attendance logs and status for {formatDate(filterDate)}.</p>
         </div>
       </div>
+
+      {user.role === "ENGINEER" && (
+        <div className="w-full max-w-2xl mx-auto my-4">
+          <MarkAttendanceForm />
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-surface-container-lowest p-3 border border-outline-variant rounded">

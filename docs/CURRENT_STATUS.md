@@ -11,9 +11,9 @@ We have successfully completed the end-to-end implementation of BuildOrbit (Phas
 - **Database & Data:** Defined the complete Prisma schema and created a robust development seed script that provisions all necessary departments, roles, mock users, leave requests, attendance, payroll, and CRM data.
 - **UI & Layout:** Refactored the `AppShell`, `Sidebar`, and `Header` components to use real authenticated user data from the session and enforced Role-Based Access Control on navigation links.
 - **Application Modules:** Implemented complete front-end pages and server components for all application modules:
-  - **Dashboard:** Role-specific KPIs, Attendance Trend charts (using `recharts`), and recent pending leave requests.
-  - **Workforce:** Employees list, Attendance tracker (with date and employee filtering), Leave requests list, and Apply Leave workflow with a Server Action.
-  - **HR:** Payroll summary, Leave Master (types), and Leave Approvals list with approve/reject server actions.
+  - **Dashboard:** Created a dynamic Role-Based dashboard. The Engineer Dashboard features an advanced 12-column analytics grid, SVG donut charts for attendance tracking, detailed leave balances, and quick actions, while the enterprise dashboard remains intact for Admins/HR.
+  - **Workforce:** Employees list, Attendance tracker (with date and employee filtering), Leave requests list, and Apply Leave workflow with a Server Action. Added a specialized **Self-Service Attendance Portal** for engineers combining HTML5 Geolocation (100m geofencing) and WebRTC Camera capture to verify presence before marking attendance.
+  - **HR:** Payroll summary, Leave Master (types), and Leave Approvals list with approve/reject server actions. Added a dedicated self-service `Payslip` page for engineers.
   - **CRM:** Lead follow-up tracking and pipeline view.
   - **Admin:** Settings and Login Activity audit logs.
   - **Reports:** Attendance, Payroll, and Lead analytics.

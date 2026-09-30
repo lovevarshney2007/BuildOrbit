@@ -94,7 +94,7 @@ export default async function DashboardPage() {
     })
 
     return (
-      <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
+      <div className="flex flex-col gap-6 w-full p-6 md:p-8">
         {/* HERO BANNER */}
         <AnimatedCard delay={0.05} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container text-white shadow-md p-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
@@ -177,10 +177,10 @@ export default async function DashboardPage() {
         </div>
 
         {/* MAIN 3-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* COLUMN 1: Attendance Analytics */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 lg:col-span-4 xl:col-span-3">
             <AnimatedCard delay={0.30} className="p-6 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex-1 flex flex-col">
               <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-primary">pie_chart</span>
@@ -188,19 +188,34 @@ export default async function DashboardPage() {
               </h3>
               <p className="text-secondary text-sm mb-6">This month's personal attendance</p>
               
-              <div className="flex flex-col items-center justify-center gap-6 flex-1">
-                {/* Simulated Donut Chart */}
-                <div className="relative w-40 h-40 flex items-center justify-center rounded-full border-8 border-slate-100"
-                     style={{ 
-                       background: `conic-gradient(#0ea5e9 0% ${attendanceRate}%, #f1f5f9 ${attendanceRate}% 100%)` 
-                     }}>
-                  <div className="w-32 h-32 bg-surface-container-lowest rounded-full flex flex-col items-center justify-center shadow-inner z-10 absolute">
-                    <span className="text-3xl font-bold text-on-surface">{attendanceRate}%</span>
-                    <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">Attendance</span>
+              <div className="flex flex-col items-center justify-center gap-6 flex-1 py-4">
+                {/* SVG Donut Chart */}
+                <div className="relative w-36 h-36 flex items-center justify-center">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <path
+                      className="text-slate-100"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="text-[#0ea5e9]"
+                      strokeDasharray={`${attendanceRate}, 100`}
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-on-surface leading-none mb-0.5">{attendanceRate}%</span>
+                    <span className="text-[9px] text-secondary font-bold uppercase tracking-widest">Attendance</span>
                   </div>
                 </div>
 
-                <div className="w-full space-y-3 mt-2">
+                <div className="w-full space-y-3 mt-4">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#0ea5e9]"></div><span className="text-secondary">Present</span></div>
                     <span className="font-semibold">{presentDays}</span>
@@ -253,7 +268,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* COLUMN 2: Leaves & Quick Actions */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 lg:col-span-5 xl:col-span-6">
             <AnimatedCard delay={0.40} className="p-6 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex-1">
               <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
@@ -261,18 +276,18 @@ export default async function DashboardPage() {
               </h3>
               <p className="text-secondary text-sm mb-6">FY {currentYear} balance by type</p>
               
-              <div className="space-y-6">
+              <div className="space-y-5 flex-1">
                 {leaveBalances.map(balance => {
                   const remaining = balance.totalDays - balance.usedDays
                   const percent = Math.round((balance.usedDays / balance.totalDays) * 100)
                   return (
                     <div key={balance.id}>
-                      <div className="flex justify-between text-sm mb-1.5">
+                      <div className="flex justify-between text-sm mb-2">
                         <span className="font-semibold flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-primary"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                           {balance.leaveType.name}
                         </span>
-                        <span className="font-bold text-on-surface">{remaining} <span className="text-secondary font-normal">/ {balance.totalDays}</span></span>
+                        <span className="font-bold text-on-surface">{remaining} <span className="text-secondary font-medium">/ {balance.totalDays}</span></span>
                       </div>
                       <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                         <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${percent}%` }}></div>
@@ -283,7 +298,7 @@ export default async function DashboardPage() {
                 })}
               </div>
 
-              <div className="mt-8 pt-4 border-t border-outline-variant flex justify-between items-end">
+              <div className="mt-6 pt-5 border-t border-outline-variant flex justify-between items-end">
                 <div>
                   <p className="font-semibold text-on-surface">Total Remaining</p>
                   <p className="text-xs text-secondary">Across all leave types</p>
@@ -313,12 +328,12 @@ export default async function DashboardPage() {
                   </div>
                   <span className="font-semibold text-sm">Apply Leave</span>
                 </Link>
-                <button className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white hover:border-pink-500 hover:shadow-sm transition-all group text-left">
+                <Link href="/workforce/payslip" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white hover:border-pink-500 hover:shadow-sm transition-all group text-left">
                   <div className="w-8 h-8 rounded bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors">
                     <span className="material-symbols-outlined text-lg">request_quote</span>
                   </div>
                   <span className="font-semibold text-sm">View Payslip</span>
-                </button>
+                </Link>
                 <Link href="/profile" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-800 hover:shadow-sm transition-all group">
                   <div className="w-8 h-8 rounded bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-slate-800 group-hover:text-white transition-colors">
                     <span className="material-symbols-outlined text-lg">person</span>
@@ -330,7 +345,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* COLUMN 3: Right Sidebar */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 lg:col-span-3 xl:col-span-3">
             <AnimatedCard delay={0.50} className="p-6 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2">
