@@ -146,4 +146,26 @@ Prisma 5.22.0 is a production-stable, widely-used version that includes all requ
 
 ---
 
-_Last updated: 2026-09-29 — Added DEC-004 (CUID), DEC-005 (Role enum), DEC-006 (Prisma 5.22.0)._
+---
+
+### [DEC-007] Visual Design Redesign (Graphite Identity)
+
+**Date:** 2026-09-30
+**Status:** ✅ Confirmed
+
+**Decision:**
+Transitioned from a generic "blue SaaS" template styling with hardcoded hex colors (`#1E293B`, `#E2E8F0`) to a semantic CSS variable-based design system anchored by a "Graphite / Near-Black" brand identity (`#111111` for primary actions, `#f5f5f4` for background).
+
+**Reason:**
+- The initial styling felt too generic and template-like.
+- The new Graphite identity (extracted from the Stitch design project `10240600691029804365`) provides a more professional, premium enterprise feel.
+- Hardcoded hex values across hundreds of React components are unmaintainable. Centralizing these in `globals.css` with semantic tokens (`bg-primary`, `text-foreground`, `border-border`) allows for instant global theme updates and easier dark mode implementation in the future.
+
+**Impact:**
+- All `.tsx` components have been updated to use semantic Tailwind classes (`bg-primary`, `text-muted-foreground`, etc.) instead of arbitrary hex colors.
+- `globals.css` now dictates the entire color palette.
+- Restrained semantic colors (emerald, amber, rose) are strictly reserved for statuses and alerts.
+
+---
+
+_Last updated: 2026-09-30 — Added DEC-004 (CUID), DEC-005 (Role enum), DEC-006 (Prisma 5.22.0), DEC-007 (Graphite Redesign)._

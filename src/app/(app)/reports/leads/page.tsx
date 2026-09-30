@@ -33,7 +33,7 @@ export default async function LeadReportsPage() {
   statusData.sort((a, b) => funnelOrder.indexOf(a.name) - funnelOrder.indexOf(b.name))
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Lead Analytics"
         description="Conversion rates, pipeline velocity, and source tracking."

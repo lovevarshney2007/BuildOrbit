@@ -47,7 +47,7 @@ export async function updateProfileAction(
     
     revalidatePath("/profile")
     return { success: true, message: "Profile updated successfully." }
-  } catch (error) {
+  } catch {
     return { message: "Failed to update profile." }
   }
 }

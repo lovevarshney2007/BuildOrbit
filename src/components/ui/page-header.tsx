@@ -16,9 +16,9 @@ export function PageHeader({
   return (
     <div className={cn("flex items-start justify-between gap-4", className)}>
       <div>
-        <h1 className="text-[20px] font-semibold text-[#1E293B]">{title}</h1>
+        <h1 className="text-[20px] font-semibold text-foreground">{title}</h1>
         {description && (
-          <p className="mt-0.5 text-[13px] text-[#64748B]">{description}</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}

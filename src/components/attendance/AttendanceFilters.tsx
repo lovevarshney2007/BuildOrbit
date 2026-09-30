@@ -29,7 +29,7 @@ export function AttendanceFilters({ employees, isAdminLike, currentDate, current
   return (
     <div className="flex flex-wrap gap-3">
       <div className="w-44">
-        <label className="mb-1 block text-[12px] font-medium text-[#64748B]">Date</label>
+        <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Date</label>
         <Input
           type="date"
           defaultValue={currentDate}
@@ -38,7 +38,7 @@ export function AttendanceFilters({ employees, isAdminLike, currentDate, current
       </div>
       {isAdminLike && (
         <div className="w-56">
-          <label className="mb-1 block text-[12px] font-medium text-[#64748B]">Employee</label>
+          <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Employee</label>
           <Select
             defaultValue={currentEmployeeId ?? ""}
             onChange={(e) => update("employeeId", e.target.value)}

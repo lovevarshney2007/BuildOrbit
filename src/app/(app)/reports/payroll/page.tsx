@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { PageHeader } from "@/components/ui/page-header"
 import { prisma } from "@/lib/prisma"
 import { PayrollAnalyticsClient } from "./client"
+import { AnimatedCard } from "@/components/ui/PageAnimator"
 
 export default async function PayrollReportPage() {
   const user = await getCurrentUser()
@@ -43,18 +44,22 @@ export default async function PayrollReportPage() {
     .map(k => monthlyDataMap[k])
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Payroll Summary Report"
-        description="View aggregate payroll costs and tax summaries."
-      />
+    <div className="flex flex-col gap-6 w-full">
+      <AnimatedCard delay={0.05}>
+        <PageHeader
+          title="Payroll Summary Report"
+          description="View aggregate payroll costs and tax summaries."
+        />
+      </AnimatedCard>
       
-      <PayrollAnalyticsClient 
-        trendData={trendData} 
-        totalCost={totalCost} 
-        totalDeductions={totalDeductions}
-        recordCount={payrolls.length}
-      />
+      <AnimatedCard delay={0.15} className="w-full">
+        <PayrollAnalyticsClient 
+          trendData={trendData} 
+          totalCost={totalCost} 
+          totalDeductions={totalDeductions}
+          recordCount={payrolls.length}
+        />
+      </AnimatedCard>
     </div>
   )
 }

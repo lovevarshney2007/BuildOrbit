@@ -18,27 +18,27 @@ interface LeadAnalyticsClientProps {
 
 export function LeadAnalyticsClient({ statusData, sourceData, totalLeads, totalValue }: LeadAnalyticsClientProps) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-          <p className="text-[13px] font-medium text-[#64748B]">Total Leads</p>
-          <h3 className="mt-2 text-2xl font-bold text-[#1E293B]">{totalLeads}</h3>
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest p-6">
+          <p className="text-[13px] font-medium text-secondary">Total Leads</p>
+          <h3 className="mt-2 text-2xl font-bold text-on-surface">{totalLeads}</h3>
         </div>
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-          <p className="text-[13px] font-medium text-[#64748B]">Pipeline Value</p>
-          <h3 className="mt-2 text-2xl font-bold text-[#1E293B]">${totalValue.toLocaleString()}</h3>
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest p-6">
+          <p className="text-[13px] font-medium text-secondary">Pipeline Value</p>
+          <h3 className="mt-2 text-2xl font-bold text-on-surface">${totalValue.toLocaleString()}</h3>
         </div>
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-          <p className="text-[13px] font-medium text-[#64748B]">Conversion Rate</p>
-          <h3 className="mt-2 text-2xl font-bold text-[#1E293B]">
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest p-6">
+          <p className="text-[13px] font-medium text-secondary">Conversion Rate</p>
+          <h3 className="mt-2 text-2xl font-bold text-on-surface">
              {totalLeads ? Math.round((statusData.find(s => s.name === "WON")?.value || 0) / totalLeads * 100) : 0}%
           </h3>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-          <h3 className="mb-4 text-base font-semibold text-[#1E293B]">Sales Funnel</h3>
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest p-6">
+          <h3 className="mb-4 text-base font-semibold text-on-surface">Sales Funnel</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={statusData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -52,8 +52,8 @@ export function LeadAnalyticsClient({ statusData, sourceData, totalLeads, totalV
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-          <h3 className="mb-4 text-base font-semibold text-[#1E293B]">Lead Sources</h3>
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest p-6">
+          <h3 className="mb-4 text-base font-semibold text-on-surface">Lead Sources</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

@@ -53,7 +53,7 @@ export default async function PayrollPage({
     val ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(val)) : "—"
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Payroll"
         description={`Showing payroll for ${MONTH_NAMES[filterMonth - 1]} ${filterYear}`}
@@ -64,7 +64,7 @@ export default async function PayrollPage({
         <select
           name="month"
           defaultValue={filterMonth}
-          className="h-9 rounded-md border border-[#E2E8F0] px-3 text-[13px] focus:outline-none"
+          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
         >
           {MONTH_NAMES.map((m, i) => (
             <option key={m} value={i + 1}>{m}</option>
@@ -73,7 +73,7 @@ export default async function PayrollPage({
         <select
           name="year"
           defaultValue={filterYear}
-          className="h-9 rounded-md border border-[#E2E8F0] px-3 text-[13px] focus:outline-none"
+          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
         >
           {[currentYear, currentYear - 1].map((y) => (
             <option key={y} value={y}>{y}</option>
@@ -81,44 +81,44 @@ export default async function PayrollPage({
         </select>
         <button
           type="submit"
-          className="h-9 rounded-md bg-[#1E293B] px-4 text-[13px] font-medium text-white hover:bg-[#0F172A]"
+          className="h-9 rounded-md bg-primary px-4 text-[13px] font-medium text-white hover:bg-primary/90"
         >
           Filter
         </button>
       </form>
 
       {/* Table */}
-      <div className="rounded-lg border border-[#E2E8F0] bg-white overflow-x-auto">
+      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest overflow-x-auto">
         {records.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16">
-            <p className="text-[14px] font-medium text-[#1E293B]">No payroll records</p>
-            <p className="text-[13px] text-[#64748B]">No records generated for this month.</p>
+            <p className="text-[14px] font-medium text-on-surface">No payroll records</p>
+            <p className="text-[13px] text-secondary">No records generated for this month.</p>
           </div>
         ) : (
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8F9FA]">
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Employee</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Basic</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Allowances</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Deductions</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Net Salary</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Status</th>
+              <tr className="border-b border-outline-variant bg-surface-container-low">
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Basic</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Allowances</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Deductions</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Net Salary</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
+            <tbody className="divide-y divide-outline-variant">
               {records.map((rec) => {
                 const config = STATUS_CONFIG[rec.status]
                 return (
-                  <tr key={rec.id} className="hover:bg-[#F8F9FA]">
+                  <tr key={rec.id} className="hover:bg-surface-container-low">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#1E293B]">{rec.employee.user.name || rec.employee.user.email}</p>
-                      <p className="text-[11px] text-[#64748B]">{rec.employee.employeeCode} · {rec.employee.department?.name}</p>
+                      <p className="font-medium text-on-surface">{rec.employee.user.name || rec.employee.user.email}</p>
+                      <p className="text-[11px] text-secondary">{rec.employee.employeeCode} · {rec.employee.department?.name}</p>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-[#64748B]">{formatCurrency(rec.basicSalary)}</td>
-                    <td className="px-4 py-3 text-right font-mono text-[#64748B]">{formatCurrency(rec.allowances)}</td>
+                    <td className="px-4 py-3 text-right font-mono text-secondary">{formatCurrency(rec.basicSalary)}</td>
+                    <td className="px-4 py-3 text-right font-mono text-secondary">{formatCurrency(rec.allowances)}</td>
                     <td className="px-4 py-3 text-right font-mono text-red-500">{formatCurrency(rec.deductions)}</td>
-                    <td className="px-4 py-3 text-right font-mono font-medium text-[#1E293B]">{formatCurrency(rec.netSalary)}</td>
+                    <td className="px-4 py-3 text-right font-mono font-medium text-on-surface">{formatCurrency(rec.netSalary)}</td>
                     <td className="px-4 py-3">
                       <Badge variant={config.variant as React.ComponentProps<typeof Badge>["variant"]}>{config.label}</Badge>
                     </td>

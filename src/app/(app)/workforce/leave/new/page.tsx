@@ -14,13 +14,13 @@ export default async function ApplyLeavePage() {
   })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Apply for Leave"
         description="Submit a new leave request"
       />
       <div className="max-w-lg">
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
+        <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest p-6">
           <ApplyLeaveForm
             leaveTypes={leaveTypes.map((lt) => ({ id: lt.id, name: lt.name, daysAllowed: lt.daysAllowed }))}
             userId={user.userId}

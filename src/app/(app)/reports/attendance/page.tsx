@@ -50,36 +50,36 @@ export default async function ReportsPage() {
   const reportData = Array.from(reportMap.values())
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Attendance Report"
         description="Monthly summary of employee attendance."
       />
 
-      <div className="rounded-lg border border-[#E2E8F0] bg-white">
+      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
         {reportData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-[#64748B] text-[13px]">
+          <div className="flex flex-col items-center justify-center py-16 text-secondary text-[13px]">
             No data available for this month.
           </div>
         ) : (
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8F9FA]">
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Employee</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Present (Days)</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Absent (Days)</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">On Leave (Days)</th>
-                <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Total Recorded</th>
+              <tr className="border-b border-outline-variant bg-surface-container-low">
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Present (Days)</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Absent (Days)</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">On Leave (Days)</th>
+                <th className="px-4 py-3 text-right font-semibold text-secondary">Total Recorded</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
+            <tbody className="divide-y divide-outline-variant">
               {reportData.map((row, idx) => (
-                <tr key={idx} className="hover:bg-[#F8F9FA]">
-                  <td className="px-4 py-3 font-medium text-[#1E293B]">{row.name}</td>
+                <tr key={idx} className="hover:bg-surface-container-low">
+                  <td className="px-4 py-3 font-medium text-on-surface">{row.name}</td>
                   <td className="px-4 py-3 text-right text-green-600 font-medium">{row.present}</td>
                   <td className="px-4 py-3 text-right text-red-600 font-medium">{row.absent}</td>
                   <td className="px-4 py-3 text-right text-amber-600 font-medium">{row.leave}</td>
-                  <td className="px-4 py-3 text-right font-medium text-[#1E293B]">
+                  <td className="px-4 py-3 text-right font-medium text-on-surface">
                     {row.present + row.absent + row.leave}
                   </td>
                 </tr>

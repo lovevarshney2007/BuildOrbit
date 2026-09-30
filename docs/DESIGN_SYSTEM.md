@@ -36,29 +36,32 @@ BuildOrbit is a **professional enterprise application**. The design must communi
 
 ### Palette
 
-| Token | Value | Usage |
+| Token | Value (HSL) | Usage |
 |---|---|---|
-| `--color-background` | `#F8F9FA` | Page background (neutral light gray) |
-| `--color-surface` | `#FFFFFF` | Cards, panels, modals, tables |
-| `--color-border` | `#E2E8F0` | All borders and dividers |
-| `--color-primary` | `#1E293B` | Primary actions, sidebar, headings (dark navy/charcoal) |
-| `--color-primary-hover` | `#0F172A` | Primary hover state |
-| `--color-accent` | `#3B82F6` | Links, focus rings, active state indicators |
-| `--color-muted` | `#64748B` | Secondary text, labels, captions |
-| `--color-muted-bg` | `#F1F5F9` | Subtle backgrounds (empty states, disabled fields) |
+| `--background` | `60 5% 96%` | Page background (warm off-white / #f5f5f4) |
+| `--foreground` | `0 0% 7%` | Primary text (near-black / #111111) |
+| `--card` / `--popover` | `0 0% 100%` | Cards, panels, modals, tables (white) |
+| `--border` / `--input` | `240 6% 90%` | All borders and dividers (#e4e4e7) |
+| `--primary` | `0 0% 7%` | Primary actions, sidebar, headings (graphite / near-black / #111111) |
+| `--primary-foreground` | `0 0% 100%` | Text on primary actions (white) |
+| `--secondary` | `240 5% 96%` | Secondary buttons, subtle backgrounds (#f4f4f5) |
+| `--muted` | `240 5% 96%` | Disabled fields, alternate subtle backgrounds |
+| `--muted-foreground` | `240 4% 46%` | Secondary text, labels, captions (#71717a) |
+| `--ring` | `0 0% 7%` | Focus rings (near-black) |
 
 ### Status Colors (Restrained)
 
-| Token | Value | Usage |
-|---|---|---|
-| `--color-success` | `#16A34A` | Success state, active status badges |
-| `--color-warning` | `#D97706` | Warning state, pending badges |
-| `--color-error` | `#DC2626` | Error state, destructive actions |
-| `--color-info` | `#2563EB` | Informational state |
+| Token | Usage |
+|---|---|
+| `success` (Emerald) | Success state, active status badges |
+| `warning` (Amber) | Warning state, pending badges |
+| `error` (Rose) | Error state, destructive actions |
+| `info` (Sky) | Informational state |
 
 > Status colors are used **only** for badges, alerts, and validation feedback — not for backgrounds, buttons, or decorative elements.
 
 ### Explicitly Prohibited
+- ❌ Generic SaaS Blue themes
 - ❌ Gradients (linear or radial)
 - ❌ Glassmorphism (backdrop-blur on cards)
 - ❌ Neon colors
@@ -176,4 +179,4 @@ BuildOrbit is a **professional enterprise application**. The design must communi
 
 ---
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-30_

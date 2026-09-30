@@ -63,7 +63,7 @@ export default async function EmployeesPage({
     new Date(dt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Employees"
         description={`${employees.length} employee${employees.length !== 1 ? "s" : ""} found`}
@@ -75,12 +75,12 @@ export default async function EmployeesPage({
           name="search"
           placeholder="Search by name or email…"
           defaultValue={search}
-          className="h-9 w-64 rounded-md border border-[#E2E8F0] px-3 text-[13px] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+          className="h-9 w-64 rounded-md border border-outline-variant px-3 text-[13px] focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
         />
         <select
           name="department"
           defaultValue={departmentId ?? ""}
-          className="h-9 rounded-md border border-[#E2E8F0] px-3 text-[13px] focus:outline-none"
+          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
         >
           <option value="">All Departments</option>
           {departments.map((d) => (
@@ -90,7 +90,7 @@ export default async function EmployeesPage({
         <select
           name="status"
           defaultValue={statusFilter ?? ""}
-          className="h-9 rounded-md border border-[#E2E8F0] px-3 text-[13px] focus:outline-none"
+          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
@@ -100,58 +100,58 @@ export default async function EmployeesPage({
         </select>
         <button
           type="submit"
-          className="h-9 rounded-md bg-[#1E293B] px-4 text-[13px] font-medium text-white hover:bg-[#0F172A]"
+          className="h-9 rounded-md bg-primary px-4 text-[13px] font-medium text-white hover:bg-primary/90"
         >
           Filter
         </button>
         <a
           href="/workforce/employees"
-          className="inline-flex h-9 items-center rounded-md border border-[#E2E8F0] px-4 text-[13px] text-[#64748B] hover:bg-slate-50"
+          className="inline-flex h-9 items-center rounded-md border border-outline-variant px-4 text-[13px] text-secondary hover:bg-secondary"
         >
           Reset
         </a>
       </form>
 
       {/* Table */}
-      <div className="rounded-lg border border-[#E2E8F0] bg-white">
+      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
         {employees.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16">
-            <p className="text-[14px] font-medium text-[#1E293B]">No employees found</p>
-            <p className="text-[13px] text-[#64748B]">Try adjusting your search or filters.</p>
+            <p className="text-[14px] font-medium text-on-surface">No employees found</p>
+            <p className="text-[13px] text-secondary">Try adjusting your search or filters.</p>
           </div>
         ) : (
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8F9FA]">
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Employee</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Code</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Department</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Designation</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Joining Date</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Status</th>
+              <tr className="border-b border-outline-variant bg-surface-container-low">
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Code</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Department</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Designation</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Joining Date</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
+            <tbody className="divide-y divide-outline-variant">
               {employees.map((emp) => {
                 const config = STATUS_CONFIG[emp.status]
                 return (
-                  <tr key={emp.id} className="hover:bg-[#F8F9FA]">
+                  <tr key={emp.id} className="hover:bg-surface-container-low">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#1E293B]">
+                      <p className="font-medium text-on-surface">
                         {emp.user.name || emp.user.email}
                       </p>
-                      <p className="text-[11px] text-[#64748B]">{emp.user.email}</p>
+                      <p className="text-[11px] text-secondary">{emp.user.email}</p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-[12px] text-[#64748B]">
+                    <td className="px-4 py-3 font-mono text-[12px] text-secondary">
                       {emp.employeeCode}
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">
+                    <td className="px-4 py-3 text-secondary">
                       {emp.department?.name ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">
+                    <td className="px-4 py-3 text-secondary">
                       {emp.designation?.title ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">
+                    <td className="px-4 py-3 text-secondary">
                       {formatDate(emp.joiningDate)}
                     </td>
                     <td className="px-4 py-3">

@@ -15,7 +15,7 @@ export default async function ProfilePage() {
   })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="My Profile"
         description="Manage your personal information and view employment details."
@@ -31,30 +31,30 @@ export default async function ProfilePage() {
             </CardHeader>
             <CardContent className="flex flex-col gap-4 text-[14px]">
               <div className="flex flex-col gap-1">
-                <span className="text-[#64748B]">Name</span>
-                <span className="font-medium text-[#1E293B]">{user.name || "N/A"}</span>
+                <span className="text-secondary">Name</span>
+                <span className="font-medium text-on-surface">{user.name || "N/A"}</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[#64748B]">Email</span>
-                <span className="font-medium text-[#1E293B]">{user.email}</span>
+                <span className="text-secondary">Email</span>
+                <span className="font-medium text-on-surface">{user.email}</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[#64748B]">System Role</span>
+                <span className="text-secondary">System Role</span>
                 <Badge variant="outline" className="w-fit">{user.role}</Badge>
               </div>
               {employee && (
                 <>
                   <div className="flex flex-col gap-1 mt-2">
-                    <span className="text-[#64748B]">Employee Code</span>
-                    <span className="font-medium text-[#1E293B]">{employee.employeeCode}</span>
+                    <span className="text-secondary">Employee Code</span>
+                    <span className="font-medium text-on-surface">{employee.employeeCode}</span>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-[#64748B]">Joining Date</span>
-                    <span className="font-medium text-[#1E293B]">{employee.joiningDate.toLocaleDateString()}</span>
+                    <span className="text-secondary">Joining Date</span>
+                    <span className="font-medium text-on-surface">{employee.joiningDate.toLocaleDateString()}</span>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-[#64748B]">Basic Salary</span>
-                    <span className="font-medium text-[#1E293B]">${Number(employee.basicSalary).toLocaleString()}</span>
+                    <span className="text-secondary">Basic Salary</span>
+                    <span className="font-medium text-on-surface">${Number(employee.basicSalary).toLocaleString()}</span>
                   </div>
                 </>
               )}
@@ -79,7 +79,7 @@ export default async function ProfilePage() {
                   }}
                 />
               ) : (
-                <div className="text-[13px] text-[#64748B]">
+                <div className="text-[13px] text-secondary">
                   No employee record found for your user account. Please contact HR.
                 </div>
               )}

@@ -2,12 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  ChevronLeft,
-  ChevronRight,
-  Orbit,
-  LogOut,
-} from "lucide-react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { getNavForRole, type NavGroup, type AppRole } from "@/lib/navigation"
 import type { SessionPayload } from "@/lib/session"
@@ -65,112 +60,89 @@ export function Sidebar({
         id="app-sidebar"
         aria-label="Main navigation"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col bg-[#1E293B] text-white",
+          "fixed top-0 left-0 h-screen z-40 bg-surface-container-lowest/90 backdrop-blur-md border-r border-outline-variant flex flex-col justify-between p-3 select-none",
           "transition-[width] duration-200 ease-in-out",
           collapsed ? "w-16" : "w-60",
           "-translate-x-full lg:translate-x-0",
           mobileOpen && "translate-x-0",
         )}
       >
-        {/* Branding */}
-        <div
-          className={cn(
-            "flex h-14 shrink-0 items-center border-b border-white/10",
-            collapsed ? "justify-center px-0" : "gap-2.5 px-4",
-          )}
-        >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-blue-500">
-            <Orbit className="size-4 text-white" aria-hidden="true" />
+        {/* Top Brand & Suite Identifier */}
+        <div className="space-y-4 flex flex-col flex-1 min-h-0">
+          <div className="flex items-center gap-2.5 px-2 py-1 shrink-0">
+            <span className="material-symbols-outlined text-slate-900" data-icon="orbit">orbit</span>
+            {!collapsed && (
+              <span className="font-bold text-on-surface">BuildOrbit</span>
+            )}
           </div>
           {!collapsed && (
-            <span className="text-[15px] font-semibold tracking-tight text-white">
-              BuildOrbit
-            </span>
+            <div className="px-2 pb-1 border-b border-outline-variant flex items-center justify-between shrink-0">
+              <span className="font-label-sm text-label-sm text-secondary">Enterprise Suite</span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-100 font-label-sm text-label-sm text-slate-700 font-medium">v4.8</span>
+            </div>
           )}
+
+          {/* Navigation Tabs */}
+          <nav className="space-y-1 overflow-y-auto flex-1 min-h-0 pr-1 custom-scrollbar">
+            {filteredNav.map((group: NavGroup, groupIndex: number) => (
+              <NavGroupSection
+                key={group.title}
+                group={group}
+                collapsed={collapsed}
+                pathname={pathname}
+                baseIndex={groupIndex * 5}
+              />
+            ))}
+          </nav>
         </div>
 
-        {/* Navigation */}
-        <nav
-          aria-label="Sidebar navigation"
-          className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3"
-        >
-          {filteredNav.map((group: NavGroup) => (
-            <NavGroupSection
-              key={group.title}
-              group={group}
-              collapsed={collapsed}
-              pathname={pathname}
-            />
-          ))}
-        </nav>
+        {/* Quick Action Launcher & Footer Navigation Links */}
+        <div className="space-y-3 pt-2 border-t border-outline-variant">
+          {!collapsed && (
+            <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-label-md text-label-md h-8 rounded px-3 flex items-center justify-center gap-2 transition-colors shadow-sm">
+              <span className="material-symbols-outlined" data-icon="add" style={{ fontSize: "16px" }}>add</span>
+              <span>Quick Action</span>
+            </button>
+          )}
+          
+          <div className="space-y-1">
+            {/* Collapse Sidebar */}
+            <button
+              onClick={() => onCollapsedChange(!collapsed)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded font-label-sm text-label-sm transition-colors text-left"
+            >
+              <span className="material-symbols-outlined" data-icon={collapsed ? "menu" : "menu_open"}>{collapsed ? "menu" : "menu_open"}</span>
+              {!collapsed && <span>Collapse Sidebar</span>}
+            </button>
+          </div>
 
-        {/* User / logout */}
-        <div className="shrink-0 border-t border-white/10 px-2 py-3">
-          <div
-            className={cn(
-              "flex items-center gap-3 rounded-md px-2 py-2",
-              collapsed && "justify-center",
-            )}
-          >
-            {/* Avatar */}
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
+          {/* User Session Snippet */}
+          <div className={cn("rounded bg-slate-50 border border-outline-variant flex items-center", collapsed ? "p-1 justify-center" : "p-2 gap-2.5")}>
+            <div className="w-7 h-7 rounded bg-slate-900 text-white flex items-center justify-center font-label-md text-label-md font-bold shrink-0">
               {initials}
             </div>
             {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-white">
-                  {user.name || user.email}
-                </p>
-                <p className="truncate text-[11px] text-slate-400">
-                  {ROLE_LABELS[user.role] || user.role}
-                </p>
-              </div>
+              <>
+                <div className="overflow-hidden leading-tight flex-1">
+                  <p className="font-label-sm text-label-sm text-on-surface truncate font-semibold">{user.name || user.email}</p>
+                  <p className="font-label-sm text-label-sm text-secondary truncate">{ROLE_LABELS[user.role] || user.role}</p>
+                </div>
+                <form action={logoutAction}>
+                  <button type="submit" className="text-secondary hover:text-on-surface p-1 flex items-center justify-center" title="Log out">
+                    <span className="material-symbols-outlined" data-icon="logout" style={{ fontSize: "16px" }}>logout</span>
+                  </button>
+                </form>
+              </>
             )}
-            {!collapsed && (
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  aria-label="Log out"
-                  title="Log out"
-                  className="ml-auto rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
-                >
-                  <LogOut className="size-4" aria-hidden="true" />
+            {collapsed && (
+              <form action={logoutAction} className="mt-1">
+                <button type="submit" className="text-secondary hover:text-on-surface p-1 flex items-center justify-center" title="Log out">
+                  <span className="material-symbols-outlined" data-icon="logout" style={{ fontSize: "16px" }}>logout</span>
                 </button>
               </form>
             )}
           </div>
-          {/* Logout when collapsed */}
-          {collapsed && (
-            <form action={logoutAction} className="mt-1 flex justify-center">
-              <button
-                type="submit"
-                aria-label="Log out"
-                title="Log out"
-                className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
-              >
-                <LogOut className="size-4" aria-hidden="true" />
-              </button>
-            </form>
-          )}
         </div>
-
-        {/* Collapse toggle */}
-        <button
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          id="sidebar-collapse-toggle"
-          onClick={() => onCollapsedChange(!collapsed)}
-          className={cn(
-            "absolute -right-3 top-[52px] z-10 hidden h-6 w-6 items-center justify-center",
-            "rounded-full border border-[#E2E8F0] bg-white text-slate-500",
-            "shadow-sm hover:bg-slate-50 hover:text-slate-700 lg:flex",
-          )}
-        >
-          {collapsed ? (
-            <ChevronRight className="size-3.5" aria-hidden="true" />
-          ) : (
-            <ChevronLeft className="size-3.5" aria-hidden="true" />
-          )}
-        </button>
       </aside>
     </>
   )
@@ -180,52 +152,58 @@ function NavGroupSection({
   group,
   collapsed,
   pathname,
+  baseIndex = 0,
 }: {
   group: NavGroup
   collapsed: boolean
   pathname: string
+  baseIndex?: number
 }) {
   return (
-    <div className="mb-1">
+    <div className="mb-2">
       {!collapsed && (
-        <p className="mb-0.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <p className="mb-1 px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-widest">
           {group.title}
         </p>
       )}
       {collapsed && (
-        <div className="mx-auto mb-1 mt-2 h-px w-8 bg-white/10" />
+        <div className="mx-auto mb-1 mt-2 h-px w-8 bg-outline-variant" />
       )}
-      <ul role="list" className="space-y-0.5">
-        {group.items.map((item) => {
+      <ul role="list" className="space-y-1">
+        {group.items.map((item, index) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/")
           return (
-            <li key={item.href}>
+            <motion.li 
+              key={item.href}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: (baseIndex + index) * 0.05 }}
+            >
               <Link
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "group relative flex items-center gap-2.5 rounded-md px-2 py-1.5",
-                  "text-[13px] font-medium transition-colors duration-100",
+                  "flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 ease-in-out cursor-pointer",
                   isActive
-                    ? "bg-white/10 text-white before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-r before:bg-blue-400"
-                    : "text-slate-400 hover:bg-white/5 hover:text-slate-200",
-                  collapsed && "justify-center",
+                    ? "text-slate-900 bg-slate-100 font-label-md text-label-md border-l-2 border-slate-900 font-semibold"
+                    : "text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md",
+                  collapsed && "justify-center px-0 border-l-0"
                 )}
               >
-                <item.icon
+                <span
                   className={cn(
-                    "size-5 shrink-0",
-                    isActive
-                      ? "text-white"
-                      : "text-slate-400 group-hover:text-slate-200",
+                    "material-symbols-outlined",
+                    isActive ? "text-slate-900" : ""
                   )}
-                  aria-hidden="true"
-                />
-                {!collapsed && <span className="truncate">{item.label}</span>}
+                  data-icon={item.icon}
+                >
+                  {item.icon}
+                </span>
+                {!collapsed && <span>{item.label}</span>}
               </Link>
-            </li>
+            </motion.li>
           )
         })}
       </ul>

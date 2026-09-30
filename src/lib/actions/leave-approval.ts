@@ -6,6 +6,7 @@ import { LeaveStatus } from "@prisma/client"
 import { requireAuth } from "@/lib/session"
 import { sendEmail } from "@/lib/email"
 import { LeaveApprovalEmail } from "@/components/emails/LeaveApprovalEmail"
+import type { ReactElement } from "react"
 
 export async function approveLeaveAction(requestId: string, approverId: string, action: "approve" | "reject") {
   const session = await requireAuth()
@@ -44,7 +45,7 @@ export async function approveLeaveAction(requestId: string, approverId: string, 
           startDate: updatedRequest.startDate,
           endDate: updatedRequest.endDate,
           status,
-        }) as any,
+        }) as ReactElement,
       })
     }
   } catch (error) {

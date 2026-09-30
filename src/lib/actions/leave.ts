@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { LeaveStatus } from "@prisma/client"
 import { sendEmail } from "@/lib/email"
 import { LeaveRequestEmail } from "@/components/emails/LeaveRequestEmail"
+import type { ReactElement } from "react"
 
 const ApplyLeaveSchema = z.object({
   leaveTypeId: z.string().min(1, "Leave type is required"),
@@ -89,7 +90,7 @@ export async function applyLeaveAction(
           endDate: end,
           reason,
           days,
-        }) as any,
+        }) as ReactElement,
       })
     }
   } catch (error) {

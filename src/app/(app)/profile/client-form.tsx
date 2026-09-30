@@ -20,7 +20,7 @@ export function ProfileForm({ initialData }: ClientFormProps) {
   )
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} className="flex flex-col gap-6 w-full">
       {state?.message && (
         <div className={`rounded-md p-3 text-[13px] font-medium ${state.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
           {state.message}
@@ -28,7 +28,7 @@ export function ProfileForm({ initialData }: ClientFormProps) {
       )}
 
       <div className="grid gap-2">
-        <label htmlFor="phone" className="text-[13px] font-medium text-[#1E293B]">
+        <label htmlFor="phone" className="text-[13px] font-medium text-on-surface">
           Phone Number
         </label>
         <Input
@@ -44,7 +44,7 @@ export function ProfileForm({ initialData }: ClientFormProps) {
       </div>
 
       <div className="grid gap-2">
-        <label htmlFor="address" className="text-[13px] font-medium text-[#1E293B]">
+        <label htmlFor="address" className="text-[13px] font-medium text-on-surface">
           Address
         </label>
         <Input
@@ -59,7 +59,7 @@ export function ProfileForm({ initialData }: ClientFormProps) {
       </div>
 
       <div className="grid gap-2">
-        <label htmlFor="dateOfBirth" className="text-[13px] font-medium text-[#1E293B]">
+        <label htmlFor="dateOfBirth" className="text-[13px] font-medium text-on-surface">
           Date of Birth
         </label>
         <Input

@@ -6,12 +6,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  default: "bg-slate-100 text-slate-700 border-slate-200",
-  success: "bg-green-50 text-green-700 border-green-200",
+  default: "bg-secondary text-secondary-foreground border-border",
+  success: "bg-emerald-50 text-emerald-700 border-emerald-200",
   warning: "bg-amber-50 text-amber-700 border-amber-200",
-  error: "bg-red-50 text-red-700 border-red-200",
-  info: "bg-blue-50 text-blue-700 border-blue-200",
-  outline: "border-[#E2E8F0] text-slate-600 bg-white",
+  error: "bg-rose-50 text-rose-700 border-rose-200",
+  info: "bg-sky-50 text-sky-700 border-sky-200",
+  outline: "border-border text-foreground bg-background",
 }
 
 function Badge({ className, variant = "default", ...props }: BadgeProps) {

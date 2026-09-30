@@ -38,18 +38,18 @@ export default async function LoginActivityPage({
     })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Login Activity"
         description="Audit log of recent user authentications."
       />
 
       <form method="GET" className="flex items-center gap-3">
-        <label className="text-[13px] font-medium text-[#1E293B]">Show history:</label>
+        <label className="text-[13px] font-medium text-on-surface">Show history:</label>
         <select
           name="days"
           defaultValue={days}
-          className="h-9 rounded-md border border-[#E2E8F0] px-3 text-[13px] focus:outline-none"
+          className="h-9 rounded-md border border-outline-variant px-3 text-[13px] focus:outline-none"
         >
           <option value={1}>Last 24 Hours</option>
           <option value={7}>Last 7 Days</option>
@@ -57,45 +57,45 @@ export default async function LoginActivityPage({
         </select>
         <button
           type="submit"
-          className="h-9 rounded-md bg-[#1E293B] px-4 text-[13px] font-medium text-white hover:bg-[#0F172A]"
+          className="h-9 rounded-md bg-primary px-4 text-[13px] font-medium text-white hover:bg-primary/90"
         >
           Filter
         </button>
       </form>
 
-      <div className="rounded-lg border border-[#E2E8F0] bg-white">
+      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
         {activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-[#64748B] text-[13px]">
+          <div className="flex flex-col items-center justify-center py-16 text-secondary text-[13px]">
             No login activity recorded in this timeframe.
           </div>
         ) : (
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8F9FA]">
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Time</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">User</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Role</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">IP Address</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Device / OS</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Browser</th>
+              <tr className="border-b border-outline-variant bg-surface-container-low">
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Time</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">User</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Role</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">IP Address</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Device / OS</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Browser</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
+            <tbody className="divide-y divide-outline-variant">
               {activities.map((act) => (
-                <tr key={act.id} className="hover:bg-[#F8F9FA]">
-                  <td className="px-4 py-3 text-[#64748B]">{formatDate(act.loginAt)}</td>
+                <tr key={act.id} className="hover:bg-surface-container-low">
+                  <td className="px-4 py-3 text-secondary">{formatDate(act.loginAt)}</td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-[#1E293B]">{act.user.name || act.email}</p>
-                    <p className="text-[11px] text-[#64748B]">{act.email}</p>
+                    <p className="font-medium text-on-surface">{act.user.name || act.email}</p>
+                    <p className="text-[11px] text-secondary">{act.email}</p>
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="outline">{act.role}</Badge>
                   </td>
-                  <td className="px-4 py-3 font-mono text-[#64748B]">{act.ipAddress || "Unknown"}</td>
-                  <td className="px-4 py-3 text-[#64748B]">
+                  <td className="px-4 py-3 font-mono text-secondary">{act.ipAddress || "Unknown"}</td>
+                  <td className="px-4 py-3 text-secondary">
                     {act.device || "Desktop"} • {act.os || "Unknown OS"}
                   </td>
-                  <td className="px-4 py-3 text-[#64748B]">{act.browser || "Unknown"}</td>
+                  <td className="px-4 py-3 text-secondary">{act.browser || "Unknown"}</td>
                 </tr>
               ))}
             </tbody>

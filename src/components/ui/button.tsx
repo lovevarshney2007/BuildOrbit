@@ -9,15 +9,15 @@ export interface ButtonProps
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
   default:
-    "bg-[#1E293B] text-white hover:bg-[#0F172A] border-transparent",
+    "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent",
   outline:
-    "border-[#E2E8F0] bg-white text-[#1E293B] hover:bg-slate-50",
+    "border-border bg-background text-foreground hover:bg-secondary",
   ghost:
-    "border-transparent text-slate-600 hover:bg-slate-100 hover:text-[#1E293B]",
+    "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
   destructive:
-    "bg-red-600 text-white hover:bg-red-700 border-transparent",
+    "bg-destructive text-destructive-foreground hover:bg-destructive/90 border-transparent",
   secondary:
-    "bg-slate-100 text-[#1E293B] hover:bg-slate-200 border-transparent",
+    "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent",
 }
 
 const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
@@ -45,7 +45,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         className={cn(
           "inline-flex items-center justify-center gap-1.5 rounded-md border font-medium transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "disabled:cursor-not-allowed disabled:opacity-50",
           variantClasses[variant],
           sizeClasses[size],

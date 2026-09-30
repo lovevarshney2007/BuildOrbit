@@ -7,7 +7,7 @@ import {
   Hr,
   Container,
   Preview,
-  Section,
+
   Text,
 } from "@react-email/components";
 

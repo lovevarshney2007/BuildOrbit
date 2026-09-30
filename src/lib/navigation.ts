@@ -1,19 +1,3 @@
-import {
-  LayoutDashboard,
-  Users,
-  Briefcase,
-  UserCheck,
-  UserCircle,
-  CalendarDays,
-  DollarSign,
-  FileText,
-  BarChart2,
-  Settings,
-  Activity,
-  ClipboardList,
-  type LucideIcon,
-} from "lucide-react"
-
 // Roles that can see a given nav item.
 // An empty array means the item is visible to all roles.
 export type AppRole = "SUPER_ADMIN" | "ADMIN" | "HR" | "LEAD" | "ENGINEER"
@@ -21,7 +5,7 @@ export type AppRole = "SUPER_ADMIN" | "ADMIN" | "HR" | "LEAD" | "ENGINEER"
 export interface NavItem {
   label: string
   href: string
-  icon: LucideIcon
+  icon: string // Material Symbol string
   roles: AppRole[] // empty = all roles
 }
 
@@ -38,13 +22,13 @@ export const navConfig: NavGroup[] = [
       {
         label: "Dashboard",
         href: "/dashboard",
-        icon: LayoutDashboard,
+        icon: "dashboard",
         roles: [],
       },
       {
         label: "My Profile",
         href: "/profile",
-        icon: UserCircle,
+        icon: "person",
         roles: [],
       },
     ],
@@ -55,19 +39,19 @@ export const navConfig: NavGroup[] = [
       {
         label: "Employees",
         href: "/workforce/employees",
-        icon: Users,
+        icon: "groups",
         roles: ["SUPER_ADMIN", "ADMIN", "HR", "LEAD"],
       },
       {
         label: "Attendance",
         href: "/workforce/attendance",
-        icon: CalendarDays,
+        icon: "calendar_month",
         roles: [],
       },
       {
         label: "Leave Requests",
         href: "/workforce/leave",
-        icon: FileText,
+        icon: "event_busy",
         roles: [],
       },
     ],
@@ -78,19 +62,19 @@ export const navConfig: NavGroup[] = [
       {
         label: "Leave Master",
         href: "/hr/leave-types",
-        icon: ClipboardList,
+        icon: "assignment",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
         label: "Leave Approval",
         href: "/hr/leave-approval",
-        icon: UserCheck,
+        icon: "rule",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
         label: "Payroll",
         href: "/hr/payroll",
-        icon: DollarSign,
+        icon: "payments",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
     ],
@@ -101,7 +85,7 @@ export const navConfig: NavGroup[] = [
       {
         label: "Lead Follow-ups",
         href: "/crm/leads",
-        icon: Briefcase,
+        icon: "leaderboard",
         roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
       },
     ],
@@ -112,19 +96,19 @@ export const navConfig: NavGroup[] = [
       {
         label: "Attendance Report",
         href: "/reports/attendance",
-        icon: BarChart2,
+        icon: "analytics",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
         label: "Payroll Summary",
         href: "/reports/payroll",
-        icon: DollarSign,
+        icon: "receipt_long",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
         label: "Lead Reports",
         href: "/reports/leads",
-        icon: BarChart2,
+        icon: "query_stats",
         roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
       },
     ],
@@ -135,13 +119,13 @@ export const navConfig: NavGroup[] = [
       {
         label: "Settings",
         href: "/admin/settings",
-        icon: Settings,
+        icon: "settings",
         roles: ["SUPER_ADMIN", "ADMIN"],
       },
       {
         label: "Login Activity",
         href: "/admin/login-activity",
-        icon: Activity,
+        icon: "admin_panel_settings",
         roles: ["SUPER_ADMIN", "ADMIN"],
       },
     ],
@@ -161,3 +145,4 @@ export function getNavForRole(role: AppRole): NavGroup[] {
     }))
     .filter((group) => group.items.length > 0)
 }
+

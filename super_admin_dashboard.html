@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BuildOrbit — Super Admin Command Center &amp; Operations Workspace</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed-dim": "#bec6e0",
+            "tertiary-container": "#656d84",
+            "surface-dim": "#f1f5f9",
+            "on-surface-variant": "#475569",
+            "secondary": "#64748b",
+            "primary-fixed-dim": "#cbd5e1",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "on-surface": "#0f172a",
+            "secondary-container": "#f1f5f9",
+            "on-secondary-fixed": "#0f172a",
+            "outline": "#94a3b8",
+            "surface-container-low": "#f8fafc",
+            "inverse-primary": "#e2e8f0",
+            "on-background": "#0f172a",
+            "error": "#b91c1c",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#1e293b",
+            "on-primary-container": "#f8fafc",
+            "error-container": "#fee2e2",
+            "on-error": "#ffffff",
+            "surface-bright": "#ffffff",
+            "primary-fixed": "#f1f5f9",
+            "on-tertiary-container": "#f8fafc",
+            "primary": "#0f172a",
+            "on-secondary-container": "#334155",
+            "tertiary": "#475569",
+            "outline-variant": "#e2e8f0",
+            "surface-variant": "#f1f5f9",
+            "inverse-on-surface": "#f8fafc",
+            "tertiary-fixed": "#f1f5f9",
+            "surface-tint": "#0f172a",
+            "on-tertiary-fixed-variant": "#334155",
+            "on-secondary-fixed-variant": "#1e293b",
+            "surface-container-highest": "#e2e8f0",
+            "surface-container-high": "#edf2f7",
+            "secondary-fixed": "#e2e8f0",
+            "surface-container": "#f8fafc",
+            "inverse-surface": "#1e293b",
+            "on-primary-fixed": "#0f172a",
+            "secondary-fixed-dim": "#cbd5e1",
+            "primary-container": "#1e293b",
+            "on-secondary": "#ffffff",
+            "surface": "#ffffff",
+            "on-tertiary-fixed": "#0f172a",
+            "background": "#f8fafc",
+            "surface-container-lowest": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin-mobile": "1rem",
+            "space-md": "0.75rem",
+            "gutter-compact": "0.5rem",
+            "space-2xl": "2rem",
+            "space-sm": "0.5rem",
+            "margin": "1.5rem",
+            "gutter": "1rem",
+            "space-lg": "1rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "tabular-data": ["Inter"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "metric-num": ["Inter"],
+            "body-lg": ["Inter"],
+            "display": ["Inter"]
+          },
+          "fontSize": {
+            "headline-sm": ["16px", { "lineHeight": "22px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "tabular-data": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "metric-num": ["24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }],
+            "display": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    /* Material symbol base styling */
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      vertical-align: middle;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body class="bg-background min-h-screen text-on-surface antialiased flex flex-row">
+<!-- ========================================================================= -->
+<!-- PERSISTENT SIDE NAVIGATION (FROM SHARED COMPONENT SPEC: SideNavBar)       -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-30 bg-surface-container-lowest border-r border-outline-variant flex flex-col justify-between p-3 select-none">
+<!-- Top Brand & Suite Identifier -->
+<div class="space-y-4">
+<div class="flex items-center gap-2.5 px-2 py-1">
+<img alt="BuildOrbit Brand Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WeFWgTja7n__oq3pful49D_Qh6OZkp3hdpnGRLiLd6ua9so8athKfOteMBkM8bxByYjpgfEDtKzZsJ06XbsjhL6EPaA6nqec8H4hTG2vI-OXgXeKB3Vgt6M7j2xsCpZPYZaYw305rkWdSkJqVRq-2rP4CD_n1A8-q7w-zMVC_9ug-DZsKhwoLROPSCOvbUUxuMKh98KUUlUXdkKdE18P1YHsy-9Cc3uMG2RMCsvCQm4nRouCc7q4jm5Wtj"/>
+<span class="sr-only">BuildOrbit</span>
+</div>
+<div class="px-2 pb-1 border-b border-outline-variant flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Enterprise Suite</span>
+<span class="px-1.5 py-0.5 rounded bg-slate-100 font-label-sm text-label-sm text-slate-700 font-medium">v4.8</span>
+</div>
+<!-- Navigation Tabs (Shared JSON tab_labels & active logic) -->
+<nav class="space-y-1">
+<!-- Active Tab: Overview (Intent maps to Command Center / Overview) -->
+<a class="flex items-center gap-3 px-3 py-2 text-slate-900 bg-slate-100 font-label-md text-label-md rounded border-l-2 border-slate-900 transition-colors duration-150 ease-in-out cursor-pointer font-semibold" href="#">
+<span class="material-symbols-outlined text-slate-900" data-icon="dashboard">dashboard</span>
+<span>Overview</span>
+</a>
+<!-- Inactive Tab: Workforce -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md rounded transition-colors duration-150 ease-in-out cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Workforce</span>
+</a>
+<!-- Inactive Tab: HR & Payroll -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md rounded transition-colors duration-150 ease-in-out cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>HR &amp; Payroll</span>
+</a>
+<!-- Inactive Tab: CRM -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md rounded transition-colors duration-150 ease-in-out cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<span>CRM</span>
+</a>
+<!-- Inactive Tab: Reports -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md rounded transition-colors duration-150 ease-in-out cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Reports</span>
+</a>
+<!-- Inactive Tab: Administration -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md rounded transition-colors duration-150 ease-in-out cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+<span>Administration</span>
+</a>
+</nav>
+</div>
+<!-- Quick Action Launcher & Footer Navigation Links -->
+<div class="space-y-3 pt-2 border-t border-outline-variant">
+<!-- SideNav CTA specified in JSON -->
+<button class="w-full bg-slate-900 hover:bg-slate-800 text-white font-label-md text-label-md h-8 rounded px-3 flex items-center justify-center gap-2 transition-colors shadow-sm">
+<span class="material-symbols-outlined" data-icon="add" style="font-size: 16px;">add</span>
+<span>Quick Action</span>
+</button>
+<div class="space-y-1">
+<!-- Organization Switcher -->
+<button class="w-full flex items-center justify-between px-3 py-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded font-label-sm text-label-sm transition-colors text-left">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="corporate_fare">corporate_fare</span>
+<span class="truncate">Global Holdings Inc.</span>
+</span>
+<span class="material-symbols-outlined" data-icon="unfold_more" style="font-size: 14px;">unfold_more</span>
+</button>
+<!-- Settings -->
+<a class="flex items-center gap-2 px-3 py-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded font-label-sm text-label-sm transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<!-- Collapse Sidebar -->
+<button class="w-full flex items-center gap-2 px-3 py-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded font-label-sm text-label-sm transition-colors text-left">
+<span class="material-symbols-outlined" data-icon="menu_open">menu_open</span>
+<span>Collapse Sidebar</span>
+</button>
+</div>
+<!-- Super Admin Session Snippet -->
+<div class="p-2 rounded bg-slate-50 border border-outline-variant flex items-center gap-2.5">
+<div class="w-7 h-7 rounded bg-slate-900 text-white flex items-center justify-center font-label-md text-label-md font-bold">
+          SA
+        </div>
+<div class="overflow-hidden leading-tight flex-1">
+<p class="font-label-sm text-label-sm text-on-surface truncate font-semibold">Alexandre Vance</p>
+<p class="font-label-sm text-label-sm text-secondary truncate">Root Authority</p>
+</div>
+<span class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-slate-100"></span>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE CONTAINER (Offset by Left Sidebar: ml-60)                 -->
+<!-- ========================================================================= -->
+<div class="ml-60 flex-1 flex flex-col min-w-0 bg-background">
+<!-- ======================================================================= -->
+<!-- TOP CONTEXTUAL APP BAR (FROM SHARED COMPONENT SPEC: TopNavBar)         -->
+<!-- ======================================================================= -->
+<header class="sticky top-0 h-12 w-full z-20 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6">
+<!-- Left: Global Command Search & Live Context Breadcrumb -->
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="flex items-center gap-2 text-secondary font-label-sm text-label-sm shrink-0">
+<span class="font-semibold text-on-surface">BuildOrbit</span>
+<span class="text-outline-variant">/</span>
+<span class="text-slate-900 font-semibold">Command Center</span>
+</div>
+<!-- Search Bar on left matching JSON spec -->
+<div class="relative w-full max-w-sm">
+<span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-secondary">
+<span class="material-symbols-outlined" data-icon="search" style="font-size: 16px;">search</span>
+</span>
+<input class="w-full pl-8 pr-12 py-1 bg-slate-50 border border-outline-variant rounded text-on-surface placeholder:text-secondary font-body-sm text-body-sm focus:outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-700" placeholder="Search employees, payroll records, CRM accounts..." type="text"/>
+<span class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+<kbd class="px-1.5 py-0.5 text-[10px] font-mono text-secondary bg-white border border-outline-variant rounded">Cmd+K</kbd>
+</span>
+</div>
+</div>
+<!-- Navigation Links from JSON -->
+<div class="hidden lg:flex items-center gap-6">
+<a class="font-label-md text-label-md text-secondary hover:text-on-surface transition-colors py-3" href="#">Workforce</a>
+<a class="font-label-md text-label-md text-secondary hover:text-on-surface transition-colors py-3" href="#">Payroll Cycle</a>
+<a class="font-label-md text-label-md text-secondary hover:text-on-surface transition-colors py-3" href="#">Audit Logs</a>
+</div>
+<!-- Right: Role pill, Notification Center, Trailing Action -->
+<div class="flex items-center gap-3 shrink-0">
+<!-- Date Context Indicator -->
+<div class="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-slate-50 border border-outline-variant font-label-sm text-label-sm text-secondary">
+<span class="material-symbols-outlined" data-icon="schedule" style="font-size: 14px;">schedule</span>
+<span>Today, Oct 24, 2026</span>
+</div>
+<!-- Super Admin Role Badge -->
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+<span>Super Admin (Enterprise)</span>
+</div>
+<!-- Trailing Icon Actions from JSON -->
+<div class="flex items-center gap-1">
+<!-- Notification Icon with 4 pending actions -->
+<button class="relative p-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded transition-colors" title="4 Pending Operational Actions">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+</button>
+<button class="p-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded transition-colors" title="Workspace Display Tuning">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+</div>
+<div class="h-4 w-px bg-outline-variant mx-0.5"></div>
+<!-- Trailing Primary Action from JSON: Create Record -->
+<button class="h-7 px-3 bg-slate-900 hover:bg-slate-800 text-white font-label-sm text-label-sm rounded flex items-center gap-1.5 transition-colors shadow-sm">
+<span class="material-symbols-outlined" data-icon="add" style="font-size: 14px;">add</span>
+<span>Create Record</span>
+</button>
+</div>
+</header>
+<!-- ======================================================================= -->
+<!-- EXECUTIVE METRIC STRIP (High-density horizontal operational ribbon)    -->
+<!-- ======================================================================= -->
+<section class="border-b border-outline-variant bg-surface-container-lowest">
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 divide-x divide-y md:divide-y-0 divide-outline-variant">
+<!-- Metric 1: Total Workforce -->
+<div class="p-3.5 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Total Workforce</span>
+<span class="material-symbols-outlined text-secondary group-hover:text-slate-900 transition-colors" data-icon="groups">groups</span>
+</div>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-metric-num text-metric-num text-on-surface font-tabular-data">1,420</span>
+<span class="inline-flex items-center font-label-sm text-label-sm text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">+3.2%</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5 truncate">Active across 4 hubs</p>
+</div>
+<!-- Metric 2: Present Today -->
+<div class="p-3.5 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Present Today</span>
+<span class="inline-flex items-center px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-label-sm text-label-sm font-semibold">91.8% Rate</span>
+</div>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-metric-num text-metric-num text-on-surface font-tabular-data">1,304</span>
+<span class="font-label-sm text-label-sm text-secondary">/ 1,420</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5 truncate">Peak sync at 09:30 AM</p>
+</div>
+<!-- Metric 3: On Leave -->
+<div class="p-3.5 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">On Leave Today</span>
+<span class="material-symbols-outlined text-secondary group-hover:text-slate-900 transition-colors" data-icon="event_busy">event_busy</span>
+</div>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-metric-num text-metric-num text-on-surface font-tabular-data">68</span>
+<span class="font-label-sm text-label-sm text-secondary">4.8% total</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5 truncate">42 Planned · 26 Sick</p>
+</div>
+<!-- Metric 4: Pending Approvals -->
+<div class="p-3.5 hover:bg-amber-50/20 transition-colors cursor-pointer group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-amber-900 font-medium">Pending Approvals</span>
+<span class="inline-flex items-center px-1.5 py-0.2 rounded bg-amber-100 border border-amber-300 text-amber-800 font-label-sm text-label-sm font-bold">18 Action</span>
+</div>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-metric-num text-metric-num text-amber-950 font-tabular-data">18</span>
+<span class="inline-flex items-center font-label-sm text-label-sm text-amber-700 bg-amber-100/60 px-1 py-0.5 rounded">Escalated</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5 truncate">12 Leave · 6 Payroll overrides</p>
+</div>
+<!-- Metric 5: Active CRM Leads -->
+<div class="p-3.5 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Active CRM Leads</span>
+<span class="material-symbols-outlined text-secondary group-hover:text-slate-900 transition-colors" data-icon="leaderboard">leaderboard</span>
+</div>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-metric-num text-metric-num text-on-surface font-tabular-data">342</span>
+<span class="inline-flex items-center font-label-sm text-label-sm text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">$5.8M</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5 truncate">Enterprise pipeline value</p>
+</div>
+<!-- Metric 6: Monthly Payroll Status -->
+<div class="p-3.5 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Payroll Disbursement</span>
+<span class="inline-flex items-center px-1.5 py-0.2 rounded bg-slate-100 border border-slate-300 text-slate-800 font-label-sm text-label-sm font-semibold">T-4 Days</span>
+</div>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-metric-num text-metric-num text-on-surface font-tabular-data">$3,840,500</span>
+</div>
+<div class="mt-1 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-secondary">98% Validated</span>
+<div class="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+<div class="bg-slate-900 h-full w-[98%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ======================================================================= -->
+<!-- WORKSPACE CANVAS: TWO-COLUMN OPERATIONAL SPLIT (65% / 35%)             -->
+<!-- ======================================================================= -->
+<main class="flex-1 p-6 flex flex-col xl:flex-row gap-6">
+<!-- ===================================================================== -->
+<!-- LEFT / MAIN WORKSPACE COLUMN (65% Width)                              -->
+<!-- ===================================================================== -->
+<section class="flex-1 xl:w-[65%] space-y-6">
+<!-- SECTION 1: "NEEDS IMMEDIATE ATTENTION" ACTION PANEL -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded">
+<!-- Panel Header -->
+<div class="px-4 py-3 border-b border-outline-variant flex items-center justify-between bg-white">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error" data-icon="error">error</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Needs Immediate Attention</h2>
+<span class="ml-1.5 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">4 Blockers</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm text-secondary">Operational SLA: &lt; 2h target</span>
+<button class="font-label-sm text-label-sm text-slate-900 hover:underline font-semibold">Dismiss Non-Critical</button>
+</div>
+</div>
+<!-- Attention Items List (Architectural border left indicators) -->
+<div class="divide-y divide-outline-variant">
+<!-- Item 1: Critical Payroll Exception (Rose indicator) -->
+<div class="p-3.5 bg-surface-container-lowest hover:bg-slate-50/60 transition-colors border-l-4 border-rose-600 flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="mt-0.5 p-1 rounded bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Critical Payroll Exception</span>
+<span class="px-1.5 py-0.2 rounded bg-rose-50 border border-rose-200 text-rose-700 font-label-sm text-label-sm font-semibold">Disbursement Risk</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                    3 unlinked bank identifiers detected in <span class="font-semibold text-on-surface">Engineering Hub (Zurich &amp; Singapore)</span>. Automatic wire routing suspended.
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0 md:self-center">
+<button class="h-8 px-3 bg-surface-container-lowest border border-outline-variant hover:bg-slate-50 font-label-sm text-label-sm text-on-surface rounded transition-colors">
+                  View Raw Dats
+                </button>
+<button class="h-8 px-3 bg-slate-900 hover:bg-slate-800 text-white font-label-sm text-label-sm rounded transition-colors flex items-center gap-1.5 shadow-sm font-medium">
+<span>Resolve &amp; Authorize</span>
+<span class="material-symbols-outlined" data-icon="arrow_forward" style="font-size: 14px;">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Item 2: Executive Leave Requests (Amber indicator) -->
+<div class="p-3.5 bg-surface-container-lowest hover:bg-slate-50/60 transition-colors border-l-4 border-amber-500 flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="mt-0.5 p-1 rounded bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+<span class="material-symbols-outlined" data-icon="pending_actions">pending_actions</span>
+</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Executive Leave Requests Pending Review</span>
+<span class="px-1.5 py-0.2 rounded bg-amber-50 border border-amber-200 text-amber-700 font-label-sm text-label-sm font-semibold">&gt; 48h Aging</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                    6 Director and VP-tier leaves awaiting super-admin protocol approval prior to Q4 freeze window.
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0 md:self-center">
+<button class="h-8 px-3 bg-slate-50 hover:bg-slate-100 border border-outline-variant font-label-sm text-label-sm text-on-surface rounded transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined" data-icon="splitscreen" style="font-size: 14px;">splitscreen</span>
+<span>Batch Review Drawer</span>
+</button>
+</div>
+</div>
+<!-- Item 3: Compliance Alert (Amber/Yellow indicator) -->
+<div class="p-3.5 bg-surface-container-lowest hover:bg-slate-50/60 transition-colors border-l-4 border-amber-500 flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="mt-0.5 p-1 rounded bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+<span class="material-symbols-outlined" data-icon="policy">policy</span>
+</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Contract Compliance Recertification</span>
+<span class="px-1.5 py-0.2 rounded bg-slate-100 border border-slate-300 text-secondary font-label-sm text-label-sm">Mandatory SOC2</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                    14 vendor and executive contracts awaiting annual renewal sign-off. Compliance window expires Nov 01.
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0 md:self-center">
+<button class="h-8 px-3 bg-surface-container-lowest border border-outline-variant hover:bg-slate-50 font-label-sm text-label-sm text-on-surface rounded transition-colors">
+                  Inspect &amp; Dispatch
+                </button>
+</div>
+</div>
+<!-- Item 4: CRM Velocity Warning (Slate/Amber indicator) -->
+<div class="p-3.5 bg-surface-container-lowest hover:bg-slate-50/60 transition-colors border-l-4 border-secondary flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="mt-0.5 p-1 rounded bg-slate-100 text-secondary border border-outline-variant shrink-0">
+<span class="material-symbols-outlined" data-icon="hourglass_top">hourglass_top</span>
+</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">CRM Velocity Bottleneck Detected</span>
+<span class="px-1.5 py-0.2 rounded bg-slate-100 border border-slate-300 text-secondary font-label-sm text-label-sm font-semibold">Stalled Pipeline</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                    8 enterprise tier-1 leads ($1.24M ARR) have remained in <span class="font-semibold text-on-surface">Proposal Stage</span> for &gt; 10 business days without follow-up note.
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0 md:self-center">
+<button class="h-8 px-3 bg-surface-container-lowest border border-outline-variant hover:bg-slate-50 font-label-sm text-label-sm text-on-surface rounded transition-colors">
+                  Reassign Lead
+                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 2: LIVE WORKFORCE DISTRIBUTION GRID & DEPARTMENT HEALTH TABLE -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded">
+<div class="px-4 py-3 border-b border-outline-variant flex flex-wrap items-center justify-between gap-2 bg-white">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Department Health &amp; Workforce Distribution</h2>
+<p class="font-body-sm text-body-sm text-secondary">Cross-departmental telemetry, capacity tracking, and revenue velocity.</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="inline-flex rounded border border-outline-variant bg-white p-0.5">
+<button class="px-2 py-1 text-slate-900 bg-slate-100 font-label-sm text-label-sm rounded font-semibold">All Entities</button>
+<button class="px-2 py-1 text-secondary hover:text-on-surface font-label-sm text-label-sm rounded font-medium">EMEA</button>
+<button class="px-2 py-1 text-secondary hover:text-on-surface font-label-sm text-label-sm rounded font-medium">Americas</button>
+<button class="px-2 py-1 text-secondary hover:text-on-surface font-label-sm text-label-sm rounded font-medium">APAC</button>
+</div>
+<button class="p-1 text-secondary hover:text-on-surface border border-outline-variant rounded" title="Filter columns">
+<span class="material-symbols-outlined" data-icon="filter_list" style="font-size: 16px;">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Dense DataTable (Tabular figures, precise borders) -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 border-b border-outline-variant font-label-sm text-label-sm text-secondary">
+<th class="py-2.5 px-4 font-semibold">DEPARTMENT</th>
+<th class="py-2.5 px-3 font-semibold text-right">HEADCOUNT</th>
+<th class="py-2.5 px-3 font-semibold text-right">ATTENDANCE RATE</th>
+<th class="py-2.5 px-3 font-semibold text-right">ACTIVE LEAVES</th>
+<th class="py-2.5 px-4 font-semibold">LEAD VELOCITY / OUTPUT</th>
+<th class="py-2.5 px-3 font-semibold text-center">HEALTH STATUS</th>
+<th class="py-2.5 px-3 font-semibold text-right">AUDIT</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-tabular-data text-body-md text-on-surface">
+<!-- Engineering -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-4 font-medium text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded bg-slate-800"></span>
+<span>Engineering</span>
+<span class="text-secondary font-label-sm text-label-sm font-normal">Core &amp; Infra</span>
+</td>
+<td class="py-3 px-3 text-right font-medium">620</td>
+<td class="py-3 px-3 text-right">
+<span class="text-on-surface font-semibold">94.2%</span>
+<span class="text-secondary text-xs ml-1">(584 present)</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-secondary">28 on leave</span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">92% Sprint Vel.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Healthy</span>
+</span>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="text-secondary hover:text-slate-900 p-1">
+<span class="material-symbols-outlined" data-icon="more_horiz" style="font-size: 16px;">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Sales -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-4 font-medium text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded bg-slate-700"></span>
+<span>Sales &amp; Expansion</span>
+<span class="text-secondary font-label-sm text-label-sm font-normal">Global</span>
+</td>
+<td class="py-3 px-3 text-right font-medium">310</td>
+<td class="py-3 px-3 text-right">
+<span class="text-on-surface font-semibold">89.4%</span>
+<span class="text-secondary text-xs ml-1">(277 present)</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-secondary">19 on leave</span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+<div class="bg-slate-800 h-1.5 rounded-full" style="width: 78%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">18.4d Avg Close</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+<span>Attention</span>
+</span>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="text-secondary hover:text-slate-900 p-1">
+<span class="material-symbols-outlined" data-icon="more_horiz" style="font-size: 16px;">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Product -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-4 font-medium text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded bg-slate-600"></span>
+<span>Product &amp; Design</span>
+<span class="text-secondary font-label-sm text-label-sm font-normal">UX &amp; Strategy</span>
+</td>
+<td class="py-3 px-3 text-right font-medium">145</td>
+<td class="py-3 px-3 text-right">
+<span class="text-on-surface font-semibold">93.1%</span>
+<span class="text-secondary text-xs ml-1">(135 present)</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-secondary">7 on leave</span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">4 Features in Staging</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Healthy</span>
+</span>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="text-secondary hover:text-slate-900 p-1">
+<span class="material-symbols-outlined" data-icon="more_horiz" style="font-size: 16px;">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Operations -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-4 font-medium text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded bg-slate-500"></span>
+<span>Operations &amp; Facilities</span>
+<span class="text-secondary font-label-sm text-label-sm font-normal">Physical Hubs</span>
+</td>
+<td class="py-3 px-3 text-right font-medium">195</td>
+<td class="py-3 px-3 text-right">
+<span class="text-on-surface font-semibold">90.8%</span>
+<span class="text-secondary text-xs ml-1">(177 present)</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-secondary">9 on leave</span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 96%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">99.8% Uptime</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Healthy</span>
+</span>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="text-secondary hover:text-slate-900 p-1">
+<span class="material-symbols-outlined" data-icon="more_horiz" style="font-size: 16px;">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Customer Success -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3 px-4 font-medium text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded bg-slate-700"></span>
+<span>Customer Success</span>
+<span class="text-secondary font-label-sm text-label-sm font-normal">Enterprise Tier</span>
+</td>
+<td class="py-3 px-3 text-right font-medium">150</td>
+<td class="py-3 px-3 text-right">
+<span class="text-on-surface font-semibold">87.3%</span>
+<span class="text-secondary text-xs ml-1">(131 present)</span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-secondary">5 on leave</span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 94%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">118% Net Retention</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Healthy</span>
+</span>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="text-secondary hover:text-slate-900 p-1">
+<span class="material-symbols-outlined" data-icon="more_horiz" style="font-size: 16px;">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Bottom Aggregate Bar -->
+<div class="px-4 py-2 bg-slate-50 border-t border-outline-variant flex items-center justify-between text-secondary font-label-sm text-label-sm">
+<span>Showing 5 primary business units · Global total 1,420 full-time equivalents</span>
+<div class="flex items-center gap-4">
+<span>Overall Organization Attendance: <strong class="text-on-surface">91.8%</strong></span>
+<button class="text-slate-900 hover:underline font-semibold">Export Deep Matrix (CSV)</button>
+</div>
+</div>
+</div>
+</section>
+<!-- ===================================================================== -->
+<!-- RIGHT RAIL (35% Width): LAUNCHPAD & REAL-TIME AUDIT LOG              -->
+<!-- ===================================================================== -->
+<aside class="flex-1 xl:w-[35%] space-y-6">
+<!-- QUICK ACTION LAUNCHPAD -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-3">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-900" data-icon="bolt">bolt</span>
+<span>Quick Action Launchpad</span>
+</h3>
+<span class="font-label-sm text-label-sm text-secondary">Authorized Tier 1</span>
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Provision Employee -->
+<button class="p-2.5 rounded border border-outline-variant bg-white hover:bg-slate-50 text-left transition-colors group">
+<div class="flex items-center justify-between text-secondary group-hover:text-slate-900 mb-1">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+<span class="material-symbols-outlined text-outline" data-icon="arrow_outward" style="font-size: 14px;">arrow_outward</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">+ Provision Employee</p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">SSO &amp; hardware binding</p>
+</button>
+<!-- Run Payroll Pre-Check -->
+<button class="p-2.5 rounded border border-outline-variant bg-white hover:bg-slate-50 text-left transition-colors group">
+<div class="flex items-center justify-between text-secondary group-hover:text-slate-900 mb-1">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="material-symbols-outlined text-outline" data-icon="arrow_outward" style="font-size: 14px;">arrow_outward</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">Run Payroll Pre-Check</p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Automated tax simulator</p>
+</button>
+<!-- Broadcast System Notice -->
+<button class="p-2.5 rounded border border-outline-variant bg-white hover:bg-slate-50 text-left transition-colors group">
+<div class="flex items-center justify-between text-secondary group-hover:text-slate-900 mb-1">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+<span class="material-symbols-outlined text-outline" data-icon="arrow_outward" style="font-size: 14px;">arrow_outward</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">Broadcast System Notice</p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Push banner to 1.4k users</p>
+</button>
+<!-- Export SOC2 Audit Log -->
+<button class="p-2.5 rounded border border-outline-variant bg-white hover:bg-slate-50 text-left transition-colors group">
+<div class="flex items-center justify-between text-secondary group-hover:text-slate-900 mb-1">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="material-symbols-outlined text-outline" data-icon="arrow_outward" style="font-size: 14px;">arrow_outward</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">Export SOC2 Audit Log</p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Signed cryptographic hash</p>
+</button>
+</div>
+</div>
+<!-- REAL-TIME AUDIT & ACTIVITY TIMELINE -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="history">history</span>
+<span>Real-time Audit &amp; Activity</span>
+</h3>
+<p class="font-body-sm text-body-sm text-secondary">Immutable ledger sync</p>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Live Feed</span>
+</div>
+</div>
+<!-- Vertical Activity Timeline (Strict 1px track line, 8px node) -->
+<div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-outline-variant">
+<!-- Event 1: Payroll Policy Update -->
+<div class="relative">
+<span class="absolute -left-6 top-1 w-2 h-2 rounded-full bg-slate-900 ring-4 ring-white"></span>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">09:14 AM</span>
+<span class="font-label-sm text-label-sm text-slate-800 font-medium">Policy Directive</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-0.5 font-medium">
+                Super Admin updated payroll disbursement validation rules for APAC region.
+              </p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Author: A. Vance (Session ID #7842)</p>
+</div>
+<!-- Event 2: Lead Closed -->
+<div class="relative">
+<span class="absolute -left-6 top-1 w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-white"></span>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">08:52 AM</span>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold bg-emerald-50 px-1 rounded">+$140k ARR</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-0.5 font-medium">
+                Enterprise Lead "AcroNexus Tech" closed to Won. Contract dispatch authorized.
+              </p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Owner: Sarah Jenkins (Sales EMEA)</p>
+</div>
+<!-- Event 3: Attendance Sync -->
+<div class="relative">
+<span class="absolute -left-6 top-1 w-2 h-2 rounded-full bg-slate-400 ring-4 ring-white"></span>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">08:30 AM</span>
+<span class="font-label-sm text-label-sm text-secondary">System Cron</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-0.5 font-medium">
+                Automated biometric attendance sync finished across all 4 operational centers.
+              </p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Status: 1,304 confirmed, 0 latency spikes.</p>
+</div>
+<!-- Event 4: Provisioning Request -->
+<div class="relative">
+<span class="absolute -left-6 top-1 w-2 h-2 rounded-full bg-amber-500 ring-4 ring-white"></span>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-tabular-data">07:45 AM</span>
+<span class="font-label-sm text-label-sm text-amber-700">Security Gate</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-0.5 font-medium">
+                Privileged access certificate renewed for Engineering Production Bastion.
+              </p>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Auto-signed by Okta Identity Cloud</p>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Showing 4 of 328 events today</span>
+<button class="font-label-sm text-label-sm text-slate-900 hover:underline font-semibold flex items-center gap-1">
+<span>View Immutable Audit Trail</span>
+<span class="material-symbols-outlined" data-icon="chevron_right" style="font-size: 14px;">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- INFRASTRUCTURE INTEGRITY STATUS -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="flex items-center justify-between mb-3">
+<h4 class="font-label-sm text-label-sm text-secondary font-semibold uppercase tracking-wider">Operational Infrastructure</h4>
+<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-label-sm text-label-sm">All Systems Operational</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between text-body-sm font-tabular-data">
+<span class="text-secondary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>Payroll Calculation Engine</span>
+</span>
+<span class="text-on-surface font-semibold">12ms latency</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-tabular-data">
+<span class="text-secondary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>Workforce Geolocation Feeds</span>
+</span>
+<span class="text-on-surface font-semibold">100% synced</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-tabular-data">
+<span class="text-secondary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>CRM Webhook Pipelines</span>
+</span>
+<span class="text-on-surface font-semibold">0 backlog queued</span>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- FOOTER STATUS & COMPLIANCE BAR -->
+<footer class="h-8 bg-surface-container-lowest border-t border-outline-variant px-6 flex items-center justify-between text-secondary font-label-sm text-label-sm">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>BuildOrbit Operations Mesh: Stable</span>
+</span>
+<span class="text-outline-variant">|</span>
+<span>Environment: Production Multi-Tenant (SOC2 Type II Compliant)</span>
+</div>
+<div>
+<span>Session Authenticated: Root Key SHA-256 Verified · 128-bit Vault Encryption</span>
+</div>
+</footer>
+</div>
+</body></html>

@@ -5,6 +5,9 @@ import { Sidebar } from "./Sidebar"
 import { Header } from "./Header"
 import { cn } from "@/lib/utils"
 import type { SessionPayload } from "@/lib/session"
+import { BackgroundBubbles } from "@/components/ui/BackgroundBubbles"
+import { PageAnimator } from "@/components/ui/PageAnimator"
+import { SplashScreen } from "@/components/ui/SplashScreen"
 
 interface AppShellProps {
   children: React.ReactNode
@@ -16,7 +19,9 @@ export function AppShell({ children, user }: AppShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-[#F8F9FA]">
+    <div className="flex w-full flex-1 min-h-screen bg-transparent text-on-surface antialiased flex-row relative z-0">
+      <SplashScreen />
+      <BackgroundBubbles />
       <Sidebar
         user={user}
         mobileOpen={mobileOpen}
@@ -27,7 +32,7 @@ export function AppShell({ children, user }: AppShellProps) {
 
       <div
         className={cn(
-          "flex min-h-screen flex-1 flex-col",
+          "flex-1 flex flex-col min-w-0 bg-transparent",
           "transition-[margin-left] duration-200 ease-in-out",
           sidebarCollapsed ? "lg:ml-16" : "lg:ml-60",
         )}
@@ -38,10 +43,13 @@ export function AppShell({ children, user }: AppShellProps) {
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        <main id="main-content" className="mt-14 flex-1 px-6 py-6">
-          {children}
-        </main>
+        <PageAnimator>
+          <main className="flex-1 px-4 sm:px-6 lg:px-10 pt-6 pb-10 flex flex-col gap-8 max-w-[1920px] mx-auto w-full">
+            {children}
+          </main>
+        </PageAnimator>
       </div>
     </div>
   )
 }
+

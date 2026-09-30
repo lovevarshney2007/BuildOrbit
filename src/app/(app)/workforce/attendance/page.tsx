@@ -69,7 +69,7 @@ export default async function AttendancePage({
     new Date(dt).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <PageHeader
         title="Attendance"
         description={`Showing attendance for ${formatDate(filterDate)}`}
@@ -84,44 +84,44 @@ export default async function AttendancePage({
       />
 
       {/* Table */}
-      <div className="rounded-lg border border-[#E2E8F0] bg-white">
+      <div className="rounded-xl shadow-sm border border-outline-variant bg-surface-container-lowest">
         {records.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16">
-            <p className="text-[14px] font-medium text-[#1E293B]">No attendance records</p>
-            <p className="text-[13px] text-[#64748B]">No records found for the selected date and filters.</p>
+            <p className="text-[14px] font-medium text-on-surface">No attendance records</p>
+            <p className="text-[13px] text-secondary">No records found for the selected date and filters.</p>
           </div>
         ) : (
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8F9FA]">
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Employee</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Department</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Status</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Check In</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Check Out</th>
-                <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Notes</th>
+              <tr className="border-b border-outline-variant bg-surface-container-low">
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Employee</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Department</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Status</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Check In</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Check Out</th>
+                <th className="px-4 py-3 text-left font-semibold text-secondary">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
+            <tbody className="divide-y divide-outline-variant">
               {records.map((rec) => {
                 const config = STATUS_CONFIG[rec.status]
                 return (
-                  <tr key={rec.id} className="hover:bg-[#F8F9FA]">
+                  <tr key={rec.id} className="hover:bg-surface-container-low">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#1E293B]">
+                      <p className="font-medium text-on-surface">
                         {rec.employee.user.name || rec.employee.user.email}
                       </p>
-                      <p className="text-[11px] text-[#64748B]">{rec.employee.employeeCode}</p>
+                      <p className="text-[11px] text-secondary">{rec.employee.employeeCode}</p>
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">
+                    <td className="px-4 py-3 text-secondary">
                       {rec.employee.department?.name ?? "—"}
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={config.variant}>{config.label}</Badge>
                     </td>
-                    <td className="px-4 py-3 text-[#64748B]">{formatTime(rec.checkIn)}</td>
-                    <td className="px-4 py-3 text-[#64748B]">{formatTime(rec.checkOut)}</td>
-                    <td className="px-4 py-3 text-[#64748B]">{rec.notes ?? "—"}</td>
+                    <td className="px-4 py-3 text-secondary">{formatTime(rec.checkIn)}</td>
+                    <td className="px-4 py-3 text-secondary">{formatTime(rec.checkOut)}</td>
+                    <td className="px-4 py-3 text-secondary">{rec.notes ?? "—"}</td>
                   </tr>
                 )
               })}
