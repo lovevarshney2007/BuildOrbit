@@ -69,12 +69,12 @@ export function Sidebar({
       >
         {/* Top Brand & Suite Identifier */}
         <div className="space-y-4 flex flex-col flex-1 min-h-0">
-          <div className="flex items-center gap-2.5 px-2 py-1 shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 px-2 py-1 shrink-0 hover:opacity-80 transition-opacity">
             <span className="material-symbols-outlined text-slate-900" data-icon="orbit">orbit</span>
             {!collapsed && (
               <span className="font-bold text-on-surface">BuildOrbit</span>
             )}
-          </div>
+          </Link>
           {!collapsed && (
             <div className="px-2 pb-1 border-b border-outline-variant flex items-center justify-between shrink-0">
               <span className="font-label-sm text-label-sm text-secondary">Enterprise Suite</span>

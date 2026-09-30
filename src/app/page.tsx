@@ -28,7 +28,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col overflow-hidden font-mono relative selection:bg-blue-500/30 text-slate-200">
+    <div className="w-full flex-1 min-h-screen bg-slate-950 flex flex-col overflow-hidden font-mono relative selection:bg-slate-500/30 text-slate-200">
       {/* Background Pixel Grid Pattern */}
       <div 
         className="absolute inset-0 z-0 opacity-20 pointer-events-none"
