@@ -8,7 +8,7 @@ const PUBLIC_PATHS = ["/login"]
 // Routes that only unauthenticated users should access (redirect authenticated users away)
 const AUTH_ONLY_PATHS = ["/login"]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip middleware for static assets and Next.js internals

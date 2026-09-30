@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { redirect } from "next/navigation"
 import { LeaveStatus } from "@prisma/client"
+import { sendEmail } from "@/lib/email"
+import { LeaveRequestEmail } from "@/components/emails/LeaveRequestEmail"
 
 const ApplyLeaveSchema = z.object({
   leaveTypeId: z.string().min(1, "Leave type is required"),
@@ -48,11 +50,16 @@ export async function applyLeaveAction(
   const msPerDay = 1000 * 60 * 60 * 24
   const days = Math.round((end.getTime() - start.getTime()) / msPerDay) + 1
 
-  // Get employee
-  const employee = await prisma.employee.findFirst({ where: { userId } })
+  // Get employee with user details
+  const employee = await prisma.employee.findFirst({ 
+    where: { userId },
+    include: { user: true } 
+  })
   if (!employee) {
     return { message: "Employee profile not found." }
   }
+
+  const leaveTypeRecord = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
 
   await prisma.leaveRequest.create({
     data: {
@@ -65,6 +72,29 @@ export async function applyLeaveAction(
       status: LeaveStatus.PENDING,
     },
   })
+
+  // Send email to HR
+  try {
+    const hrUsers = await prisma.user.findMany({ where: { role: "HR", isActive: true } })
+    const hrEmails = hrUsers.map((u) => u.email)
+    
+    if (hrEmails.length > 0 && employee.user?.name && leaveTypeRecord) {
+      await sendEmail({
+        to: hrEmails,
+        subject: `New Leave Request: ${employee.user.name}`,
+        react: LeaveRequestEmail({
+          employeeName: employee.user.name,
+          leaveType: leaveTypeRecord.name,
+          startDate: start,
+          endDate: end,
+          reason,
+          days,
+        }) as any,
+      })
+    }
+  } catch (error) {
+    console.error("Failed to send leave request email", error)
+  }
 
   redirect("/workforce/leave")
 }

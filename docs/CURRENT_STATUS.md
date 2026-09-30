@@ -21,13 +21,13 @@ We have successfully completed the end-to-end implementation of BuildOrbit (Phas
 
 ## Next Steps
 
-Since all initial phases (1-10) are now complete, BuildOrbit is structurally ready. Future directions could include:
-1. Connecting live transactional email functionality for notifications.
-2. Building out the advanced reporting/analytics views (e.g., Lead funnels, Payroll tax breakdowns).
-3. Implementing advanced profile management and self-service HR tools. 
-4. Deploying the application to a staging/production environment.
+Since all initial phases (1-10) are now complete, BuildOrbit is structurally ready. We are now working through the advanced features:
+1. ~~Connecting live transactional email functionality for notifications.~~ (✅ Completed: Integrated Resend & React Email for Leave Requests and Approvals)
+2. ~~Building out the advanced reporting/analytics views (e.g., Lead funnels, Payroll tax breakdowns).~~ (✅ Completed: Implemented Lead Sales Funnel and Payroll Trends using Recharts)
+3. ~~Implementing advanced profile management and self-service HR tools.~~ (✅ Completed: Built My Profile page with self-service update actions)
+4. Deploying the application to a staging/production environment. (🔄 Pending)
 
 ## Known Issues
 
-- The Next.js 16 compiler raises a deprecation warning about the `middleware` file convention suggesting migration to `proxy`. The current setup still works, but a migration using `npx @next/codemod@canary middleware-to-proxy .` might be required in the future.
 - The `npx shadcn add` command failed previously due to network fetching restrictions, so required UI components (`Button`, `Input`, `Select`, `Card`, `Badge`) were implemented manually using the existing Tailwind configuration.
+
