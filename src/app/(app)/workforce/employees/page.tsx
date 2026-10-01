@@ -2,11 +2,28 @@ import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { EmployeeStatus } from "@prisma/client"
+import Link from "next/link"
 
 interface SearchParams {
   search?: string
   department?: string
   status?: string
+}
+
+const ROLE_BADGE: Record<string, string> = {
+  SUPER_ADMIN: "bg-purple-100 text-purple-700 border border-purple-200",
+  ADMIN:       "bg-blue-100 text-blue-700 border border-blue-200",
+  HR:          "bg-pink-100 text-pink-700 border border-pink-200",
+  LEAD:        "bg-amber-100 text-amber-700 border border-amber-200",
+  ENGINEER:    "bg-emerald-100 text-emerald-700 border border-emerald-200",
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  ADMIN:       "Admin",
+  HR:          "HR",
+  LEAD:        "Lead",
+  ENGINEER:    "Engineer",
 }
 
 export default async function EmployeesPage({
@@ -52,50 +69,69 @@ export default async function EmployeesPage({
 
   const formatDate = (dt: Date) =>
     new Date(dt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-    
+
+  const totalCount = employees.length
   const activeCount = employees.filter(e => e.status === "ACTIVE").length
-  const leaveCount = employees.filter(e => e.status === "ON_LEAVE").length
+  const inactiveCount = employees.filter(e => e.status === "INACTIVE" || e.status === "TERMINATED").length
 
   return (
-    <main className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4 w-full">
-      {/* Page Header: Title + Subtitle Badge + Quick Metric Ribbon */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-1 border-b border-outline-variant dark:border-slate-800">
+    <main className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 w-full">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">Employee Directory</h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400">
-              Total: {employees.length} active employees
-            </span>
-          </div>
+          <nav className="flex items-center gap-1 text-sm text-secondary dark:text-slate-400 mb-2">
+            <Link href="/dashboard" className="hover:text-on-surface dark:hover:text-white transition-colors">Dashboard</Link>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="text-on-surface dark:text-white font-medium">Employees</span>
+          </nav>
+          <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">Employees</h1>
           <p className="font-body-sm text-body-sm text-secondary dark:text-slate-400 mt-0.5">
-            Operational personnel registry across global hubs, reporting lines, compliance credentials, and real-time shifts.
+            Manage employee accounts, roles, and access permissions
           </p>
         </div>
-        {/* MetricStrip Preview */}
-        <div className="flex items-center divide-x divide-outline-variant bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shadow-none text-left">
-          <div className="px-3 py-1.5">
-            <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400 block">Attendance Today</span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-headline-sm text-headline-sm font-tabular-data text-on-surface dark:text-white">
-                {employees.length > 0 ? Math.round((activeCount / employees.length) * 100) : 0}%
-              </span>
-              <span className="text-[10px] font-semibold text-primary">{activeCount} in</span>
-            </div>
+        {["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role) && (
+          <Link
+            href="/workforce/employees/new"
+            className="h-9 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center gap-2 shadow-sm hover:bg-primary/90 transition-colors w-fit"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Add Employee
+          </Link>
+        )}
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-5 flex items-center justify-between">
+          <div>
+            <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Total Employees</p>
+            <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{totalCount}</p>
           </div>
-          <div className="px-3 py-1.5">
-            <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400 block">On Leave</span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-headline-sm text-headline-sm font-tabular-data text-on-surface dark:text-white">{leaveCount}</span>
-            </div>
+          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-blue-500 text-2xl">groups</span>
           </div>
-          <div className="px-3 py-1.5">
-            <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400 block">Hubs Operational</span>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-headline-sm text-headline-sm font-tabular-data text-on-surface dark:text-white">Global</span>
-            </div>
+        </div>
+        <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-5 flex items-center justify-between">
+          <div>
+            <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Active</p>
+            <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{activeCount}</p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-emerald-500 text-2xl">person_check</span>
+          </div>
+        </div>
+        <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-5 flex items-center justify-between">
+          <div>
+            <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Inactive</p>
+            <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{inactiveCount}</p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-red-400 text-2xl">person_off</span>
           </div>
         </div>
       </div>
+
+
 
       {/* Multi-parameter Filter Bar Card */}
       <section className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 flex flex-col gap-2.5">
@@ -155,14 +191,14 @@ export default async function EmployeesPage({
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[220px]" scope="col">
                     Employee
                   </th>
-                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[170px]" scope="col">
-                    Department
-                  </th>
-                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[190px]" scope="col">
-                    Role
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[150px]" scope="col">
+                    Email
                   </th>
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[130px]" scope="col">
-                    Location
+                    Phone
+                  </th>
+                  <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[120px]" scope="col">
+                    Role
                   </th>
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[110px]" scope="col">
                     Status
@@ -193,20 +229,15 @@ export default async function EmployeesPage({
                       </div>
                     </td>
                     <td className="px-3 py-1.5">
-                      <div className="flex flex-col leading-tight">
-                        <span className="font-medium text-on-surface dark:text-white">{emp.department?.name || "—"}</span>
-                      </div>
+                      <span className="text-secondary dark:text-slate-400 text-[12px] truncate max-w-[150px] block">{emp.user.email}</span>
                     </td>
                     <td className="px-3 py-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate max-w-[140px]">{emp.designation?.title || "—"}</span>
-                      </div>
+                      <span className="font-tabular-data text-[12px] text-on-surface dark:text-white">{emp.phone || "—"}</span>
                     </td>
                     <td className="px-3 py-1.5">
-                      <div className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px] text-secondary dark:text-slate-400">business</span>
-                        <span className="font-body-sm">HQ</span>
-                      </div>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${ROLE_BADGE[emp.user.role] || "bg-slate-100 text-slate-600"}`}>
+                        {ROLE_LABEL[emp.user.role] || emp.user.role}
+                      </span>
                     </td>
                     <td className="px-3 py-1.5">
                       {emp.status === "ACTIVE" ? (

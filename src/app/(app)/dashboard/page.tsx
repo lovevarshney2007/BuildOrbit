@@ -106,8 +106,8 @@ export default async function DashboardPage() {
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 px-5 flex items-center gap-3">
               <span className="material-symbols-outlined text-white">badge</span>
               <div>
-                <p className="text-white/70 text-xs font-bold uppercase tracking-wider">Dept</p>
-                <p className="text-white font-semibold">{employee.department?.name || "Engineer"}</p>
+                <p className="text-white/70 text-xs font-bold uppercase tracking-wider">Role</p>
+                <p className="text-white font-semibold capitalize">{user.role.replace("_", " ").toLowerCase()}</p>
               </div>
             </div>
             <div className={`backdrop-blur-sm border rounded-xl p-3 px-5 flex items-center gap-3 ${todayAttendance?.status === "PRESENT" ? "bg-slate-900/20 border-slate-800/30" : "bg-white/10 border-white/20"}`}>
@@ -303,35 +303,66 @@ export default async function DashboardPage() {
           </div>
 
           <div className="flex flex-col gap-6 lg:col-span-3">
-            <AnimatedCard delay={0.50} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex-1 flex flex-col">
+            <AnimatedCard delay={0.50} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">calendar_month</span>
+                  Upcoming Events
+                </h3>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex flex-col items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold uppercase">Oct</span>
+                    <span className="text-sm font-bold leading-tight">15</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-on-surface dark:text-white">Townhall Meeting</p>
+                    <p className="text-xs text-secondary dark:text-slate-400 mt-0.5">10:00 AM - Main Boardroom</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold uppercase">Oct</span>
+                    <span className="text-sm font-bold leading-tight">24</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-on-surface dark:text-white">Diwali Celebration</p>
+                    <p className="text-xs text-secondary dark:text-slate-400 mt-0.5">4:00 PM - Cafeteria</p>
+                  </div>
+                </div>
+              </div>
+            </AnimatedCard>
+
+            <AnimatedCard delay={0.55} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">history</span>
-                  My Leave Requests
+                  Latest Activity
                 </h3>
                 <Link href="/workforce/leave" className="text-sm font-semibold text-primary hover:underline">View All</Link>
               </div>
-              <div className="space-y-3 flex-1">
-                {leaveRequests.slice(0, 5).map(leave => (
-                  <div key={leave.id} className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col gap-1">
-                    <div className="flex justify-between items-start">
-                      <span className="font-semibold text-on-surface dark:text-white text-sm">{leave.leaveType.name}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase
-                        ${leave.status === "APPROVED" ? "bg-slate-200 dark:bg-slate-700 text-slate-950 dark:text-white" :
-                          leave.status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}`}>
-                        {leave.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-secondary dark:text-slate-400">
-                      {leave.startDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} – {leave.days} day{leave.days !== 1 ? "s" : ""}
+              <div className="relative border-l-2 border-slate-100 dark:border-slate-800 ml-3 pl-5 space-y-5 py-2 flex-1">
+                {leaveRequests.slice(0, 3).map(leave => (
+                  <div key={leave.id} className="relative">
+                    <div className="absolute w-3 h-3 bg-primary rounded-full -left-[27px] top-1.5 ring-4 ring-white dark:ring-slate-950"></div>
+                    <p className="font-semibold text-on-surface dark:text-white text-sm">Leave Request {leave.status.toLowerCase()}</p>
+                    <p className="text-xs text-secondary dark:text-slate-400 mt-0.5">
+                      {leave.leaveType.name} ({leave.days} days) requested on {leave.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                     </p>
                   </div>
                 ))}
-                {leaveRequests.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-10 text-center opacity-60 flex-1">
-                    <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">description</span>
-                    <p className="text-sm text-slate-500">No leave requests yet</p>
+                {lastPayslip && (
+                  <div className="relative">
+                    <div className="absolute w-3 h-3 bg-pink-500 rounded-full -left-[27px] top-1.5 ring-4 ring-white dark:ring-slate-950"></div>
+                    <p className="font-semibold text-on-surface dark:text-white text-sm">Payslip Generated</p>
+                    <p className="text-xs text-secondary dark:text-slate-400 mt-0.5">
+                      Your payslip for {lastPayslip.month}/{lastPayslip.year} is ready
+                    </p>
                   </div>
+                )}
+                {leaveRequests.length === 0 && !lastPayslip && (
+                  <div className="text-sm text-secondary dark:text-slate-400">No recent activity.</div>
                 )}
               </div>
             </AnimatedCard>
