@@ -17,7 +17,7 @@ export interface NavGroup {
 
 export const navConfig: NavGroup[] = [
   {
-    title: "Overview",
+    title: "DASHBOARD",
     items: [
       {
         label: "Dashboard",
@@ -25,17 +25,17 @@ export const navConfig: NavGroup[] = [
         icon: "dashboard",
         roles: [],
       },
-      {
-        label: "My Profile",
-        href: "/profile",
-        icon: "person",
-        roles: [],
-      },
     ],
   },
   {
-    title: "Workforce",
+    title: "WORKFORCE",
     items: [
+      {
+        label: "Attendance",
+        href: "/workforce/attendance",
+        icon: "how_to_reg",
+        roles: [],
+      },
       {
         label: "Employees",
         href: "/workforce/employees",
@@ -43,13 +43,7 @@ export const navConfig: NavGroup[] = [
         roles: ["SUPER_ADMIN", "ADMIN", "HR", "LEAD"],
       },
       {
-        label: "Attendance",
-        href: "/workforce/attendance",
-        icon: "calendar_month",
-        roles: [],
-      },
-      {
-        label: "Leave Requests",
+        label: "Leave Request",
         href: "/workforce/leave",
         icon: "event_busy",
         roles: [],
@@ -57,7 +51,30 @@ export const navConfig: NavGroup[] = [
     ],
   },
   {
-    title: "HR & Payroll",
+    title: "REPORTS",
+    items: [
+      {
+        label: "Attendance Report",
+        href: "/reports/attendance",
+        icon: "analytics",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
+        label: "Payroll Summary",
+        href: "/reports/payroll",
+        icon: "receipt_long",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
+        label: "Lead Reports",
+        href: "/reports/leads",
+        icon: "query_stats",
+        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
+      },
+    ],
+  },
+  {
+    title: "HR & PAYROLL",
     items: [
       {
         label: "Leave Master",
@@ -91,30 +108,7 @@ export const navConfig: NavGroup[] = [
     ],
   },
   {
-    title: "Reports",
-    items: [
-      {
-        label: "Attendance Report",
-        href: "/reports/attendance",
-        icon: "analytics",
-        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
-      },
-      {
-        label: "Payroll Summary",
-        href: "/reports/payroll",
-        icon: "receipt_long",
-        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
-      },
-      {
-        label: "Lead Reports",
-        href: "/reports/leads",
-        icon: "query_stats",
-        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
-      },
-    ],
-  },
-  {
-    title: "Administration",
+    title: "ADMINISTRATION",
     items: [
       {
         label: "Settings",

@@ -106,6 +106,11 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-1 relative">
+          <button type="button" className="hidden md:flex items-center gap-1 px-2 py-1 mr-1 text-xs font-semibold text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white hover:bg-slate-50 dark:bg-slate-900 rounded transition-colors" title="Toggle Theme">
+            <span className="material-symbols-outlined text-[16px]">light_mode</span>
+            <span>Light</span>
+          </button>
+
           <button type="button" onClick={() => setShowNotif(!showNotif)} className="relative p-1.5 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white hover:bg-slate-50 dark:bg-slate-900 rounded transition-colors" title="Notifications">
             <span className="material-symbols-outlined" data-icon="notifications">notifications</span>
             {notifications.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>}

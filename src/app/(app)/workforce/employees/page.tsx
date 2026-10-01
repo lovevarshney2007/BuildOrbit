@@ -8,6 +8,7 @@ interface SearchParams {
   search?: string
   department?: string
   status?: string
+  role?: string
 }
 
 const ROLE_BADGE: Record<string, string> = {
@@ -43,19 +44,21 @@ export default async function EmployeesPage({
   const search = params.search?.toLowerCase() ?? ""
   const departmentId = params.department
   const statusFilter = params.status as EmployeeStatus | undefined
+  const roleFilter = params.role
 
   const employees = await prisma.employee.findMany({
     where: {
       status: statusFilter ?? undefined,
       departmentId: departmentId ?? undefined,
-      user: search
-        ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { email: { contains: search, mode: "insensitive" } },
-            ],
-          }
-        : undefined,
+      user: {
+        role: roleFilter ?? undefined,
+        ...(search ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        } : {}),
+      },
     },
     include: {
       user: { select: { name: true, email: true, role: true } },
@@ -141,21 +144,21 @@ export default async function EmployeesPage({
             <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-secondary dark:text-slate-400">
               <span className="material-symbols-outlined text-[16px]">search</span>
             </span>
-            <input name="search" defaultValue={search} className="w-full pl-8 pr-3 py-1.5 bg-surface-bright border border-outline-variant dark:border-slate-800 rounded font-body-sm text-body-sm text-on-surface dark:text-white placeholder-secondary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none" placeholder="Filter by name, ID, email, role..." type="text"/>
+            <input name="search" defaultValue={search} className="w-full pl-8 pr-3 py-1.5 bg-surface-bright border border-outline-variant dark:border-slate-800 rounded font-body-sm text-body-sm text-on-surface dark:text-white placeholder-secondary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none" placeholder="Search users..." type="text"/>
           </div>
-          {/* Department dropdown */}
+          {/* Role dropdown */}
           <div className="lg:col-span-3 relative flex">
-            <select name="department" defaultValue={departmentId ?? ""} className="w-full py-1.5 px-2 bg-surface-bright border border-outline-variant dark:border-slate-800 rounded font-body-sm text-body-sm text-on-surface dark:text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
-              <option value="">Department: All</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+            <select name="role" defaultValue={roleFilter ?? ""} className="w-full py-1.5 px-2 bg-surface-bright border border-outline-variant dark:border-slate-800 rounded font-body-sm text-body-sm text-on-surface dark:text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
+              <option value="">All Roles</option>
+              {Object.keys(ROLE_LABEL).map((roleKey) => (
+                <option key={roleKey} value={roleKey}>{ROLE_LABEL[roleKey]}</option>
               ))}
             </select>
           </div>
           {/* Employment Status dropdown */}
           <div className="lg:col-span-3 relative flex">
             <select name="status" defaultValue={statusFilter ?? ""} className="w-full py-1.5 px-2 bg-surface-bright border border-outline-variant dark:border-slate-800 rounded font-body-sm text-body-sm text-on-surface dark:text-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
-              <option value="">Status: All Types</option>
+              <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
               <option value="ON_LEAVE">On Leave</option>
@@ -189,7 +192,7 @@ export default async function EmployeesPage({
                     <input className="rounded border-outline text-primary focus:ring-primary w-4 h-4 cursor-pointer" type="checkbox"/>
                   </th>
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[220px]" scope="col">
-                    Employee
+                    User
                   </th>
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[150px]" scope="col">
                     Email
@@ -204,7 +207,7 @@ export default async function EmployeesPage({
                     Status
                   </th>
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold min-w-[110px]" scope="col">
-                    Joined
+                    Created
                   </th>
                   <th className="px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 text-right pr-4 min-w-[110px]" scope="col">
                     Actions
@@ -219,12 +222,12 @@ export default async function EmployeesPage({
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                          {emp.user.name ? emp.user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : emp.user.email.slice(0, 2).toUpperCase()}
+                        </div>
                         <div className="flex flex-col leading-tight">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-medium text-on-surface dark:text-white">{emp.user.name || emp.user.email}</span>
-                            <span className="font-tabular-data text-[11px] text-secondary dark:text-slate-400">{emp.employeeCode}</span>
-                          </div>
-                          <span className="font-body-sm text-[11px] text-secondary dark:text-slate-400 truncate max-w-[170px]">{emp.user.email}</span>
+                          <span className="font-medium text-on-surface dark:text-white">{emp.user.name || emp.user.email}</span>
+                          <span className="font-tabular-data text-[11px] text-secondary dark:text-slate-400">{emp.employeeCode}</span>
                         </div>
                       </div>
                     </td>
@@ -274,6 +277,21 @@ export default async function EmployeesPage({
             </table>
           )}
         </div>
+        {/* Pagination Footer */}
+        {employees.length > 0 && (
+          <div className="px-4 py-3 border-t border-outline-variant dark:border-slate-800 bg-surface-container dark:bg-slate-950 flex items-center justify-between text-sm text-secondary dark:text-slate-400">
+            <div>
+              Showing 1 to {totalCount} of {totalCount} entries
+            </div>
+            <div className="flex items-center gap-1">
+              <button className="px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">&lt;&lt;</button>
+              <button className="px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">&lt;</button>
+              <button className="px-2.5 py-1 rounded bg-primary text-on-primary font-semibold">1</button>
+              <button className="px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">&gt;</button>
+              <button className="px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">&gt;&gt;</button>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
