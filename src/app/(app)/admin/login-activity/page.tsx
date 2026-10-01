@@ -34,7 +34,7 @@ export default async function LoginActivityPage({
     return new Date(dt).toISOString().replace("T", " ").substring(0, 19) + " UTC"
   }
 
-  const getRiskScore = (act: any) => {
+  const getRiskScore = (act: { ipAddress?: string | null; device?: string | null }) => {
     if (act.ipAddress && act.ipAddress.startsWith("185.")) return { score: 78, label: "High Risk", color: "red" }
     if (act.device === "Unknown") return { score: 35, label: "Medium Risk", color: "amber" }
     return { score: 0, label: "Low Risk", color: "emerald" }

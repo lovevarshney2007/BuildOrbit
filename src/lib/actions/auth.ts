@@ -27,7 +27,12 @@ export type AuthState = {
   }
   message?: string
   step?: "REGISTER" | "VERIFY_OTP"
-  data?: any
+  data?: {
+    email?: string
+    name?: string
+    password?: string
+    [key: string]: string | undefined
+  }
 } | null
 
 // ---------------------------------------------------------------------------

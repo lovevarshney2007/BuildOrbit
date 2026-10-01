@@ -32,7 +32,6 @@ export default async function DashboardPage() {
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(today.getDate() - 7)
 
-    // Parallel data fetching for performance
     const [
       monthlyAttendance,
       leaveRequests,
@@ -46,12 +45,12 @@ export default async function DashboardPage() {
       }),
       prisma.leaveRequest.findMany({
         where: { requesterId: user.userId, startDate: { gte: new Date(currentYear, 0, 1) } },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: { leaveType: true }
       }),
       prisma.payroll.findFirst({
-        where: { employeeId: employee.id, status: 'PAID' },
-        orderBy: [ { year: 'desc' }, { month: 'desc' } ]
+        where: { employeeId: employee.id, status: "PAID" },
+        orderBy: [{ year: "desc" }, { month: "desc" }]
       }),
       prisma.leaveBalance.findMany({
         where: { employeeId: employee.id, year: currentYear },
@@ -59,167 +58,138 @@ export default async function DashboardPage() {
       }),
       prisma.attendance.findMany({
         where: { employeeId: employee.id, date: { gte: sevenDaysAgo } },
-        orderBy: { date: 'asc' }
+        orderBy: { date: "asc" }
       }),
       prisma.attendance.findUnique({
         where: { employeeId_date: { employeeId: employee.id, date: today } }
       })
     ])
 
-    // Calculations
-    const presentDays = monthlyAttendance.filter(a => a.status === 'PRESENT').length
-    const absentDays = monthlyAttendance.filter(a => a.status === 'ABSENT').length
-    const leaveDays = monthlyAttendance.filter(a => a.status === 'ON_LEAVE').length
-    
+    const presentDays = monthlyAttendance.filter(a => a.status === "PRESENT").length
+    const absentDays = monthlyAttendance.filter(a => a.status === "ABSENT").length
+    const leaveDays = monthlyAttendance.filter(a => a.status === "ON_LEAVE").length
     const daysElapsed = Math.max(1, today.getDate())
     const attendanceRate = Math.round((presentDays / daysElapsed) * 100) || 0
 
-    const approvedLeaves = leaveRequests.filter(l => l.status === 'APPROVED')
-    const pendingLeaves = leaveRequests.filter(l => l.status === 'PENDING')
+    const approvedLeaves = leaveRequests.filter(l => l.status === "APPROVED")
+    const pendingLeaves = leaveRequests.filter(l => l.status === "PENDING")
     const approvedDays = approvedLeaves.reduce((sum, l) => sum + l.days, 0)
 
     const totalLeaveDaysRemaining = leaveBalances.reduce((sum, b) => sum + (b.totalDays - b.usedDays), 0)
     const totalLeaveDaysAllowed = leaveBalances.reduce((sum, b) => sum + b.totalDays, 0)
 
-    // Last 7 days map
     const last7DaysMap = new Map<string, string>()
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today)
       d.setDate(today.getDate() - i)
-      const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+      const dateStr = d.toLocaleDateString("en-US", { day: "numeric", month: "short" })
       const isWeekend = d.getDay() === 0 || d.getDay() === 6
-      last7DaysMap.set(dateStr, isWeekend ? 'WEEKEND' : 'UNMARKED')
+      last7DaysMap.set(dateStr, isWeekend ? "WEEKEND" : "UNMARKED")
     }
     last7DaysAttendance.forEach(a => {
-      const dateStr = a.date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+      const dateStr = a.date.toLocaleDateString("en-US", { day: "numeric", month: "short" })
       if (last7DaysMap.has(dateStr)) last7DaysMap.set(dateStr, a.status)
     })
 
+    const hour = now.getHours()
+    const greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening"
+
     return (
       <div className="flex flex-col gap-6 w-full p-6 md:p-8">
-        {/* HERO BANNER */}
         <AnimatedCard delay={0.05} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container text-white shadow-md p-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
-            <span className="material-symbols-outlined" style={{ fontSize: '200px' }}>engineering</span>
-          </div>
           <div className="relative z-10 flex-1">
-            <p className="text-white/80 font-semibold mb-1 text-sm tracking-widest uppercase">Good {now.getHours() < 12 ? 'Morning' : now.getHours() < 18 ? 'Afternoon' : 'Evening'}</p>
+            <p className="text-white/80 font-semibold mb-1 text-sm tracking-widest uppercase">Good {greeting}</p>
             <h1 className="text-4xl font-bold tracking-tight mb-2">{user.name}!</h1>
-            <p className="text-white/90 font-medium">Great work today. Your dedication builds the future.</p>
+            <p className="text-white/90 font-medium">Your dedication builds the future.</p>
           </div>
           <div className="relative z-10 flex flex-col sm:flex-row gap-4">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 px-5 flex items-center gap-3">
               <span className="material-symbols-outlined text-white">badge</span>
               <div>
-                <p className="text-white/70 text-xs font-bold uppercase tracking-wider">Role</p>
-                <p className="text-white font-semibold">{employee.department?.name || 'Engineer'}</p>
+                <p className="text-white/70 text-xs font-bold uppercase tracking-wider">Dept</p>
+                <p className="text-white font-semibold">{employee.department?.name || "Engineer"}</p>
               </div>
             </div>
-            <div className={`backdrop-blur-sm border rounded-xl p-3 px-5 flex items-center gap-3
-              ${todayAttendance?.status === 'PRESENT' ? 'bg-slate-900/20 border-slate-800/30 text-white' : 
-                todayAttendance?.status === 'ABSENT' ? 'bg-red-500/20 border-red-400/30 text-white' : 
-                'bg-white/10 border-white/20 text-white'}`}>
-              <span className="material-symbols-outlined">schedule</span>
+            <div className={`backdrop-blur-sm border rounded-xl p-3 px-5 flex items-center gap-3 ${todayAttendance?.status === "PRESENT" ? "bg-slate-900/20 border-slate-800/30" : "bg-white/10 border-white/20"}`}>
+              <span className="material-symbols-outlined text-white">schedule</span>
               <div>
                 <p className="text-white/70 text-xs font-bold uppercase tracking-wider">Today</p>
-                <p className="font-semibold flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${todayAttendance?.status === 'PRESENT' ? 'bg-slate-800' : todayAttendance?.status === 'ABSENT' ? 'bg-red-400' : 'bg-yellow-400'}`}></span>
-                  {todayAttendance?.status === 'PRESENT' ? 'Present' : todayAttendance?.status === 'ABSENT' ? 'Absent' : 'Not Marked'}
+                <p className="text-white font-semibold">
+                  {todayAttendance?.status === "PRESENT" ? "Present" : todayAttendance?.status === "ABSENT" ? "Absent" : "Not Marked"}
                 </p>
               </div>
             </div>
           </div>
         </AnimatedCard>
 
-        {/* 4 SUMMARY METRICS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <AnimatedCard delay={0.10} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow group flex items-center justify-between">
+          <AnimatedCard delay={0.10} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
             <div>
-              <p className="font-label-sm text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">My Attendance</p>
+              <p className="text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">My Attendance</p>
               <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{presentDays}<span className="text-xl text-secondary dark:text-slate-400">/{daysElapsed}</span></p>
               <p className="text-xs text-secondary dark:text-slate-400 font-medium mt-1">{attendanceRate}% rate this month</p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-blue-50 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">directions_run</span>
             </div>
           </AnimatedCard>
 
-          <AnimatedCard delay={0.15} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow group flex items-center justify-between">
+          <AnimatedCard delay={0.15} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
             <div>
-              <p className="font-label-sm text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">My Approved Leaves</p>
+              <p className="text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Approved Leave Days</p>
               <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{approvedDays}</p>
               <p className="text-xs text-secondary dark:text-slate-400 font-medium mt-1">Days approved this year</p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-colors">
+            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">event_available</span>
             </div>
           </AnimatedCard>
 
-          <AnimatedCard delay={0.20} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow group flex items-center justify-between">
+          <AnimatedCard delay={0.20} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
             <div>
-              <p className="font-label-sm text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Pending Leaves</p>
+              <p className="text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Pending Leaves</p>
               <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{pendingLeaves.length}</p>
               <p className="text-xs text-secondary dark:text-slate-400 font-medium mt-1">Awaiting approval</p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
+            <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">pending_actions</span>
             </div>
           </AnimatedCard>
 
-          <AnimatedCard delay={0.25} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow group flex items-center justify-between">
+          <AnimatedCard delay={0.25} className="p-5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
             <div>
-              <p className="font-label-sm text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Last Payslip</p>
-              <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{lastPayslip ? `₹${(lastPayslip.netSalary?.toString() || '0')}` : 'N/A'}</p>
-              <p className="text-xs text-secondary dark:text-slate-400 font-medium mt-1">{lastPayslip ? `${lastPayslip.month}/${lastPayslip.year}` : 'No payslip yet'}</p>
+              <p className="text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Last Payslip</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white font-tabular-data">{lastPayslip ? `₹${lastPayslip.netSalary}` : "N/A"}</p>
+              <p className="text-xs text-secondary dark:text-slate-400 font-medium mt-1">{lastPayslip ? `${lastPayslip.month}/${lastPayslip.year}` : "No payslip yet"}</p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors">
+            <div className="w-12 h-12 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">receipt_long</span>
             </div>
           </AnimatedCard>
         </div>
 
-        {/* MAIN 3-COLUMN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* COLUMN 1: Attendance Analytics */}
-          <div className="flex flex-col gap-6 lg:col-span-4 xl:col-span-3">
+          <div className="flex flex-col gap-6 lg:col-span-4">
             <AnimatedCard delay={0.30} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex-1 flex flex-col">
               <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-primary">pie_chart</span>
-                My Attendance Overview
+                Attendance This Month
               </h3>
-              <p className="text-secondary dark:text-slate-400 text-sm mb-6">This month's personal attendance</p>
-              
-              <div className="flex flex-col items-center justify-center gap-6 flex-1 py-4">
-                {/* SVG Donut Chart */}
+              <p className="text-secondary dark:text-slate-400 text-sm mb-6">{daysInMonth} working days total</p>
+              <div className="flex flex-col items-center justify-center gap-6 flex-1">
                 <div className="relative w-36 h-36 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                    <path
-                      className="text-slate-100"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="text-[#0ea5e9]"
-                      strokeDasharray={`${attendanceRate}, 100`}
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                    />
+                    <path className="text-slate-100 dark:text-slate-800" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
+                    <path className="text-primary" strokeDasharray={`${attendanceRate}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-3xl font-bold text-on-surface dark:text-white leading-none mb-0.5">{attendanceRate}%</span>
-                    <span className="text-[9px] text-secondary dark:text-slate-400 font-bold uppercase tracking-widest">Attendance</span>
+                    <span className="text-[9px] text-secondary dark:text-slate-400 font-bold uppercase tracking-widest">Rate</span>
                   </div>
                 </div>
-
-                <div className="w-full space-y-3 mt-4">
+                <div className="w-full space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-[#0ea5e9]"></div><span className="text-secondary dark:text-slate-400">Present</span></div>
+                    <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-primary"></div><span className="text-secondary dark:text-slate-400">Present</span></div>
                     <span className="font-semibold">{presentDays}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -230,91 +200,71 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-red-500"></div><span className="text-secondary dark:text-slate-400">Absent</span></div>
                     <span className="font-semibold">{absentDays}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-secondary dark:text-slate-400">Month Days</span>
-                    <span className="font-bold">{daysInMonth}</span>
-                  </div>
                 </div>
               </div>
             </AnimatedCard>
 
             <AnimatedCard delay={0.35} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm">
-              <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-primary">timeline</span>
-                My Last 7 Days
+                Last 7 Days
               </h3>
-              <p className="text-secondary dark:text-slate-400 text-sm mb-6">Personal attendance streak</p>
-              
-              <div className="flex justify-between items-end h-24 border-b border-dashed border-slate-200 dark:border-slate-800 pb-2 px-2">
+              <div className="flex justify-between items-end h-20 border-b border-dashed border-slate-200 dark:border-slate-800 pb-2 px-1">
                 {Array.from(last7DaysMap.entries()).map(([dateStr, status], index) => {
-                  let colorClass = 'bg-slate-200 dark:bg-slate-700'
-                  let heightClass = 'h-3'
-                  if (status === 'PRESENT') { colorClass = 'bg-slate-900'; heightClass = 'h-16' }
-                  else if (status === 'ABSENT') { colorClass = 'bg-red-500'; heightClass = 'h-8' }
-                  else if (status === 'ON_LEAVE') { colorClass = 'bg-orange-400'; heightClass = 'h-12' }
-                  
+                  let colorClass = "bg-slate-200 dark:bg-slate-700"
+                  let heightClass = "h-3"
+                  if (status === "PRESENT") { colorClass = "bg-slate-900 dark:bg-white"; heightClass = "h-14" }
+                  else if (status === "ABSENT") { colorClass = "bg-red-500"; heightClass = "h-7" }
+                  else if (status === "ON_LEAVE") { colorClass = "bg-orange-400"; heightClass = "h-10" }
                   return (
-                    <div key={index} className="flex flex-col items-center gap-2 group cursor-default">
-                      <div className={`w-3 rounded-full ${colorClass} ${heightClass} group-hover:opacity-80 transition-all`}></div>
-                      <span className="text-[10px] text-secondary dark:text-slate-400 font-medium whitespace-nowrap overflow-visible">{dateStr}</span>
+                    <div key={index} className="flex flex-col items-center gap-1.5">
+                      <div className={`w-3 rounded-full ${colorClass} ${heightClass}`}></div>
+                      <span className="text-[9px] text-secondary dark:text-slate-400 font-medium">{dateStr.split(" ")[0]}</span>
                     </div>
                   )
                 })}
-              </div>
-              <div className="flex gap-4 mt-4 justify-center">
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-900"></div><span className="text-[10px] text-secondary dark:text-slate-400">Present</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500"></div><span className="text-[10px] text-secondary dark:text-slate-400">Absent</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700"></div><span className="text-[10px] text-secondary dark:text-slate-400">Unmarked</span></div>
               </div>
             </AnimatedCard>
           </div>
 
-          {/* COLUMN 2: Leaves & Quick Actions */}
-          <div className="flex flex-col gap-6 lg:col-span-5 xl:col-span-6">
+          <div className="flex flex-col gap-6 lg:col-span-5">
             <AnimatedCard delay={0.40} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex-1">
               <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
-                My Leave Balance
+                Leave Balance (FY {currentYear})
               </h3>
-              <p className="text-secondary dark:text-slate-400 text-sm mb-6">FY {currentYear} balance by type</p>
-              
-              <div className="space-y-5 flex-1">
+              <div className="space-y-5 mt-5 flex-1">
                 {leaveBalances.map(balance => {
                   const remaining = balance.totalDays - balance.usedDays
-                  const percentRemaining = balance.totalDays > 0 ? Math.round((remaining / balance.totalDays) * 100) : 0
-                  
-                  let colorClass = 'bg-primary'
-                  if (percentRemaining < 30) colorClass = 'bg-red-500'
-                  else if (percentRemaining < 60) colorClass = 'bg-amber-500'
-                  else if (percentRemaining >= 90) colorClass = 'bg-slate-900'
-
+                  const pct = balance.totalDays > 0 ? Math.round((remaining / balance.totalDays) * 100) : 0
+                  let colorClass = "bg-primary"
+                  if (pct < 30) colorClass = "bg-red-500"
+                  else if (pct < 60) colorClass = "bg-amber-500"
                   return (
                     <div key={balance.id}>
-                      <div className="flex justify-between text-sm mb-2">
+                      <div className="flex justify-between text-sm mb-1.5">
                         <span className="font-semibold flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                           {balance.leaveType.name}
                         </span>
-                        <span className="font-bold text-on-surface dark:text-white">{remaining} <span className="text-secondary dark:text-slate-400 font-medium">/ {balance.totalDays}</span></span>
+                        <span className="font-bold text-on-surface dark:text-white">{remaining} <span className="text-secondary dark:text-slate-400 font-normal">/ {balance.totalDays}</span></span>
                       </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-200 dark:border-slate-800">
-                        <div className={`${colorClass} h-2.5 rounded-full transition-all`} style={{ width: `${percentRemaining}%` }}></div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div className={`${colorClass} h-2 rounded-full`} style={{ width: `${pct}%` }}></div>
                       </div>
-                      <p className="text-[10px] text-secondary dark:text-slate-400 mt-1">{balance.usedDays} used</p>
                     </div>
                   )
                 })}
+                {leaveBalances.length === 0 && (
+                  <p className="text-secondary dark:text-slate-400 text-sm">No leave balances configured yet.</p>
+                )}
               </div>
-
-              <div className="mt-6 pt-5 border-t border-outline-variant dark:border-slate-800 flex justify-between items-end">
+              <div className="mt-6 pt-4 border-t border-outline-variant dark:border-slate-800 flex justify-between items-end">
                 <div>
                   <p className="font-semibold text-on-surface dark:text-white">Total Remaining</p>
-                  <p className="text-xs text-secondary dark:text-slate-400">Across all leave types</p>
+                  <p className="text-xs text-secondary dark:text-slate-400">All types combined</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-primary">{totalLeaveDaysRemaining}</p>
-                  <p className="text-xs text-secondary dark:text-slate-400">of {totalLeaveDaysAllowed} days</p>
-                </div>
+                <p className="text-3xl font-bold text-primary">{totalLeaveDaysRemaining}<span className="text-sm text-secondary dark:text-slate-400 font-normal"> / {totalLeaveDaysAllowed}</span></p>
               </div>
             </AnimatedCard>
 
@@ -336,7 +286,7 @@ export default async function DashboardPage() {
                   </div>
                   <span className="font-semibold text-sm">Apply Leave</span>
                 </Link>
-                <Link href="/workforce/payslip" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:border-pink-500 hover:shadow-sm transition-all group text-left">
+                <Link href="/workforce/payslip" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:border-pink-500 hover:shadow-sm transition-all group">
                   <div className="w-8 h-8 rounded bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors">
                     <span className="material-symbols-outlined text-lg">request_quote</span>
                   </div>
@@ -352,58 +302,37 @@ export default async function DashboardPage() {
             </AnimatedCard>
           </div>
 
-          {/* COLUMN 3: Right Sidebar */}
-          <div className="flex flex-col gap-6 lg:col-span-3 xl:col-span-3">
+          <div className="flex flex-col gap-6 lg:col-span-3">
             <AnimatedCard delay={0.50} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">history</span>
                   My Leave Requests
                 </h3>
-                <Link href="/workforce/leave" className="text-sm font-semibold text-primary hover:underline flex items-center">
-                  Apply <span className="material-symbols-outlined text-sm ml-0.5">chevron_right</span>
-                </Link>
+                <Link href="/workforce/leave" className="text-sm font-semibold text-primary hover:underline">View All</Link>
               </div>
-              <p className="text-secondary dark:text-slate-400 text-sm mb-5">Your recent leave history</p>
-              
               <div className="space-y-3 flex-1">
                 {leaveRequests.slice(0, 5).map(leave => (
-                  <div key={leave.id} className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 transition-colors flex flex-col gap-1.5">
-                     <div className="flex justify-between items-start">
-                       <span className="font-semibold text-on-surface dark:text-white flex items-center gap-2">
-                         <span className="material-symbols-outlined text-sm text-secondary dark:text-slate-400">event</span>
-                         {leave.leaveType.name}
-                       </span>
-                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
-                         ${leave.status === 'APPROVED' ? 'bg-slate-200 dark:bg-slate-700 text-slate-950' : 
-                           leave.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 
-                           'bg-orange-100 text-orange-700'}`}>
-                         {leave.status}
-                       </span>
-                     </div>
-                     <div className="text-xs text-secondary dark:text-slate-400 pl-6">
-                       {leave.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {leave.endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} 
-                       <span className="font-medium text-slate-700 dark:text-slate-300 ml-1">({leave.days} days)</span>
-                     </div>
+                  <div key={leave.id} className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col gap-1">
+                    <div className="flex justify-between items-start">
+                      <span className="font-semibold text-on-surface dark:text-white text-sm">{leave.leaveType.name}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase
+                        ${leave.status === "APPROVED" ? "bg-slate-200 dark:bg-slate-700 text-slate-950 dark:text-white" :
+                          leave.status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}`}>
+                        {leave.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-secondary dark:text-slate-400">
+                      {leave.startDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} – {leave.days} day{leave.days !== 1 ? "s" : ""}
+                    </p>
                   </div>
                 ))}
                 {leaveRequests.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-10 text-center opacity-60 flex-1">
-                    <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">description</span>
-                    <p className="text-sm font-medium text-slate-500">No leave requests yet</p>
+                    <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">description</span>
+                    <p className="text-sm text-slate-500">No leave requests yet</p>
                   </div>
                 )}
-              </div>
-            </AnimatedCard>
-
-            <AnimatedCard delay={0.55} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm bg-gradient-to-br from-white to-orange-50/30">
-              <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-orange-500">celebration</span>
-                Upcoming
-              </h3>
-              <div className="flex flex-col items-center justify-center py-6 text-center opacity-60">
-                <span className="material-symbols-outlined text-3xl text-orange-300 mb-2">event_note</span>
-                <p className="text-sm font-medium text-slate-500">Nothing coming up soon</p>
               </div>
             </AnimatedCard>
           </div>
@@ -412,349 +341,344 @@ export default async function DashboardPage() {
     )
   }
 
+  // =========================================================================
+  // ADMIN / HR / LEAD / SUPER_ADMIN Dashboard
+  // =========================================================================
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const currentMonth = today.getMonth() + 1
+  const currentYear = today.getFullYear()
+
+  const isAdminLike = ["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role)
+  const isLeadOrAdmin = ["SUPER_ADMIN", "ADMIN", "LEAD"].includes(user.role)
+
+  const [
+    totalEmployees,
+    presentToday,
+    onLeaveToday,
+    pendingLeaveCount,
+    totalActiveLeads,
+    leadValues,
+    currentMonthPayrolls,
+    recentLeaveRequests,
+    departments,
+    _recentLeads,
+  ] = await Promise.all([
+    prisma.employee.count({ where: { status: "ACTIVE" } }),
+    prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
+    prisma.attendance.count({ where: { date: today, status: "ON_LEAVE" } }),
+    isAdminLike ? prisma.leaveRequest.count({ where: { status: "PENDING" } }) : Promise.resolve(0),
+    isLeadOrAdmin ? prisma.lead.count({ where: { status: { not: "LOST" } } }) : Promise.resolve(0),
+    isLeadOrAdmin
+      ? prisma.lead.findMany({ where: { status: { not: "LOST" } }, select: { value: true } })
+      : Promise.resolve([] as Array<{ value: unknown }>),
+    isAdminLike
+      ? prisma.payroll.findMany({ where: { month: currentMonth, year: currentYear }, select: { netSalary: true, status: true } })
+      : Promise.resolve([] as Array<{ netSalary: unknown; status: string }>),
+    isAdminLike
+      ? prisma.leaveRequest.findMany({
+          where: { status: "PENDING" },
+          include: {
+            requester: { select: { name: true, email: true } },
+            leaveType: { select: { name: true } },
+          },
+          orderBy: { createdAt: "asc" },
+          take: 5,
+        })
+      : Promise.resolve([] as Array<{ id: string; requester: { name: string | null; email: string }; leaveType: { name: string }; days: number; startDate: Date }>),
+    prisma.department.findMany({
+      include: {
+        employees: { where: { status: "ACTIVE" }, select: { id: true } }
+      }
+    }),
+    isLeadOrAdmin
+      ? prisma.lead.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          select: { id: true, title: true, contactName: true, status: true, value: true },
+        })
+      : Promise.resolve([] as Array<{ id: string; title: string; contactName: string; status: string; value: unknown }>),
+  ])
+
+  const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0
+  const totalPipelineValue = leadValues.reduce((sum: number, l: { value: unknown }) => sum + Number(l.value || 0), 0)
+  const totalNetPayroll = currentMonthPayrolls.reduce((sum, p) => sum + Number(p.netSalary || 0), 0)
+  const draftPayrolls = currentMonthPayrolls.filter(p => p.status === "DRAFT").length
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val)
+
+  const hour = today.getHours()
+  const greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening"
+
   return (
-    <>
-        
-        {/* UPPER METRICS GRID (2x3 on large screens) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Metric 1: Total Workforce */}
+    <div className="flex flex-col gap-6 w-full p-6 md:p-8">
+      {/* HERO BANNER */}
+      <AnimatedCard delay={0.05} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-md p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="absolute inset-0 opacity-5">
+          <span className="material-symbols-outlined absolute top-0 right-0 translate-x-1/4 -translate-y-1/4" style={{ fontSize: "240px" }}>dashboard</span>
+        </div>
+        <div className="relative z-10 flex-1">
+          <p className="text-white/70 font-semibold mb-1 text-sm tracking-widest uppercase">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          </p>
+          <h1 className="text-4xl font-bold tracking-tight mb-2">
+            Good {greeting}, {user.name?.split(" ")[0]}
+          </h1>
+          <p className="text-white/80 font-medium">
+            {user.role.replace("_", " ")} Dashboard · BuildOrbit
+          </p>
+        </div>
+        <div className="relative z-10 flex flex-col sm:flex-row gap-4">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 flex flex-col items-center gap-1 min-w-[100px]">
+            <span className="text-3xl font-bold text-white">{totalEmployees}</span>
+            <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Active Staff</span>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 flex flex-col items-center gap-1 min-w-[100px]">
+            <span className="text-3xl font-bold text-white">{attendanceRate}%</span>
+            <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Present Today</span>
+          </div>
+        </div>
+      </AnimatedCard>
+
+      {/* METRICS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <Link href="/workforce/employees">
           <AnimatedCard delay={0.05} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
             <div className="flex items-center justify-between">
               <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Total Workforce</span>
-              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors" data-icon="groups">groups</span>
+              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors">groups</span>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">1,420</span>
-              <span className="inline-flex items-center font-label-md text-label-md text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800">+3.2%</span>
+            <div className="mt-3">
+              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{totalEmployees}</span>
             </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2 truncate">Active across 4 hubs</p>
+            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Active employees in system</p>
           </AnimatedCard>
+        </Link>
 
-          {/* Metric 2: Present Today */}
+        <Link href="/workforce/attendance">
           <AnimatedCard delay={0.10} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
             <div className="flex items-center justify-between">
               <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Present Today</span>
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-label-md text-label-md font-semibold">91.8% Rate</span>
+              <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-label-md text-label-md font-semibold">{attendanceRate}% Rate</span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">1,304</span>
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">/ 1,420</span>
+              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{presentToday}</span>
+              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">/ {totalEmployees}</span>
             </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2 truncate">Peak sync at 09:30 AM</p>
+            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Marked present today</p>
           </AnimatedCard>
+        </Link>
 
-          {/* Metric 3: On Leave */}
+        <Link href="/workforce/attendance">
           <AnimatedCard delay={0.15} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
             <div className="flex items-center justify-between">
               <span className="font-label-md text-label-md text-secondary dark:text-slate-400">On Leave Today</span>
-              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors" data-icon="event_busy">event_busy</span>
+              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors">event_busy</span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">68</span>
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">4.8% total</span>
+              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{onLeaveToday}</span>
+              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">
+                {totalEmployees > 0 ? Math.round((onLeaveToday / totalEmployees) * 100) : 0}% of staff
+              </span>
             </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2 truncate">42 Planned &middot; 26 Sick</p>
+            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Marked on leave today</p>
           </AnimatedCard>
+        </Link>
 
-          {/* Metric 4: Pending Approvals */}
-          <AnimatedCard delay={0.20} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between">
-              <span className="font-label-md text-label-md text-slate-900 dark:text-white font-medium">Pending Approvals</span>
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 text-slate-800 dark:text-slate-200 font-label-md text-label-md font-bold">18 Action</span>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-slate-950 font-tabular-data tracking-tight">18</span>
-              <span className="inline-flex items-center font-label-md text-label-md text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/60 px-2 py-1 rounded-md">Escalated</span>
-            </div>
-            <p className="font-body-md text-body-md text-slate-900 dark:text-white/70 mt-2 truncate">12 Leave &middot; 6 Payroll overrides</p>
-          </AnimatedCard>
-
-          {/* Metric 5: Active CRM Leads */}
-          <AnimatedCard delay={0.25} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between">
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Active CRM Leads</span>
-              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors" data-icon="leaderboard">leaderboard</span>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">342</span>
-              <span className="inline-flex items-center font-label-md text-label-md text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800">$5.8M</span>
-            </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2 truncate">Enterprise pipeline value</p>
-          </AnimatedCard>
-
-          {/* Metric 6: Monthly Payroll Status */}
-          <AnimatedCard delay={0.30} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between">
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Payroll Disbursement</span>
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 text-slate-800 dark:text-slate-200 font-label-md text-label-md font-semibold">T-4 Days</span>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">$3.8M</span>
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="font-body-md text-body-md text-secondary dark:text-slate-400">98% Validated</span>
-              <div className="w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div className="bg-slate-900 h-full w-[98%] rounded-full"></div>
+        {isAdminLike && (
+          <Link href="/hr/leave-approval">
+            <AnimatedCard delay={0.20} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <span className="font-label-md text-label-md text-on-surface dark:text-white font-medium">Pending Approvals</span>
+                {pendingLeaveCount > 0 && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 border border-amber-300 text-amber-800 dark:text-amber-400 font-label-md text-label-md font-bold">Action Needed</span>
+                )}
               </div>
-            </div>
-          </AnimatedCard>
-        </div>
+              <div className="mt-3">
+                <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{pendingLeaveCount}</span>
+              </div>
+              <p className="font-body-md text-body-md text-on-surface dark:text-white/70 mt-2">Leave requests awaiting review</p>
+            </AnimatedCard>
+          </Link>
+        )}
 
-        {/* WORKSPACE LOWER SPLIT */}
-        <div className="flex flex-col xl:flex-row gap-8 w-full">
-        <section className="flex-1 xl:w-[70%] space-y-8">
-          
-          {/* DEPARTMENT HEALTH TABLE */}
-          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-outline-variant dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-950">
-              <div>
-                <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight">Department Health &amp; Workforce Distribution</h2>
-                <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-1">Cross-departmental telemetry, capacity tracking, and revenue velocity.</p>
+        {isLeadOrAdmin && (
+          <Link href="/crm/leads">
+            <AnimatedCard delay={0.25} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Active CRM Leads</span>
+                <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors">leaderboard</span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="inline-flex rounded-lg border border-outline-variant dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1">
-                  <button className="px-4 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-950 font-label-md text-label-md rounded-md shadow-sm border border-slate-200 dark:border-slate-800 font-semibold">All Entities</button>
-                  <button className="px-4 py-1.5 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white font-label-md text-label-md rounded-md font-medium transition-colors">EMEA</button>
-                  <button className="px-4 py-1.5 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white font-label-md text-label-md rounded-md font-medium transition-colors">Americas</button>
-                  <button className="px-4 py-1.5 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white font-label-md text-label-md rounded-md font-medium transition-colors">APAC</button>
-                </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{totalActiveLeads}</span>
+                {totalPipelineValue > 0 && (
+                  <span className="inline-flex items-center font-label-md text-label-md text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800 text-xs">
+                    {formatCurrency(totalPipelineValue)}
+                  </span>
+                )}
               </div>
+              <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Pipeline value (excl. lost)</p>
+            </AnimatedCard>
+          </Link>
+        )}
+
+        {isAdminLike && (
+          <Link href="/hr/payroll">
+            <AnimatedCard delay={0.30} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Payroll This Month</span>
+                {draftPayrolls > 0 && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 text-slate-800 dark:text-slate-200 font-label-md text-label-md font-semibold">
+                    {draftPayrolls} Draft{draftPayrolls !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+              <div className="mt-3">
+                <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">
+                  {currentMonthPayrolls.length > 0 ? formatCurrency(totalNetPayroll) : "—"}
+                </span>
+              </div>
+              <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">
+                {currentMonthPayrolls.length} records · {new Date(currentYear, currentMonth - 1).toLocaleString("default", { month: "long", year: "numeric" })}
+              </p>
+            </AnimatedCard>
+          </Link>
+        )}
+      </div>
+
+      {/* LOWER SECTION */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight">Department Overview</h2>
+              <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-1">Active headcount per department.</p>
             </div>
-            
-            <div className="overflow-x-auto">
+            <Link href="/workforce/employees" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+              View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            {departments.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-secondary dark:text-slate-400">No departments configured.</div>
+            ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-outline-variant dark:border-slate-800 font-label-md text-label-md text-secondary dark:text-slate-400 uppercase tracking-wider">
-                    <th className="py-4 px-6 font-semibold">Department</th>
-                    <th className="py-4 px-4 font-semibold text-right">Headcount</th>
-                    <th className="py-4 px-4 font-semibold text-right">Attendance Rate</th>
-                    <th className="py-4 px-4 font-semibold text-right">Active Leaves</th>
-                    <th className="py-4 px-6 font-semibold">Lead Velocity / Output</th>
-                    <th className="py-4 px-6 font-semibold">Health Status</th>
+                    <th className="py-3 px-6 font-semibold">Department</th>
+                    <th className="py-3 px-4 font-semibold text-right">Active Headcount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-outline-variant font-tabular-data text-body-lg text-on-surface dark:text-white bg-white dark:bg-slate-950">
-                  
-                  {/* Engineering */}
-                  <tr className="hover:bg-slate-50 dark:bg-slate-900/70 transition-colors group">
-                    <td className="py-5 px-6 font-medium text-on-surface dark:text-white flex flex-col justify-center">
-                      <span className="text-lg">Engineering</span>
-                      <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm mt-0.5">Core &amp; Infra</span>
-                    </td>
-                    <td className="py-5 px-4 text-right font-medium text-lg">620</td>
-                    <td className="py-5 px-4 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="text-on-surface dark:text-white font-semibold text-lg">94.2%</span>
-                        <span className="text-secondary dark:text-slate-400 text-sm mt-0.5">584 present</span>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4 text-right">
-                      <span className="text-secondary dark:text-slate-400 text-lg">28</span>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex flex-col gap-2">
-                        <span className="font-label-md text-label-md text-secondary dark:text-slate-400 font-tabular-data uppercase tracking-wider">92% Sprint Vel.</span>
-                        <div className="w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                          <div className="bg-slate-900 h-2 rounded-full" style={{ width: "92%" }}></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-8 rounded-full bg-slate-500"></div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Healthy</span>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* Sales */}
-                  <tr className="hover:bg-slate-50 dark:bg-slate-900/70 transition-colors group">
-                    <td className="py-5 px-6 font-medium text-on-surface dark:text-white flex flex-col justify-center">
-                      <span className="text-lg">Sales &amp; Expansion</span>
-                      <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm mt-0.5">Global</span>
-                    </td>
-                    <td className="py-5 px-4 text-right font-medium text-lg">310</td>
-                    <td className="py-5 px-4 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="text-on-surface dark:text-white font-semibold text-lg">89.4%</span>
-                        <span className="text-secondary dark:text-slate-400 text-sm mt-0.5">277 present</span>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4 text-right">
-                      <span className="text-secondary dark:text-slate-400 text-lg">19</span>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex flex-col gap-2">
-                        <span className="font-label-md text-label-md text-secondary dark:text-slate-400 font-tabular-data uppercase tracking-wider">18.4d Avg Close</span>
-                        <div className="w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                          <div className="bg-slate-500 h-2 rounded-full" style={{ width: "78%" }}></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-8 rounded-full bg-slate-500"></div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Attention Needed</span>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* Product */}
-                  <tr className="hover:bg-slate-50 dark:bg-slate-900/70 transition-colors group">
-                    <td className="py-5 px-6 font-medium text-on-surface dark:text-white flex flex-col justify-center">
-                      <span className="text-lg">Product &amp; Design</span>
-                      <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm mt-0.5">UX &amp; Strategy</span>
-                    </td>
-                    <td className="py-5 px-4 text-right font-medium text-lg">145</td>
-                    <td className="py-5 px-4 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="text-on-surface dark:text-white font-semibold text-lg">93.1%</span>
-                        <span className="text-secondary dark:text-slate-400 text-sm mt-0.5">135 present</span>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4 text-right">
-                      <span className="text-secondary dark:text-slate-400 text-lg">7</span>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex flex-col gap-2">
-                        <span className="font-label-md text-label-md text-secondary dark:text-slate-400 font-tabular-data uppercase tracking-wider">4 Features Staged</span>
-                        <div className="w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                          <div className="bg-slate-900 h-2 rounded-full" style={{ width: "88%" }}></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-8 rounded-full bg-slate-500"></div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Healthy</span>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* Operations */}
-                  <tr className="hover:bg-slate-50 dark:bg-slate-900/70 transition-colors group">
-                    <td className="py-5 px-6 font-medium text-on-surface dark:text-white flex flex-col justify-center">
-                      <span className="text-lg">Operations &amp; Facilities</span>
-                      <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm mt-0.5">Physical Hubs</span>
-                    </td>
-                    <td className="py-5 px-4 text-right font-medium text-lg">195</td>
-                    <td className="py-5 px-4 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="text-on-surface dark:text-white font-semibold text-lg">90.8%</span>
-                        <span className="text-secondary dark:text-slate-400 text-sm mt-0.5">177 present</span>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4 text-right">
-                      <span className="text-secondary dark:text-slate-400 text-lg">9</span>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex flex-col gap-2">
-                        <span className="font-label-md text-label-md text-secondary dark:text-slate-400 font-tabular-data uppercase tracking-wider">99.8% Uptime</span>
-                        <div className="w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                          <div className="bg-slate-900 h-2 rounded-full" style={{ width: "96%" }}></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-8 rounded-full bg-slate-500"></div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Healthy</span>
-                      </div>
-                    </td>
-                  </tr>
-
+                <tbody className="divide-y divide-outline-variant font-tabular-data text-body-lg text-on-surface dark:text-white">
+                  {departments.map(dept => (
+                    <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-colors">
+                      <td className="py-4 px-6 font-medium">{dept.name}</td>
+                      <td className="py-4 px-4 text-right font-semibold text-lg">{dept.employees.length}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            </div>
-            
-            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900 border-t border-outline-variant dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-secondary dark:text-slate-400 font-label-md text-label-md gap-4">
-              <span>Showing 4 primary business units &middot; Global total 1,420 full-time equivalents</span>
-              <div className="flex items-center gap-6">
-                <span className="text-lg">Overall Attendance: <strong className="text-on-surface dark:text-white">91.8%</strong></span>
-                <button className="text-slate-900 dark:text-white hover:underline font-semibold bg-white dark:bg-slate-950 px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded shadow-sm">Export Full Matrix</button>
-              </div>
-            </div>
+            )}
           </div>
-        </section>
-
-        {/* RIGHT COLUMN */}
-        <aside className="xl:w-[30%] space-y-8">
-          
-          {/* QUICK ACTION LAUNCHPAD */}
-          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-outline-variant dark:border-slate-800 mb-5">
-              <h3 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-slate-900 dark:text-white text-2xl" data-icon="bolt">bolt</span>
-                <span>Quick Actions</span>
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <Link href="/workforce/employees/new" className="p-4 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
-                  <span className="material-symbols-outlined" data-icon="person_add">person_add</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-label-lg text-lg text-on-surface dark:text-white font-semibold">Provision Employee</p>
-                  <p className="font-body-md text-secondary dark:text-slate-400 mt-0.5">SSO &amp; hardware binding setup</p>
-                </div>
-                <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors" data-icon="arrow_forward">arrow_forward</span>
-              </Link>
-
-              <Link href="/hr/payroll" className="p-4 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
-                  <span className="material-symbols-outlined" data-icon="fact_check">fact_check</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-label-lg text-lg text-on-surface dark:text-white font-semibold">Run Payroll Pre-Check</p>
-                  <p className="font-body-md text-secondary dark:text-slate-400 mt-0.5">Automated tax simulator</p>
-                </div>
-                <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors" data-icon="arrow_forward">arrow_forward</span>
-              </Link>
-
-              <Link href="/admin/settings" className="p-4 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
-                  <span className="material-symbols-outlined" data-icon="campaign">campaign</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-label-lg text-lg text-on-surface dark:text-white font-semibold">Broadcast Notice</p>
-                  <p className="font-body-md text-secondary dark:text-slate-400 mt-0.5">Push banner to 1.4k active users</p>
-                </div>
-                <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors" data-icon="arrow_forward">arrow_forward</span>
-              </Link>
-            </div>
+          <div className="px-6 py-3 bg-slate-50 dark:bg-slate-900 border-t border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-md text-label-md">
+            {departments.length} departments · {totalEmployees} total active employees
           </div>
-
-          {/* INFRASTRUCTURE STATUS */}
-          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-outline-variant dark:border-slate-800 mb-5">
-              <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2 tracking-tight">
-                <span className="material-symbols-outlined text-secondary dark:text-slate-400" data-icon="dns">dns</span>
-                <span>Infrastructure</span>
-              </h3>
-              <span className="px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 font-label-md text-label-md font-medium flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span>
-                Stable
-              </span>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between font-tabular-data p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                <span className="text-on-surface dark:text-white font-medium">Payroll Engine</span>
-                <span className="text-slate-700 dark:text-slate-300 font-semibold bg-white dark:bg-slate-950 px-2 py-1 rounded shadow-sm border border-slate-200 dark:border-slate-800 text-sm">12ms latency</span>
-              </div>
-              <div className="flex items-center justify-between font-tabular-data p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                <span className="text-on-surface dark:text-white font-medium">Geolocation Feeds</span>
-                <span className="text-slate-700 dark:text-slate-300 font-semibold bg-white dark:bg-slate-950 px-2 py-1 rounded shadow-sm border border-slate-200 dark:border-slate-800 text-sm">100% synced</span>
-              </div>
-              <div className="flex items-center justify-between font-tabular-data p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                <span className="text-on-surface dark:text-white font-medium">CRM Webhooks</span>
-                <span className="text-slate-700 dark:text-slate-300 font-semibold bg-white dark:bg-slate-950 px-2 py-1 rounded shadow-sm border border-slate-200 dark:border-slate-800 text-sm">0 queued</span>
-              </div>
-            </div>
-          </div>
-
-        </aside>
         </div>
-    </>
+
+        <div className="flex flex-col gap-6">
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-5 pb-4 border-b border-outline-variant dark:border-slate-800">
+              <span className="material-symbols-outlined text-slate-900 dark:text-white text-2xl">bolt</span>
+              <h3 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight">Quick Actions</h3>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              {isAdminLike && (
+                <Link href="/hr/leave-approval" className="p-3 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
+                    <span className="material-symbols-outlined">rule</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-on-surface dark:text-white">Review Leave Requests</p>
+                    {pendingLeaveCount > 0 && <p className="text-xs text-amber-600 font-semibold">{pendingLeaveCount} pending</p>}
+                  </div>
+                  <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors">arrow_forward</span>
+                </Link>
+              )}
+              <Link href="/workforce/employees" className="p-3 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
+                  <span className="material-symbols-outlined">groups</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-on-surface dark:text-white">View Employees</p>
+                  <p className="text-xs text-secondary dark:text-slate-400">{totalEmployees} active</p>
+                </div>
+                <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors">arrow_forward</span>
+              </Link>
+              {isAdminLike && (
+                <Link href="/hr/payroll" className="p-3 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
+                    <span className="material-symbols-outlined">payments</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-on-surface dark:text-white">Payroll</p>
+                    <p className="text-xs text-secondary dark:text-slate-400">{currentMonthPayrolls.length} records this month</p>
+                  </div>
+                  <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors">arrow_forward</span>
+                </Link>
+              )}
+              {isLeadOrAdmin && (
+                <Link href="/crm/leads" className="p-3 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
+                    <span className="material-symbols-outlined">leaderboard</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-on-surface dark:text-white">CRM Leads</p>
+                    <p className="text-xs text-secondary dark:text-slate-400">{totalActiveLeads} active leads</p>
+                  </div>
+                  <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors">arrow_forward</span>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {isAdminLike && (
+            <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm p-6 flex-1">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-outline-variant dark:border-slate-800">
+                <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-amber-500">pending_actions</span>
+                  Pending Leaves
+                </h3>
+                <Link href="/hr/leave-approval" className="text-sm font-semibold text-primary hover:underline">Review All</Link>
+              </div>
+              <div className="space-y-3">
+                {(recentLeaveRequests as Array<{
+                  id: string;
+                  requester: { name: string | null; email: string };
+                  leaveType: { name: string };
+                  days: number;
+                  startDate: Date;
+                }>).map(req => (
+                  <div key={req.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                      <span className="font-semibold text-on-surface dark:text-white text-sm truncate">{req.requester.name || req.requester.email}</span>
+                      <span className="text-xs text-secondary dark:text-slate-400">{req.leaveType.name} · {req.days} day{req.days !== 1 ? "s" : ""}</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-700 text-[10px] font-bold shrink-0 ml-2">Pending</span>
+                  </div>
+                ))}
+                {recentLeaveRequests.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">check_circle</span>
+                    <p className="text-sm text-secondary dark:text-slate-400">All caught up!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }

@@ -23,7 +23,6 @@ interface HeaderProps {
 export function Header({
   user,
   onMobileMenuOpen,
-  sidebarCollapsed = false,
 }: HeaderProps) {
   const initials = user.name
     ? user.name
@@ -161,6 +160,11 @@ export function Header({
             </div>
           )}
         </div>
+        <Link href="/profile" className="flex items-center gap-2 shrink-0" title={user.name || user.email}>
+          <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold border border-slate-300 dark:border-slate-600 shrink-0">
+            {initials}
+          </div>
+        </Link>
       </div>
     </header>
     </div>

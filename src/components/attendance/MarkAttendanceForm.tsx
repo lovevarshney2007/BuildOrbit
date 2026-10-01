@@ -8,7 +8,6 @@ export function MarkAttendanceForm() {
   const [photoData, setPhotoData] = useState<string | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -83,7 +82,6 @@ export function MarkAttendanceForm() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords
-        setLocation({ lat: latitude, lng: longitude })
         setIsLocating(false)
         setIsSubmitting(true)
 
@@ -95,14 +93,15 @@ export function MarkAttendanceForm() {
           
           await markDailyAttendance(formData)
           alert("Attendance marked successfully!")
-        } catch (error: any) {
-          alert(error.message || "Failed to mark attendance.")
+        } catch (error: unknown) {
+          alert((error as Error).message || "Failed to mark attendance.")
         } finally {
           setIsSubmitting(false)
         }
       },
-      (error) => {
+      (geolocationError) => {
         setIsLocating(false)
+        console.error("Geolocation error:", geolocationError)
         alert("Failed to get location. Please enable location services.")
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -114,7 +113,7 @@ export function MarkAttendanceForm() {
       <AnimatedCard className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex flex-col gap-4">
         <div>
           <h2 className="text-xl font-bold text-on-surface dark:text-white">Mark Attendance</h2>
-          <p className="text-secondary dark:text-slate-400 text-sm mt-1">Take a photo of yourself at the office to mark today's attendance. Your location will be captured automatically and must be within 100m of the office.</p>
+          <p className="text-secondary dark:text-slate-400 text-sm mt-1">Take a photo of yourself at the office to mark today&apos;s attendance. Your location will be captured automatically and must be within 100m of the office.</p>
         </div>
 
         <div className={`border rounded-xl flex flex-col items-center justify-center overflow-hidden relative transition-all duration-300 w-full ${photoData || (isCameraOpen && !useFallback) ? 'border-solid border-slate-200 dark:border-slate-800 bg-black aspect-[4/3] md:aspect-video' : 'border-dashed border-outline-variant dark:border-slate-800 bg-slate-50 dark:bg-slate-900 min-h-[240px] p-4'}`}>
@@ -122,6 +121,7 @@ export function MarkAttendanceForm() {
           {/* Captured Photo Preview */}
           {photoData && (
             <div className="absolute inset-0 w-full h-full animate-in fade-in zoom-in-95 duration-300">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photoData} alt="Captured" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none"></div>
               <button onClick={resetPhoto} className="absolute top-4 right-4 bg-white dark:bg-slate-950/20 hover:bg-white dark:bg-slate-950/40 text-white w-10 h-10 rounded-full backdrop-blur-md transition-all flex items-center justify-center shadow-sm border border-white/10 hover:scale-105">

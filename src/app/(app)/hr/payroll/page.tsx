@@ -2,11 +2,6 @@ import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 
-const STATUS_CONFIG: Record<string, { variant: "success" | "warning" | "default" | "error"; label: string }> = {
-  DRAFT: { variant: "warning", label: "Draft" },
-  PROCESSED: { variant: "default", label: "Processed" },
-  PAID: { variant: "success", label: "Paid" },
-}
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",

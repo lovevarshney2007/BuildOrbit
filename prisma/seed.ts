@@ -142,10 +142,10 @@ async function main() {
 
   const eng1User = await prisma.user.upsert({
     where: { email: "engineer@buildorbit.dev" },
-    update: {},
+    update: { name: "Love Varshney" },
     create: {
       email: "engineer@buildorbit.dev",
-      name: "Priya Sharma",
+      name: "Love Varshney",
       passwordHash: commonHash,
       role: Role.ENGINEER,
       isActive: true,

@@ -29,7 +29,7 @@ export default function RegisterPage() {
     try {
       const res = await resendOtpAction(activeData.email)
       setResendMessage(res.message)
-    } catch (e) {
+    } catch (_e) {
       setResendMessage("Failed to resend OTP.")
     } finally {
       setResending(false)

@@ -176,7 +176,7 @@ export default function LoginPage() {
             </div>
             
             <div className="text-center pt-2">
-              <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm">Don't have an account? </span>
+              <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm">Don&apos;t have an account? </span>
               <Link href="/register" className="font-label-sm text-label-sm text-primary hover:underline font-semibold">
                 Register here
               </Link>

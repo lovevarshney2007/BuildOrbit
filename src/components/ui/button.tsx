@@ -9,15 +9,15 @@ export interface ButtonProps
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
   default:
-    "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent",
+    "bg-primary text-on-primary hover:bg-primary/90 border-transparent",
   outline:
-    "border-border bg-background text-foreground hover:bg-secondary",
+    "border-outline bg-background text-on-background hover:bg-secondary hover:text-on-secondary",
   ghost:
-    "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
+    "border-transparent text-secondary hover:bg-secondary hover:text-on-secondary",
   destructive:
-    "bg-destructive text-destructive-foreground hover:bg-destructive/90 border-transparent",
+    "bg-error text-on-error hover:bg-error/90 border-transparent",
   secondary:
-    "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent",
+    "bg-secondary text-on-secondary hover:bg-secondary/80 border-transparent",
 }
 
 const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
