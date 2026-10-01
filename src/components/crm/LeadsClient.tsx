@@ -29,6 +29,27 @@ type UserType = {
 const SOURCES: LeadSource[] = ["WEBSITE", "REFERRAL", "SOCIAL_MEDIA", "EMAIL", "COLD_CALL", "EVENT", "OTHER"]
 const STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "CONVERTED", "LOST"]
 
+const getStatusBadgeStyle = (status: string) => {
+  switch (status) {
+    case 'NEW': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+    case 'CONTACTED': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+    case 'QUALIFIED': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+    case 'PROPOSAL': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+    case 'NEGOTIATION': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
+    case 'CONVERTED': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+    case 'LOST': return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+    default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+  }
+}
+
+const formatEnumString = (str: string) => {
+  if (!str) return str;
+  return str
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserType[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -94,7 +115,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
               className="text-sm bg-transparent border border-outline-variant dark:border-slate-800 rounded px-3 py-1.5 focus:outline-none focus:border-primary cursor-pointer text-on-surface dark:text-white"
             >
               <option value="ALL">All Statuses</option>
-              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              {[...STATUSES].sort((a, b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{formatEnumString(s)}</option>)}
             </select>
             
             <select 
@@ -103,7 +124,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
               className="text-sm bg-transparent border border-outline-variant dark:border-slate-800 rounded px-3 py-1.5 focus:outline-none focus:border-primary cursor-pointer text-on-surface dark:text-white"
             >
               <option value="ALL">All Leads</option>
-              {uniqueAssignees.map(a => <option key={a} value={a}>{a}</option>)}
+              {[...uniqueAssignees].sort((a, b) => a.localeCompare(b)).map(a => <option key={a} value={a}>{a}</option>)}
               <option value="UNASSIGNED">Unassigned</option>
             </select>
           </div>
@@ -133,7 +154,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
                     <h3 className="font-semibold text-on-surface dark:text-white leading-tight group-hover:text-primary transition-colors">{lead.title}</h3>
                     <p className="text-xs text-secondary dark:text-slate-400 mt-1">{lead.company || "Unknown Company"}</p>
                   </div>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider">{lead.status}</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${getStatusBadgeStyle(lead.status)}`}>{formatEnumString(lead.status).toUpperCase()}</span>
                 </div>
                 
                 <div className="mt-auto pt-4 border-t border-outline-variant dark:border-slate-800 space-y-2">
@@ -224,7 +245,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
                     className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white"
                   >
                     <option value="" disabled>Select source</option>
-                    {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                    {[...SOURCES].sort((a, b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{formatEnumString(s)}</option>)}
                   </select>
                 </div>
               </div>
@@ -259,7 +280,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
                   className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white"
                 >
                   <option value="">Unassigned</option>
-                  {users.map(u => (
+                  {[...users].sort((a, b) => (a.name || "").localeCompare(b.name || "")).map(u => (
                     <option key={u.id} value={u.id}>{u.name}</option>
                   ))}
                 </select>
