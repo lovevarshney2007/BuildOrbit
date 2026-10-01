@@ -26,6 +26,7 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
         <label className="mb-1 block text-[13px] font-medium text-foreground">Leave Type</label>
         <select
           name="leaveTypeId"
+          defaultValue={state?.fields?.leaveTypeId || ""}
           className="h-9 w-full rounded-md border border-border px-3 text-[13px] focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="">Select leave type…</option>
@@ -46,6 +47,7 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
           <input
             type="date"
             name="startDate"
+            defaultValue={state?.fields?.startDate || ""}
             className="h-9 w-full rounded-md border border-border px-3 text-[13px] focus:outline-none focus:ring-1 focus:ring-ring"
           />
           {state?.errors?.startDate && (
@@ -57,6 +59,7 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
           <input
             type="date"
             name="endDate"
+            defaultValue={state?.fields?.endDate || ""}
             className="h-9 w-full rounded-md border border-border px-3 text-[13px] focus:outline-none focus:ring-1 focus:ring-ring"
           />
           {state?.errors?.endDate && (
@@ -70,6 +73,7 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
         <textarea
           name="reason"
           rows={3}
+          defaultValue={state?.fields?.reason || ""}
           placeholder="Briefly explain the reason for your leave…"
           className="w-full rounded-md border border-border px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-ring"
         />

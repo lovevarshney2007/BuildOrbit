@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@custom-variant dark (&:where(.dark, .dark *));
 @theme inline {
   /* Colors */
   --color-tertiary-fixed-dim: #bec6e0;
@@ -164,4 +164,38 @@
     -webkit-font-smoothing: antialiased;
     vertical-align: middle;
   }
+}
+
+
+
+.compact-theme {
+  font-size: 13px !important;
+}
+
+.dark {
+  /* Page background: deep navy */
+  --color-background: #0B1120;
+  
+  /* Sidebar, Cards, Panels */
+  --color-surface-container-lowest: #111827;
+  --color-surface: #151D2E;
+  
+  /* Top navbar / Elevated elements */
+  --color-surface-container: #1F2937;
+  --color-surface-dim: #111827;
+  
+  /* Borders */
+  --color-outline-variant: #273449;
+  --color-outline: #475569;
+  
+  /* Text */
+  --color-on-surface: #F8FAFC;
+  --color-secondary: #94A3B8;
+  --color-tertiary: #64748B;
+  
+  /* Base Overrides for raw tailwind classes */
+  --color-slate-950: #111827;
+  --color-slate-900: #151D2E;
+  --color-slate-800: #1F2937;
+  --color-slate-700: #273449;
 }

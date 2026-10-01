@@ -23,7 +23,7 @@ export function BackgroundBubbles() {
           scale: 1 
         }}
         transition={{ duration: 1.5, ease: "easeOut" }}
-        className="absolute -top-[10%] -right-[5%] w-[40vw] h-[40vw] rounded-full bg-slate-200/50 blur-3xl opacity-50"
+        className="absolute -top-[10%] -right-[5%] w-[40vw] h-[40vw] rounded-full bg-slate-200 dark:bg-slate-700/50 blur-3xl opacity-50"
       />
       
       {/* Bubble 2: Bottom Left */}
@@ -50,7 +50,7 @@ export function BackgroundBubbles() {
           scale: 1 
         }}
         transition={{ duration: 2, ease: "easeOut", delay: 0.4 }}
-        className="absolute top-[30%] left-[40%] w-[30vw] h-[30vw] rounded-full bg-slate-200/30 blur-3xl opacity-30"
+        className="absolute top-[30%] left-[40%] w-[30vw] h-[30vw] rounded-full bg-slate-200 dark:bg-slate-700/30 blur-3xl opacity-30"
       />
     </div>
   )

@@ -37,7 +37,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex-1 flex overflow-hidden min-h-screen bg-surface-container-lowest">
+    <div className="flex-1 flex overflow-hidden min-h-screen bg-surface-container-lowest dark:bg-slate-950">
       
       {/* Left side: Pixelated/Grid Visuals */}
       <div className="hidden lg:flex w-[55%] relative items-center justify-center overflow-hidden bg-[#0F172A]">
@@ -52,9 +52,9 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A]/80 via-transparent to-[#0F172A] z-0"></div>
 
         {/* Decorative Pixel Blocks */}
-        <div className="absolute top-20 left-20 w-20 h-20 bg-emerald-500/20 backdrop-blur-sm grid grid-cols-4 grid-rows-4 z-0 gap-1 opacity-50">
+        <div className="absolute top-20 left-20 w-20 h-20 bg-slate-900/20 backdrop-blur-sm grid grid-cols-4 grid-rows-4 z-0 gap-1 opacity-50">
           {[...Array(16)].map((_, i) => (
-            <div key={i} className={`bg-emerald-400 ${i % 3 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
+            <div key={i} className={`bg-slate-800 ${i % 3 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
           ))}
         </div>
         <div className="absolute bottom-20 right-20 w-32 h-32 bg-teal-500/10 backdrop-blur-sm grid grid-cols-5 grid-rows-5 z-0 gap-1 opacity-40">
@@ -64,8 +64,8 @@ export default function RegisterPage() {
         </div>
 
         <div className="relative z-10 max-w-xl p-12 text-white w-full">
-          <div className="inline-flex items-center gap-3 mb-10 bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
-            <div className="flex items-center justify-center w-10 h-10 bg-white text-slate-900 rounded-lg shadow-lg">
+          <div className="inline-flex items-center gap-3 mb-10 bg-white dark:bg-slate-950/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
+            <div className="flex items-center justify-center w-10 h-10 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg shadow-lg">
               <span className="material-symbols-outlined text-[24px]">orbit</span>
             </div>
             <span className="text-xl font-bold tracking-tight">BuildOrbit</span>
@@ -79,7 +79,7 @@ export default function RegisterPage() {
           </p>
 
           <div className="flex items-center gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-sm w-fit">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-800 bg-emerald-600">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-800 bg-slate-900">
               <span className="material-symbols-outlined text-white text-[18px]">verified_user</span>
             </div>
             <div className="text-sm text-slate-400">
@@ -90,14 +90,14 @@ export default function RegisterPage() {
       </div>
 
       {/* Right side: The Register/OTP Form */}
-      <div className="w-full lg:w-[45%] flex items-center justify-center p-8 bg-surface-container-lowest overflow-y-auto">
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-8 bg-surface-container-lowest dark:bg-slate-950 overflow-y-auto">
         <div className="w-full max-w-[420px] py-12">
           
           {!isOtpStep ? (
             <>
               <div className="mb-8">
-                <h2 className="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-2">Create an account</h2>
-                <p className="font-body-md text-body-md text-secondary">
+                <h2 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight mb-2">Create an account</h2>
+                <p className="font-body-md text-body-md text-secondary dark:text-slate-400">
                   Enter your details to get started.
                 </p>
               </div>
@@ -111,12 +111,12 @@ export default function RegisterPage() {
 
               <form action={sendAction} className="space-y-6">
                 <div>
-                  <label className="block font-label-md text-label-md text-on-surface font-medium mb-1.5" htmlFor="name">
+                  <label className="block font-label-md text-label-md text-on-surface dark:text-white font-medium mb-1.5" htmlFor="name">
                     Full Name
                   </label>
                   <div className="relative">
                     <input 
-                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant hover:border-outline rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                       id="name" 
                       name="name"
                       type="text" 
@@ -134,12 +134,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block font-label-md text-label-md text-on-surface font-medium mb-1.5" htmlFor="email">
+                  <label className="block font-label-md text-label-md text-on-surface dark:text-white font-medium mb-1.5" htmlFor="email">
                     Email Address
                   </label>
                   <div className="relative">
                     <input 
-                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant hover:border-outline rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                       id="email" 
                       name="email"
                       type="email" 
@@ -157,12 +157,12 @@ export default function RegisterPage() {
                 </div>
                 
                 <div>
-                  <label className="block font-label-md text-label-md text-on-surface font-medium mb-1.5" htmlFor="password">
+                  <label className="block font-label-md text-label-md text-on-surface dark:text-white font-medium mb-1.5" htmlFor="password">
                     Password
                   </label>
                   <div className="relative">
                     <input 
-                      className="w-full h-12 px-4 pr-11 bg-surface-bright border border-outline-variant hover:border-outline rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                      className="w-full h-12 px-4 pr-11 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                       id="password" 
                       name="password"
                       type={showPassword ? "text" : "password"}
@@ -172,7 +172,7 @@ export default function RegisterPage() {
                       placeholder="••••••••"
                     />
                     <button 
-                      className="absolute right-3 top-3 text-secondary hover:text-on-surface p-0.5 rounded focus:outline-none transition-colors flex items-center justify-center" 
+                      className="absolute right-3 top-3 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white p-0.5 rounded focus:outline-none transition-colors flex items-center justify-center" 
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       title={showPassword ? "Hide password" : "Show password"}
@@ -207,7 +207,7 @@ export default function RegisterPage() {
                 </div>
                 
                 <div className="text-center pt-2">
-                  <span className="text-secondary font-body-sm text-body-sm">Already have an account? </span>
+                  <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm">Already have an account? </span>
                   <Link href="/login" className="font-label-sm text-label-sm text-primary hover:underline font-semibold">
                     Sign in
                   </Link>
@@ -218,9 +218,9 @@ export default function RegisterPage() {
             <>
               {/* OTP Verification Step */}
               <div className="mb-8">
-                <h2 className="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-2">Check your email</h2>
-                <p className="font-body-md text-body-md text-secondary">
-                  We sent a 6-digit verification code to <span className="font-medium text-on-surface">{activeData.email}</span>.
+                <h2 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight mb-2">Check your email</h2>
+                <p className="font-body-md text-body-md text-secondary dark:text-slate-400">
+                  We sent a 6-digit verification code to <span className="font-medium text-on-surface dark:text-white">{activeData.email}</span>.
                 </p>
               </div>
 
@@ -231,8 +231,8 @@ export default function RegisterPage() {
                 </div>
               )}
               {resendMessage && (
-                <div role="alert" className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-emerald-500 shrink-0">check_circle</span>
+                <div role="alert" className="mb-6 rounded-xl border border-slate-300 bg-slate-100 dark:bg-slate-800 p-4 text-sm text-slate-950 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-slate-900 dark:text-white shrink-0">check_circle</span>
                   <span>{resendMessage}</span>
                 </div>
               )}
@@ -243,12 +243,12 @@ export default function RegisterPage() {
                 <input type="hidden" name="password" value={activeData.password} />
 
                 <div>
-                  <label className="block font-label-md text-label-md text-on-surface font-medium mb-1.5" htmlFor="otp">
+                  <label className="block font-label-md text-label-md text-on-surface dark:text-white font-medium mb-1.5" htmlFor="otp">
                     Verification Code
                   </label>
                   <div className="relative">
                     <input 
-                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant hover:border-outline rounded-xl font-body-lg text-body-lg tracking-[0.2em] text-center text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-lg text-body-lg tracking-[0.2em] text-center text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                       id="otp" 
                       name="otp"
                       type="text" 
@@ -293,7 +293,7 @@ export default function RegisterPage() {
                   <button 
                     type="button" 
                     onClick={() => window.location.reload()}
-                    className="font-label-sm text-label-sm text-secondary hover:text-on-surface"
+                    className="font-label-sm text-label-sm text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white"
                   >
                     Use a different email
                   </button>

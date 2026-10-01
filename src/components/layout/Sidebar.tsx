@@ -62,7 +62,7 @@ export function Sidebar({
         id="app-sidebar"
         aria-label="Main navigation"
         className={cn(
-          "fixed top-0 left-0 h-screen z-40 bg-surface-container-lowest/90 backdrop-blur-md border-r border-outline-variant flex flex-col justify-between p-3 select-none",
+          "fixed top-0 left-0 h-screen z-40 bg-surface-container-lowest dark:bg-slate-950/90 backdrop-blur-md border-r border-outline-variant dark:border-slate-800 flex flex-col justify-between p-3 select-none",
           "transition-[width] duration-200 ease-in-out",
           collapsed ? "w-16" : "w-60",
           "-translate-x-full lg:translate-x-0",
@@ -72,15 +72,15 @@ export function Sidebar({
         {/* Top Brand & Suite Identifier */}
         <div className="space-y-4 flex flex-col flex-1 min-h-0">
           <Link href="/" className="flex items-center gap-2.5 px-2 py-1 shrink-0 hover:opacity-80 transition-opacity">
-            <span className="material-symbols-outlined text-slate-900" data-icon="orbit">orbit</span>
+            <span className="material-symbols-outlined text-slate-900 dark:text-white" data-icon="orbit">orbit</span>
             {!collapsed && (
-              <span className="font-bold text-on-surface">BuildOrbit</span>
+              <span className="font-bold text-on-surface dark:text-white">BuildOrbit</span>
             )}
           </Link>
           {!collapsed && (
-            <div className="px-2 pb-1 border-b border-outline-variant flex items-center justify-between shrink-0">
-              <span className="font-label-sm text-label-sm text-secondary">Enterprise Suite</span>
-              <span className="px-1.5 py-0.5 rounded bg-slate-100 font-label-sm text-label-sm text-slate-700 font-medium">v4.8</span>
+            <div className="px-2 pb-1 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between shrink-0">
+              <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400">Enterprise Suite</span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-label-sm text-label-sm text-slate-700 dark:text-slate-300 font-medium">v4.8</span>
             </div>
           )}
 
@@ -100,19 +100,19 @@ export function Sidebar({
         </div>
 
         {/* Quick Action Launcher & Footer Navigation Links */}
-        <div className="space-y-3 pt-2 border-t border-outline-variant">
+        <div className="space-y-3 pt-2 border-t border-outline-variant dark:border-slate-800">
           {!collapsed && (
-            <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-label-md text-label-md h-8 rounded px-3 flex items-center justify-center gap-2 transition-colors shadow-sm">
+            <Link href="/workforce/leave/new" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-label-md text-label-md h-8 rounded px-3 flex items-center justify-center gap-2 transition-colors shadow-sm">
               <span className="material-symbols-outlined" data-icon="add" style={{ fontSize: "16px" }}>add</span>
               <span>Quick Action</span>
-            </button>
+            </Link>
           )}
           
           <div className="space-y-1">
             {/* Collapse Sidebar */}
             <button
               onClick={() => onCollapsedChange(!collapsed)}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-secondary hover:text-on-surface hover:bg-slate-50 rounded font-label-sm text-label-sm transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white hover:bg-slate-50 dark:bg-slate-900 rounded font-label-sm text-label-sm transition-colors text-left"
             >
               <span className="material-symbols-outlined" data-icon={collapsed ? "menu" : "menu_open"}>{collapsed ? "menu" : "menu_open"}</span>
               {!collapsed && <span>Collapse Sidebar</span>}
@@ -120,18 +120,18 @@ export function Sidebar({
           </div>
 
           {/* User Session Snippet */}
-          <div className={cn("rounded bg-slate-50 border border-outline-variant flex items-center", collapsed ? "p-1 justify-center" : "p-2 gap-2.5")}>
+          <div className={cn("rounded bg-slate-50 dark:bg-slate-900 border border-outline-variant dark:border-slate-800 flex items-center", collapsed ? "p-1 justify-center" : "p-2 gap-2.5")}>
             <div className="w-7 h-7 rounded bg-slate-900 text-white flex items-center justify-center font-label-md text-label-md font-bold shrink-0">
               {initials}
             </div>
             {!collapsed && (
               <>
                 <div className="overflow-hidden leading-tight flex-1">
-                  <p className="font-label-sm text-label-sm text-on-surface truncate font-semibold">{user.name || user.email}</p>
-                  <p className="font-label-sm text-label-sm text-secondary truncate">{ROLE_LABELS[user.role] || user.role}</p>
+                  <p className="font-label-sm text-label-sm text-on-surface dark:text-white truncate font-semibold">{user.name || user.email}</p>
+                  <p className="font-label-sm text-label-sm text-secondary dark:text-slate-400 truncate">{ROLE_LABELS[user.role] || user.role}</p>
                 </div>
                 <form action={logoutAction}>
-                  <button type="submit" className="text-secondary hover:text-on-surface p-1 flex items-center justify-center" title="Log out">
+                  <button type="submit" className="text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white p-1 flex items-center justify-center" title="Log out">
                     <span className="material-symbols-outlined" data-icon="logout" style={{ fontSize: "16px" }}>logout</span>
                   </button>
                 </form>
@@ -139,7 +139,7 @@ export function Sidebar({
             )}
             {collapsed && (
               <form action={logoutAction} className="mt-1">
-                <button type="submit" className="text-secondary hover:text-on-surface p-1 flex items-center justify-center" title="Log out">
+                <button type="submit" className="text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white p-1 flex items-center justify-center" title="Log out">
                   <span className="material-symbols-outlined" data-icon="logout" style={{ fontSize: "16px" }}>logout</span>
                 </button>
               </form>
@@ -167,7 +167,7 @@ function NavGroupSection({
   return (
     <div className="mb-2">
       {!collapsed && (
-        <p className="mb-1 px-3 py-1 font-label-sm text-label-sm text-secondary uppercase tracking-widest">
+        <p className="mb-1 px-3 py-1 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-widest">
           {group.title}
         </p>
       )}
@@ -192,15 +192,15 @@ function NavGroupSection({
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded transition-colors duration-150 ease-in-out cursor-pointer",
                   isActive
-                    ? "text-slate-900 bg-slate-100 font-label-md text-label-md border-l-2 border-slate-900 font-semibold"
-                    : "text-secondary hover:text-on-surface hover:bg-slate-50 font-label-md text-label-md",
+                    ? "text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-label-md text-label-md border-l-2 border-slate-900 font-semibold"
+                    : "text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white hover:bg-slate-50 dark:bg-slate-900 font-label-md text-label-md",
                   collapsed && "justify-center px-0 border-l-0"
                 )}
               >
                 <span
                   className={cn(
                     "material-symbols-outlined",
-                    isActive ? "text-slate-900" : ""
+                    isActive ? "text-slate-900 dark:text-white" : ""
                   )}
                   data-icon={item.icon}
                 >

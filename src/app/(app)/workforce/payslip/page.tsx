@@ -22,19 +22,19 @@ export default async function PayslipPage() {
   return (
     <main className="flex-1 p-6 flex flex-col gap-6 w-full max-w-5xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">My Payslips</h1>
-        <p className="text-secondary">View and download your monthly salary slips.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface dark:text-white mb-2">My Payslips</h1>
+        <p className="text-secondary dark:text-slate-400">View and download your monthly salary slips.</p>
       </div>
 
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
         {payslips.length === 0 ? (
-          <div className="p-10 text-center text-secondary">
+          <div className="p-10 text-center text-secondary dark:text-slate-400">
             No payslips have been generated for you yet.
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-surface-bright border-b border-outline-variant text-secondary font-label-sm text-label-sm">
+              <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm">
                 <th className="py-3 px-4 font-semibold">Month / Year</th>
                 <th className="py-3 px-4 font-semibold">Basic Salary</th>
                 <th className="py-3 px-4 font-semibold">Net Salary</th>
@@ -44,15 +44,15 @@ export default async function PayslipPage() {
             </thead>
             <tbody className="divide-y divide-outline-variant font-body-md text-body-md">
               {payslips.map((ps) => (
-                <tr key={ps.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={ps.id} className="hover:bg-slate-50 dark:bg-slate-900 transition-colors">
                   <td className="py-3 px-4 font-medium">
                     {ps.month.toString().padStart(2, '0')} / {ps.year}
                   </td>
-                  <td className="py-3 px-4 text-secondary">₹{ps.basicSalary.toString()}</td>
-                  <td className="py-3 px-4 font-bold text-on-surface">₹{ps.netSalary.toString()}</td>
+                  <td className="py-3 px-4 text-secondary dark:text-slate-400">₹{ps.basicSalary.toString()}</td>
+                  <td className="py-3 px-4 font-bold text-on-surface dark:text-white">₹{ps.netSalary.toString()}</td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
-                      ${ps.status === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                      ${ps.status === 'PAID' ? 'bg-slate-200 dark:bg-slate-700 text-slate-950' : 'bg-orange-100 text-orange-700'}`}>
                       {ps.status}
                     </span>
                   </td>

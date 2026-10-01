@@ -26,7 +26,7 @@ export function LeaveApprovalActions({ requestId, approverId }: Props) {
         size="icon"
         disabled={isPending}
         onClick={() => handleAction("approve")}
-        className="size-7 rounded-full text-green-600 hover:bg-green-50 hover:text-green-700"
+        className="size-7 rounded-full text-slate-900 dark:text-white hover:bg-slate-100 dark:bg-slate-800 hover:text-slate-950"
         title="Approve"
       >
         {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}

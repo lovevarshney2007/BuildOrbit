@@ -19,33 +19,46 @@ const ApplyLeaveSchema = z.object({
 export type ApplyLeaveState = {
   errors?: Record<string, string[]>
   message?: string
+  fields?: Record<string, string>
 } | null
 
 export async function applyLeaveAction(
   _prev: ApplyLeaveState,
   formData: FormData,
 ): Promise<ApplyLeaveState> {
+  const fields = {
+    leaveTypeId: formData.get("leaveTypeId") as string,
+    startDate: formData.get("startDate") as string,
+    endDate: formData.get("endDate") as string,
+    reason: formData.get("reason") as string,
+  }
+
   const validated = ApplyLeaveSchema.safeParse({
-    leaveTypeId: formData.get("leaveTypeId"),
-    startDate: formData.get("startDate"),
-    endDate: formData.get("endDate"),
-    reason: formData.get("reason"),
+    leaveTypeId: fields.leaveTypeId,
+    startDate: fields.startDate,
+    endDate: fields.endDate,
+    reason: fields.reason,
     userId: formData.get("userId"),
   })
 
   if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors }
+    return { errors: validated.error.flatten().fieldErrors, fields }
   }
 
   const { leaveTypeId, startDate, endDate, reason, userId } = validated.data
 
   const start = new Date(startDate)
   const end = new Date(endDate)
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start.getFullYear() > 2100 || end.getFullYear() > 2100) {
+    return { errors: { endDate: ["Invalid date or year is too far in the future."] }, fields }
+  }
+
   start.setHours(0, 0, 0, 0)
   end.setHours(0, 0, 0, 0)
 
   if (end < start) {
-    return { errors: { endDate: ["End date must be on or after start date."] } }
+    return { errors: { endDate: ["End date must be on or after start date."] }, fields }
   }
 
   const msPerDay = 1000 * 60 * 60 * 24

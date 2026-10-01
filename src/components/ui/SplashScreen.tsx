@@ -27,7 +27,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           initial={{ y: 0 }}
           exit={{ y: "-100%" }}
           transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-          className="fixed inset-0 z-[100] flex flex-col bg-slate-50 overflow-hidden"
+          className="fixed inset-0 z-[100] flex flex-col bg-slate-50 dark:bg-slate-900 overflow-hidden"
         >
           {/* Top Dark Slate Section with Curve */}
           <div className="relative flex-1 bg-slate-950 flex flex-col items-center justify-center pb-20">
@@ -54,13 +54,13 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           </div>
 
           {/* Bottom Light Section with snappy text animation */}
-          <div className="h-1/3 bg-slate-50 flex flex-col items-center justify-center relative">
+          <div className="h-1/3 bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center relative">
             <div className="h-10 w-full flex items-center justify-center overflow-hidden">
               <motion.h2
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
-                className="text-xl font-semibold tracking-widest uppercase text-slate-800"
+                className="text-xl font-semibold tracking-widest uppercase text-slate-800 dark:text-slate-200"
               >
                 Initializing Workspace
               </motion.h2>

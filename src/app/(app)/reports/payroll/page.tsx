@@ -47,10 +47,10 @@ export default async function PayrollReportPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Payroll Summary Report</h1>
+            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">Payroll Summary Report</h1>
             <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Financial Insights</span>
           </div>
-          <p className="font-body-md text-body-md text-secondary mt-0.5">View aggregate payroll costs and tax summaries over time.</p>
+          <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">View aggregate payroll costs and tax summaries over time.</p>
         </div>
       </div>
       

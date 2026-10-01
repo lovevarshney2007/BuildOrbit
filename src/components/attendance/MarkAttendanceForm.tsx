@@ -111,20 +111,20 @@ export function MarkAttendanceForm() {
 
   return (
     <div className="w-full">
-      <AnimatedCard className="p-6 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col gap-4">
+      <AnimatedCard className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex flex-col gap-4">
         <div>
-          <h2 className="text-xl font-bold text-on-surface">Mark Attendance</h2>
-          <p className="text-secondary text-sm mt-1">Take a photo of yourself at the office to mark today's attendance. Your location will be captured automatically and must be within 100m of the office.</p>
+          <h2 className="text-xl font-bold text-on-surface dark:text-white">Mark Attendance</h2>
+          <p className="text-secondary dark:text-slate-400 text-sm mt-1">Take a photo of yourself at the office to mark today's attendance. Your location will be captured automatically and must be within 100m of the office.</p>
         </div>
 
-        <div className={`border rounded-xl flex flex-col items-center justify-center overflow-hidden relative transition-all duration-300 w-full ${photoData || (isCameraOpen && !useFallback) ? 'border-solid border-slate-200 bg-black aspect-[4/3] md:aspect-video' : 'border-dashed border-outline-variant bg-slate-50 min-h-[240px] p-4'}`}>
+        <div className={`border rounded-xl flex flex-col items-center justify-center overflow-hidden relative transition-all duration-300 w-full ${photoData || (isCameraOpen && !useFallback) ? 'border-solid border-slate-200 dark:border-slate-800 bg-black aspect-[4/3] md:aspect-video' : 'border-dashed border-outline-variant dark:border-slate-800 bg-slate-50 dark:bg-slate-900 min-h-[240px] p-4'}`}>
           
           {/* Captured Photo Preview */}
           {photoData && (
             <div className="absolute inset-0 w-full h-full animate-in fade-in zoom-in-95 duration-300">
               <img src={photoData} alt="Captured" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none"></div>
-              <button onClick={resetPhoto} className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white w-10 h-10 rounded-full backdrop-blur-md transition-all flex items-center justify-center shadow-sm border border-white/10 hover:scale-105">
+              <button onClick={resetPhoto} className="absolute top-4 right-4 bg-white dark:bg-slate-950/20 hover:bg-white dark:bg-slate-950/40 text-white w-10 h-10 rounded-full backdrop-blur-md transition-all flex items-center justify-center shadow-sm border border-white/10 hover:scale-105">
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
@@ -146,9 +146,9 @@ export function MarkAttendanceForm() {
 
             {/* Camera Shutter Button */}
             <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-              <button onClick={capturePhoto} className="w-16 h-16 rounded-full border-[3px] border-white/50 bg-white/90 hover:bg-white hover:scale-105 hover:border-white transition-all shadow-xl flex items-center justify-center group backdrop-blur-sm">
+              <button onClick={capturePhoto} className="w-16 h-16 rounded-full border-[3px] border-white/50 bg-white dark:bg-slate-950/90 hover:bg-white dark:bg-slate-950 hover:scale-105 hover:border-white transition-all shadow-xl flex items-center justify-center group backdrop-blur-sm">
                 <div className="w-12 h-12 rounded-full border border-slate-300/50 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200">camera</span>
+                  <span className="material-symbols-outlined text-slate-700 dark:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200">camera</span>
                 </div>
               </button>
             </div>
@@ -171,7 +171,7 @@ export function MarkAttendanceForm() {
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="font-semibold text-lg">Tap to verify presence</span>
-                  <span className="text-secondary text-sm font-medium mt-1">Uses device camera & GPS</span>
+                  <span className="text-secondary dark:text-slate-400 text-sm font-medium mt-1">Uses device camera & GPS</span>
                 </div>
               </button>
             </div>
@@ -182,7 +182,7 @@ export function MarkAttendanceForm() {
           onClick={handleMarkAttendance} 
           disabled={!photoData || isSubmitting || isLocating}
           className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-sm
-            ${!photoData || isSubmitting || isLocating ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark text-white hover:shadow'}`}
+            ${!photoData || isSubmitting || isLocating ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark text-white hover:shadow'}`}
         >
           {isLocating ? (
             <><span className="material-symbols-outlined animate-spin text-sm">my_location</span> Locating...</>

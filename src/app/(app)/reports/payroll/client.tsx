@@ -19,30 +19,30 @@ export function PayrollAnalyticsClient({ trendData, totalCost, totalDeductions, 
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Total Payroll Cost</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Total Payroll Cost</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
         </div>
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Total Deductions / Taxes</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">${totalDeductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Total Deductions / Taxes</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">${totalDeductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
         </div>
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Processed Records</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">{recordCount}</h3>
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Processed Records</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">{recordCount}</h3>
         </div>
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Avg Cost per Record</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Avg Cost per Record</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">
              ${recordCount ? (totalCost / recordCount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
           </h3>
         </div>
       </div>
 
-      <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+      <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <span className="material-symbols-outlined text-secondary text-[20px]">bar_chart</span>
-          <h3 className="font-headline-sm text-headline-sm text-on-surface">Monthly Payroll Cost & Deductions</h3>
+          <span className="material-symbols-outlined text-secondary dark:text-slate-400 text-[20px]">bar_chart</span>
+          <h3 className="font-headline-sm text-headline-sm text-on-surface dark:text-white">Monthly Payroll Cost & Deductions</h3>
         </div>
         <div className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">

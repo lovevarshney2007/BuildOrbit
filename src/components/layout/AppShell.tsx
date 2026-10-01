@@ -20,7 +20,7 @@ export function AppShell({ children, user }: AppShellProps) {
   const [isSplashFinished, setIsSplashFinished] = useState(false)
 
   return (
-    <div className="flex w-full flex-1 min-h-screen bg-transparent text-on-surface antialiased flex-row relative z-0">
+    <div className="flex w-full flex-1 min-h-screen bg-transparent text-on-surface dark:text-white antialiased flex-row relative z-0">
       <SplashScreen onFinish={() => setIsSplashFinished(true)} />
       <BackgroundBubbles />
       <Sidebar

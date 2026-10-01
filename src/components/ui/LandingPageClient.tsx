@@ -10,13 +10,13 @@ interface LandingPageClientProps {
 
 export function LandingPageClient({ user }: LandingPageClientProps) {
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-slate-200">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans selection:bg-slate-200 dark:bg-slate-700">
       
       {/* Navigation */}
       <nav className="absolute top-0 w-full z-50">
         <div className="max-w-[1920px] mx-auto px-6 py-6 lg:px-12 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center h-10 w-10 bg-white text-slate-900 rounded-lg shadow-sm">
+            <div className="flex items-center justify-center h-10 w-10 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg shadow-sm">
               <span className="material-symbols-outlined" data-icon="orbit">orbit</span>
             </div>
             <span className="text-xl font-bold tracking-tight text-white">BuildOrbit</span>
@@ -30,7 +30,7 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
             {user ? (
               <Link 
                 href="/dashboard"
-                className="px-6 py-2.5 bg-white text-slate-900 hover:bg-slate-100 text-sm font-bold rounded-full transition-all shadow-lg hover:scale-105"
+                className="px-6 py-2.5 bg-white dark:bg-slate-950 text-slate-900 dark:text-white hover:bg-slate-100 dark:bg-slate-800 text-sm font-bold rounded-full transition-all shadow-lg hover:scale-105"
               >
                 Go to Dashboard
               </Link>
@@ -44,7 +44,7 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
                 </Link>
                 <Link 
                   href="/login"
-                  className="px-6 py-2.5 bg-white text-slate-900 hover:bg-slate-100 text-sm font-bold rounded-full transition-all shadow-lg hover:scale-105"
+                  className="px-6 py-2.5 bg-white dark:bg-slate-950 text-slate-900 dark:text-white hover:bg-slate-100 dark:bg-slate-800 text-sm font-bold rounded-full transition-all shadow-lg hover:scale-105"
                 >
                   Get Started
                 </Link>
@@ -95,7 +95,7 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <Link 
                 href={user ? "/dashboard" : "/login"}
-                className="flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-full transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-950 hover:bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-full transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
               >
                 {user ? "Open Workspace" : "Get Started"}
               </Link>
@@ -110,7 +110,7 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
             className="relative lg:ml-auto w-full max-w-2xl perspective-1000 mt-20 lg:mt-0"
           >
             {/* Main App Window Mockup */}
-            <div className="relative rounded-2xl border border-slate-200/50 bg-white shadow-2xl overflow-hidden aspect-[4/3] flex flex-col transform hover:-translate-y-2 transition-transform duration-500 group">
+            <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800/50 bg-white dark:bg-slate-950 shadow-2xl overflow-hidden aspect-[4/3] flex flex-col transform hover:-translate-y-2 transition-transform duration-500 group">
               <img 
                 src="/dashboard-mockup.jpg" 
                 alt="BuildOrbit Enterprise Dashboard" 
@@ -123,13 +123,13 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
             <motion.div 
               animate={{ y: [0, -15, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-10 -left-10 bg-white border border-slate-100 p-4 rounded-xl shadow-xl flex items-center gap-4"
+              className="absolute -bottom-10 -left-10 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4"
             >
-              <div className="w-12 h-12 bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg flex items-center justify-center">
                 <span className="material-symbols-outlined">task_alt</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800">Payroll Processed</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Payroll Processed</p>
                 <p className="text-xs text-slate-500">Just now</p>
               </div>
             </motion.div>
@@ -138,13 +138,13 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
             <motion.div 
               animate={{ y: [0, 15, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute -top-10 -right-4 bg-white border border-slate-100 p-4 rounded-xl shadow-xl flex items-center gap-4"
+              className="absolute -top-10 -right-4 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4"
             >
-              <div className="w-12 h-12 bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg flex items-center justify-center">
                 <span className="material-symbols-outlined">group_add</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800">New Hire Onboarded</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">New Hire Onboarded</p>
                 <p className="text-xs text-slate-500">Sarah Jenkins</p>
               </div>
             </motion.div>
@@ -154,10 +154,10 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
       </main>
 
       {/* Feature Grid Section */}
-      <section id="features" className="py-24 bg-slate-50 border-t border-slate-100">
+      <section id="features" className="py-24 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
         <div className="max-w-[1920px] mx-auto px-6 lg:px-12">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Everything you need to scale</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Everything you need to scale</h2>
             <p className="text-slate-500 text-lg">
               Designed for precision and speed, BuildOrbit replaces your messy spreadsheets and disconnected SaaS tools.
             </p>
@@ -169,11 +169,11 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
               { title: "Smart Payroll", icon: "account_balance", desc: "Automated calculations, tax compliance, and one-click salary disbursement." },
               { title: "CRM Integration", icon: "hub", desc: "Track leads, manage client accounts, and link sales directly to team performance." },
             ].map((feat, i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-lg transition-all">
-                <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-700 mb-6 shadow-sm">
+              <div key={i} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:shadow-lg transition-all">
+                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-700 dark:text-slate-300 mb-6 shadow-sm">
                   <span className="material-symbols-outlined text-3xl">{feat.icon}</span>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{feat.title}</h3>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{feat.title}</h3>
                 <p className="text-slate-600 leading-relaxed">{feat.desc}</p>
               </div>
             ))}
@@ -182,7 +182,7 @@ export function LandingPageClient({ user }: LandingPageClientProps) {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-white text-center text-slate-400 text-sm border-t border-slate-100">
+      <footer className="py-12 bg-white dark:bg-slate-950 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800">
         <p>© 2026 BuildOrbit. All rights reserved.</p>
       </footer>
 

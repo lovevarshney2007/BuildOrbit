@@ -20,27 +20,27 @@ export function LeadAnalyticsClient({ statusData, sourceData, totalLeads, totalV
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Total Leads</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">{totalLeads}</h3>
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Total Leads</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">{totalLeads}</h3>
         </div>
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Pipeline Value</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">${totalValue.toLocaleString()}</h3>
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Pipeline Value</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">${totalValue.toLocaleString()}</h3>
         </div>
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm hover:shadow-md transition-shadow">
-          <p className="font-label-md text-label-md text-secondary">Conversion Rate</p>
-          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface">
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <p className="font-label-md text-label-md text-secondary dark:text-slate-400">Conversion Rate</p>
+          <h3 className="mt-3 font-metric-num text-metric-num text-on-surface dark:text-white">
              {totalLeads ? Math.round((statusData.find(s => s.name === "WON")?.value || 0) / totalLeads * 100) : 0}%
           </h3>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-secondary text-[20px]">filter_alt</span>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">Sales Funnel</h3>
+            <span className="material-symbols-outlined text-secondary dark:text-slate-400 text-[20px]">filter_alt</span>
+            <h3 className="font-headline-sm text-headline-sm text-on-surface dark:text-white">Sales Funnel</h3>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -55,10 +55,10 @@ export function LeadAnalyticsClient({ statusData, sourceData, totalLeads, totalV
           </div>
         </div>
 
-        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+        <div className="rounded-xl border border-outline-variant dark:border-slate-800 bg-surface-container-lowest dark:bg-slate-950 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-secondary text-[20px]">donut_small</span>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">Lead Sources</h3>
+            <span className="material-symbols-outlined text-secondary dark:text-slate-400 text-[20px]">donut_small</span>
+            <h3 className="font-headline-sm text-headline-sm text-on-surface dark:text-white">Lead Sources</h3>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">

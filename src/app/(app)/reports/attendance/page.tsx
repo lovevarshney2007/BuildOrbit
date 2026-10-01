@@ -54,10 +54,10 @@ export default async function ReportsPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Attendance Report</h1>
+            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">Attendance Report</h1>
             <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Monthly Aggregation</span>
           </div>
-          <p className="font-body-md text-body-md text-secondary mt-0.5">Summary of employee attendance for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}.</p>
+          <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">Summary of employee attendance for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}.</p>
         </div>
         <div className="flex items-center gap-2.5">
           <button className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150" type="button">
@@ -68,22 +68,22 @@ export default async function ReportsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden shadow-xs flex flex-col">
-        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant text-secondary">
+      <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded overflow-hidden shadow-xs flex flex-col">
+        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400">
           <div className="flex items-center gap-3">
-            <span className="font-label-sm text-label-sm text-on-surface font-medium">{reportData.length} records generated</span>
+            <span className="font-label-sm text-label-sm text-on-surface dark:text-white font-medium">{reportData.length} records generated</span>
           </div>
         </div>
         
         <div className="overflow-x-auto">
           {reportData.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
-              <p className="text-[14px] font-medium text-on-surface">No data available for this month.</p>
+              <p className="text-[14px] font-medium text-on-surface dark:text-white">No data available for this month.</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-bright border-b border-outline-variant text-secondary font-label-sm text-label-sm select-none">
+                <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm select-none">
                   <th className="py-2.5 px-4 font-semibold">Employee</th>
                   <th className="py-2.5 px-4 font-semibold text-right">Present (Days)</th>
                   <th className="py-2.5 px-4 font-semibold text-right">Absent (Days)</th>
@@ -95,10 +95,10 @@ export default async function ReportsPage() {
                 {reportData.map((row, idx) => (
                   <tr key={idx} className="hover:bg-surface-bright/70 transition-colors">
                     <td className="py-3 px-4">
-                      <span className="font-medium text-on-surface">{row.name}</span>
+                      <span className="font-medium text-on-surface dark:text-white">{row.name}</span>
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <span className="font-tabular-data text-emerald-600 font-medium">{row.present}</span>
+                      <span className="font-tabular-data text-slate-900 dark:text-white font-medium">{row.present}</span>
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span className="font-tabular-data text-red-600 font-medium">{row.absent}</span>
@@ -107,7 +107,7 @@ export default async function ReportsPage() {
                       <span className="font-tabular-data text-amber-600 font-medium">{row.leave}</span>
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <span className="font-tabular-data text-on-surface font-medium">{row.present + row.absent + row.leave}</span>
+                      <span className="font-tabular-data text-on-surface dark:text-white font-medium">{row.present + row.absent + row.leave}</span>
                     </td>
                   </tr>
                 ))}

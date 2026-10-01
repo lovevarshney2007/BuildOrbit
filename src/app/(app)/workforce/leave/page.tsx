@@ -49,12 +49,12 @@ export default async function LeaveRequestsPage({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">
               {isAdminLike ? "All Leave Requests" : "My Leave Requests"}
             </h1>
             <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Cycle Q4-2026</span>
           </div>
-          <p className="font-body-md text-body-md text-secondary mt-0.5">
+          <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">
             {isAdminLike ? "View all employee leave requests." : "Track and manage your time-off requests."}
           </p>
         </div>
@@ -69,7 +69,7 @@ export default async function LeaveRequestsPage({
       </div>
 
       {/* Filter Bar & Segmented Tabs */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest p-2 border border-outline-variant rounded">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-surface-container-lowest dark:bg-slate-950 p-2 border border-outline-variant dark:border-slate-800 rounded">
         <div className="flex items-center gap-1 overflow-x-auto">
           {["", "PENDING", "APPROVED", "REJECTED"].map((s) => {
             const isActive = (statusFilter ?? "") === s
@@ -79,7 +79,7 @@ export default async function LeaveRequestsPage({
                   className={`px-3 py-1.5 rounded font-label-md text-label-md shadow-xs flex items-center gap-1.5 transition-colors ${
                     isActive
                       ? "bg-primary text-on-primary"
-                      : "text-secondary hover:text-on-surface hover:bg-surface-container"
+                      : "text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white hover:bg-surface-container dark:bg-slate-950"
                   }`}
                   type="button"
                 >
@@ -92,23 +92,23 @@ export default async function LeaveRequestsPage({
       </div>
 
       {/* Table */}
-      <div className="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden shadow-xs flex flex-col">
-        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant text-secondary">
+      <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded overflow-hidden shadow-xs flex flex-col">
+        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400">
           <div className="flex items-center gap-3">
-            <span className="font-label-sm text-label-sm text-on-surface font-medium">{requests.length} records</span>
+            <span className="font-label-sm text-label-sm text-on-surface dark:text-white font-medium">{requests.length} records</span>
           </div>
         </div>
         
         <div className="overflow-x-auto">
           {requests.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
-              <p className="text-[14px] font-medium text-on-surface">No records found</p>
-              <p className="text-[13px] text-secondary">No leave requests match the current filter.</p>
+              <p className="text-[14px] font-medium text-on-surface dark:text-white">No records found</p>
+              <p className="text-[13px] text-secondary dark:text-slate-400">No leave requests match the current filter.</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-bright border-b border-outline-variant text-secondary font-label-sm text-label-sm select-none">
+                <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm select-none">
                   {isAdminLike && <th className="py-2.5 px-4 font-semibold">Employee</th>}
                   <th className="py-2.5 px-4 font-semibold">Leave Type</th>
                   <th className="py-2.5 px-4 font-semibold">Duration &amp; Dates</th>
@@ -124,25 +124,25 @@ export default async function LeaveRequestsPage({
                       {isAdminLike && (
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
-                            <span className="font-medium text-on-surface font-label-md leading-tight">{req.requester.name || req.requester.email}</span>
-                            <span className="text-secondary font-label-sm text-[11px]">{req.requester.email}</span>
+                            <span className="font-medium text-on-surface dark:text-white font-label-md leading-tight">{req.requester.name || req.requester.email}</span>
+                            <span className="text-secondary dark:text-slate-400 font-label-sm text-[11px]">{req.requester.email}</span>
                           </div>
                         </td>
                       )}
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container dark:bg-slate-950 font-label-sm text-label-sm text-on-surface dark:text-white">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                           {req.leaveType.name}
                         </span>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <span className="font-medium text-on-surface font-tabular-data">{formatDate(req.startDate)} – {formatDate(req.endDate)}</span>
-                          <span className="text-secondary font-label-sm text-[11px]">{req.days} Days</span>
+                          <span className="font-medium text-on-surface dark:text-white font-tabular-data">{formatDate(req.startDate)} – {formatDate(req.endDate)}</span>
+                          <span className="text-secondary dark:text-slate-400 font-label-sm text-[11px]">{req.days} Days</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 max-w-[210px]">
-                        <p className="truncate text-secondary" title={req.reason || ""}>{req.reason || "—"}</p>
+                        <p className="truncate text-secondary dark:text-slate-400" title={req.reason || ""}>{req.reason || "—"}</p>
                       </td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-${config.color}-200 bg-${config.color}-50 text-${config.color}-700 font-label-sm text-label-sm`}>

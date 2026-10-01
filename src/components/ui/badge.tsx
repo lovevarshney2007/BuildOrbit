@@ -6,12 +6,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  default: "bg-surface-container-high text-on-surface border-outline-variant shadow-sm",
-  success: "bg-slate-200 text-slate-800 border-slate-300 shadow-sm",
-  warning: "bg-slate-100 text-slate-600 border-slate-200 shadow-sm",
-  error: "bg-slate-300 text-slate-900 border-slate-400 shadow-sm",
-  info: "bg-surface-container text-on-surface border-outline-variant shadow-sm",
-  outline: "border-outline-variant text-secondary bg-transparent shadow-sm",
+  default: "bg-surface-container-high text-on-surface dark:text-white border-outline-variant dark:border-slate-800 shadow-sm",
+  success: "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border-slate-300 shadow-sm",
+  warning: "bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-800 shadow-sm",
+  error: "bg-slate-300 text-slate-900 dark:text-white border-slate-400 shadow-sm",
+  info: "bg-surface-container dark:bg-slate-950 text-on-surface dark:text-white border-outline-variant dark:border-slate-800 shadow-sm",
+  outline: "border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 bg-transparent shadow-sm",
 }
 
 function Badge({ className, variant = "default", ...props }: BadgeProps) {

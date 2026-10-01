@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
-    <div className="flex-1 flex overflow-hidden min-h-screen bg-surface-container-lowest">
+    <div className="flex-1 flex overflow-hidden min-h-screen bg-surface-container-lowest dark:bg-slate-950">
       
       {/* Left side: Pixelated/Grid Visuals */}
       <div className="hidden lg:flex w-[55%] relative items-center justify-center overflow-hidden bg-[#0F172A]">
@@ -39,8 +39,8 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 max-w-xl p-12 text-white w-full">
-          <div className="inline-flex items-center gap-3 mb-10 bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
-            <div className="flex items-center justify-center w-10 h-10 bg-white text-slate-900 rounded-lg shadow-lg">
+          <div className="inline-flex items-center gap-3 mb-10 bg-white dark:bg-slate-950/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
+            <div className="flex items-center justify-center w-10 h-10 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg shadow-lg">
               <span className="material-symbols-outlined text-[24px]">orbit</span>
             </div>
             <span className="text-xl font-bold tracking-tight">BuildOrbit</span>
@@ -69,12 +69,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right side: The Login Form */}
-      <div className="w-full lg:w-[45%] flex items-center justify-center p-8 bg-surface-container-lowest">
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-8 bg-surface-container-lowest dark:bg-slate-950">
         <div className="w-full max-w-[420px]">
           
           <div className="mb-8">
-            <h2 className="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-2">Welcome back</h2>
-            <p className="font-body-md text-body-md text-secondary">
+            <h2 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight mb-2">Welcome back</h2>
+            <p className="font-body-md text-body-md text-secondary dark:text-slate-400">
               Please enter your details to sign in.
             </p>
           </div>
@@ -100,12 +100,12 @@ export default function LoginPage() {
 
           <form action={action} className="space-y-6">
             <div>
-              <label className="block font-label-md text-label-md text-on-surface font-medium mb-1.5" htmlFor="email">
+              <label className="block font-label-md text-label-md text-on-surface dark:text-white font-medium mb-1.5" htmlFor="email">
                 Email Address
               </label>
               <div className="relative">
                 <input 
-                  className="w-full h-12 px-4 bg-surface-bright border border-outline-variant hover:border-outline rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                  className="w-full h-12 px-4 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                   id="email" 
                   name="email"
                   type="email" 
@@ -124,14 +124,14 @@ export default function LoginPage() {
             
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="font-label-md text-label-md text-on-surface font-medium" htmlFor="password">
+                <label className="font-label-md text-label-md text-on-surface dark:text-white font-medium" htmlFor="password">
                   Password
                 </label>
                 <a href="#" className="font-label-sm text-label-sm text-primary hover:underline">Forgot password?</a>
               </div>
               <div className="relative">
                 <input 
-                  className="w-full h-12 px-4 pr-11 bg-surface-bright border border-outline-variant hover:border-outline rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                  className="w-full h-12 px-4 pr-11 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                   id="password" 
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -141,7 +141,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                 />
                 <button 
-                  className="absolute right-3 top-3 text-secondary hover:text-on-surface p-0.5 rounded focus:outline-none transition-colors flex items-center justify-center" 
+                  className="absolute right-3 top-3 text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white p-0.5 rounded focus:outline-none transition-colors flex items-center justify-center" 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   title={showPassword ? "Hide password" : "Show password"}
@@ -176,7 +176,7 @@ export default function LoginPage() {
             </div>
             
             <div className="text-center pt-2">
-              <span className="text-secondary font-body-sm text-body-sm">Don't have an account? </span>
+              <span className="text-secondary dark:text-slate-400 font-body-sm text-body-sm">Don't have an account? </span>
               <Link href="/register" className="font-label-sm text-label-sm text-primary hover:underline font-semibold">
                 Register here
               </Link>
