@@ -179,10 +179,7 @@ export default async function AttendanceReportPage({
                   <th className="py-3 px-4 font-semibold">Name</th>
                   <th className="py-3 px-4 font-semibold">Date</th>
                   <th className="py-3 px-4 font-semibold">IN</th>
-                  <th className="py-3 px-4 font-semibold">IN Location</th>
                   <th className="py-3 px-4 font-semibold">OUT</th>
-                  <th className="py-3 px-4 font-semibold">OUT Location</th>
-                  <th className="py-3 px-4 font-semibold">Distance</th>
                   <th className="py-3 px-4 font-semibold">Status</th>
                 </tr>
               </thead>
@@ -212,16 +209,7 @@ export default async function AttendanceReportPage({
                         <span className="font-tabular-data text-on-surface dark:text-white">{checkInTime}</span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-secondary dark:text-slate-400 text-[13px]">—</span>
-                      </td>
-                      <td className="py-3 px-4">
                         <span className="font-tabular-data text-on-surface dark:text-white">{checkOutTime}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-secondary dark:text-slate-400 text-[13px]">—</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-secondary dark:text-slate-400 text-[13px]">—</span>
                       </td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${cfg.badgeClasses}`}>

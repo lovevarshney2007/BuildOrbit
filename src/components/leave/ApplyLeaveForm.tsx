@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { applyLeaveAction } from "@/lib/actions/leave"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -12,6 +12,7 @@ interface Props {
 
 export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
   const [state, action, pending] = useActionState(applyLeaveAction, null)
+  const [startDate, setStartDate] = useState(state?.fields?.startDate || "")
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -28,6 +29,7 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
         <select
           name="leaveTypeId"
           defaultValue={state?.fields?.leaveTypeId || ""}
+          required
           className="h-9 w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
         >
           <option value="">Select leave type…</option>
@@ -48,7 +50,9 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
           <input
             type="date"
             name="startDate"
-            defaultValue={state?.fields?.startDate || ""}
+            required
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
             className="h-9 w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {state?.errors?.startDate && (
@@ -60,6 +64,8 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
           <input
             type="date"
             name="endDate"
+            required
+            min={startDate}
             defaultValue={state?.fields?.endDate || ""}
             className="h-9 w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
           />

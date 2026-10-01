@@ -25,6 +25,28 @@ export function NewEmployeeForm({ departments, designations }: Props) {
     setError("")
 
     const formData = new FormData(e.currentTarget)
+    
+    const password = formData.get("password") as string
+    if (password && password.length < 8) {
+      setError("Password must be at least 8 characters long")
+      setLoading(false)
+      return
+    }
+
+    const phone = formData.get("phone") as string
+    if (phone && !/^\+?[0-9\s\-()]{7,15}$/.test(phone)) {
+      setError("Please enter a valid phone number (7-15 digits)")
+      setLoading(false)
+      return
+    }
+
+    const email = formData.get("email") as string
+    if (email && !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      setError("Please enter a valid email address")
+      setLoading(false)
+      return
+    }
+
     try {
       await createEmployee(formData)
       router.push("/workforce/employees")
@@ -57,17 +79,17 @@ export function NewEmployeeForm({ departments, designations }: Props) {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-on-surface dark:text-slate-300">Email Address *</label>
-              <input type="email" name="email" required className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" />
+              <input type="email" name="email" required pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address" className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-on-surface dark:text-slate-300">Phone Number</label>
-              <input type="tel" name="phone" className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" />
+              <input type="tel" name="phone" pattern="^\+?[0-9\s\-()]{7,15}$" title="Please enter a valid phone number (7-15 digits)" className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-on-surface dark:text-slate-300">Password *</label>
-              <input type="password" name="password" required className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" />
+              <input type="password" name="password" required minLength={8} title="Password must be at least 8 characters long" className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" />
             </div>
           </div>
 

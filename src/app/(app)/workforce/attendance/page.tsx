@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AttendanceStatus } from "@prisma/client"
 import { AttendanceFilters } from "@/components/attendance/AttendanceFilters"
 import { MarkAttendanceForm } from "@/components/attendance/MarkAttendanceForm"
+import { AttendanceDateFilter } from "@/components/attendance/AttendanceDateFilter"
 
 const STATUS_CONFIG: Record<AttendanceStatus, { badgeClasses: string; dotClasses: string; label: string }> = {
   PRESENT: { badgeClasses: "border-slate-300 bg-slate-100 dark:bg-slate-800 text-slate-950", dotClasses: "bg-slate-900", label: "Present" },
@@ -124,10 +125,7 @@ export default async function AttendancePage({
           {/* Filters */}
           <div className="bg-surface-container-lowest dark:bg-slate-900/50 p-4 border border-outline-variant dark:border-slate-800 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-              <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-secondary dark:text-slate-300 w-full sm:w-auto">
-                <span>{formatDate(filterDate)}</span>
-                <span className="material-symbols-outlined text-sm">calendar_today</span>
-              </div>
+              <AttendanceDateFilter currentDate={filterDate.toISOString().split('T')[0]} />
               <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-secondary dark:text-slate-300 w-full sm:w-64">
                 <span className="material-symbols-outlined text-secondary dark:text-slate-500 text-lg">search</span>
                 <input 
