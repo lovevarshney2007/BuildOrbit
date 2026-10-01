@@ -14,10 +14,10 @@ type LeadType = {
   company: string | null
   source: string
   status: string
-  value: any
+  value: number | null
   assignedTo: { name: string | null; email: string } | null
-  expectedClose: Date | null
-  createdAt: Date
+  expectedClose: string | null
+  createdAt: string
 }
 
 type UserType = {
@@ -46,7 +46,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
   const formatCurrency = (val: unknown) =>
     val ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(val)) : "—"
 
-  const formatDate = (dt: Date | null) =>
+  const formatDate = (dt: string | Date | null) =>
     dt ? new Date(dt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
