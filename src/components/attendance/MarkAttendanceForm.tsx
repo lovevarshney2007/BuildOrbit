@@ -1,13 +1,30 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { markDailyAttendance } from "@/lib/actions/attendance"
 import { AnimatedCard } from "@/components/ui/PageAnimator"
 
-export function MarkAttendanceForm() {
+interface Props {
+  recentAttendances?: Array<{
+    id: string
+    date: Date
+    checkIn: Date | null
+    status: string
+  }>
+}
+
+export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
   const [photoData, setPhotoData] = useState<string | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+
+  useEffect(() => {
+    setCurrentTime(new Date())
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
   
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -111,12 +128,22 @@ export function MarkAttendanceForm() {
   return (
     <div className="w-full">
       <AnimatedCard className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm flex flex-col gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-on-surface dark:text-white">Mark Attendance</h2>
-          <p className="text-secondary dark:text-slate-400 text-sm mt-1">Take a photo of yourself at the office to mark today&apos;s attendance. Your location will be captured automatically and must be within 100m of the office.</p>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-on-surface dark:text-white">Mark Attendance</h2>
+            <p className="text-secondary dark:text-slate-400 text-sm mt-1">Take a photo of yourself at the office to mark today&apos;s attendance. Your location will be captured automatically.</p>
+          </div>
+          <div className="bg-surface-container dark:bg-slate-900 px-4 py-2 rounded-lg border border-outline-variant dark:border-slate-800 flex flex-col items-center justify-center shrink-0 min-w-[140px]">
+            <span className="text-sm font-medium text-secondary dark:text-slate-400">
+              {currentTime ? currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '---'}
+            </span>
+            <span className="text-xl font-bold text-on-surface dark:text-white font-tabular-nums tracking-tight">
+              {currentTime ? currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--'}
+            </span>
+          </div>
         </div>
 
-        <div className={`border rounded-xl flex flex-col items-center justify-center overflow-hidden relative transition-all duration-300 w-full ${photoData || (isCameraOpen && !useFallback) ? 'border-solid border-slate-200 dark:border-slate-800 bg-black aspect-[4/3] md:aspect-video' : 'border-dashed border-outline-variant dark:border-slate-800 bg-slate-50 dark:bg-slate-900 min-h-[240px] p-4'}`}>
+        <div className={`border rounded-xl flex flex-col items-center justify-center overflow-hidden relative transition-all duration-300 w-full max-h-[320px] md:max-h-[400px] ${photoData || (isCameraOpen && !useFallback) ? 'border-solid border-slate-200 dark:border-slate-800 bg-black aspect-[4/3] md:aspect-video' : 'border-dashed border-outline-variant dark:border-slate-800 bg-slate-50 dark:bg-slate-900 min-h-[240px] p-4'}`}>
           
           {/* Captured Photo Preview */}
           {photoData && (
@@ -124,7 +151,7 @@ export function MarkAttendanceForm() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photoData} alt="Captured" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none"></div>
-              <button onClick={resetPhoto} className="absolute top-4 right-4 bg-white dark:bg-slate-950/20 hover:bg-white dark:bg-slate-950/40 text-white w-10 h-10 rounded-full backdrop-blur-md transition-all flex items-center justify-center shadow-sm border border-white/10 hover:scale-105">
+              <button onClick={resetPhoto} className="absolute top-4 right-4 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white w-10 h-10 rounded-full transition-all flex items-center justify-center shadow-md border border-slate-200 dark:border-slate-700 hover:scale-105 z-20 pointer-events-auto">
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
@@ -145,10 +172,10 @@ export function MarkAttendanceForm() {
             </div>
 
             {/* Camera Shutter Button */}
-            <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-              <button onClick={capturePhoto} className="w-16 h-16 rounded-full border-[3px] border-white/50 bg-white dark:bg-slate-950/90 hover:bg-white dark:bg-slate-950 hover:scale-105 hover:border-white transition-all shadow-xl flex items-center justify-center group backdrop-blur-sm">
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center z-20 pointer-events-auto">
+              <button onClick={capturePhoto} className="w-16 h-16 rounded-full border-[3px] border-white/50 bg-white dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 hover:scale-105 hover:border-white transition-all shadow-xl flex items-center justify-center group">
                 <div className="w-12 h-12 rounded-full border border-slate-300/50 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-slate-700 dark:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200">camera</span>
+                  <span className="material-symbols-outlined text-slate-800 dark:text-white">camera</span>
                 </div>
               </button>
             </div>
@@ -170,7 +197,7 @@ export function MarkAttendanceForm() {
                   <span className="material-symbols-outlined text-3xl">photo_camera</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="font-semibold text-lg">Tap to verify presence</span>
+                  <span className="font-semibold text-lg">Tap to take a photo</span>
                   <span className="text-secondary dark:text-slate-400 text-sm font-medium mt-1">Uses device camera & GPS</span>
                 </div>
               </button>
@@ -192,6 +219,39 @@ export function MarkAttendanceForm() {
             <><span className="material-symbols-outlined text-sm">how_to_reg</span> Mark Attendance</>
           )}
         </button>
+
+        {recentAttendances.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-outline-variant dark:border-slate-800">
+            <h3 className="text-sm font-semibold text-on-surface dark:text-white mb-3">Recent Attendance</h3>
+            <div className="flex flex-col gap-2">
+              {recentAttendances.map(record => (
+                <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-surface-container dark:bg-slate-900 border border-outline-variant dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[16px]">
+                        {record.status === 'PRESENT' ? 'check_circle' : 'event_available'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-on-surface dark:text-white">
+                        {new Date(record.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </p>
+                      <p className="text-xs text-secondary dark:text-slate-400 capitalize">
+                        {record.status.toLowerCase().replace('_', ' ')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-on-surface dark:text-white">
+                      {record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
+                    </p>
+                    <p className="text-xs text-secondary dark:text-slate-400">Time-in</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </AnimatedCard>
     </div>
   )

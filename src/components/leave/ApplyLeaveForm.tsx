@@ -3,6 +3,7 @@
 import { useActionState } from "react"
 import { applyLeaveAction } from "@/lib/actions/leave"
 import { Loader2 } from "lucide-react"
+import Link from "next/link"
 
 interface Props {
   leaveTypes: { id: string; name: string; daysAllowed: number }[]
@@ -104,12 +105,12 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
           {pending && <Loader2 className="size-3.5 animate-spin" />}
           Submit Request
         </button>
-        <a
+        <Link
           href="/workforce/leave"
           className="inline-flex h-9 items-center rounded-md border border-border px-5 text-[13px] text-muted-foreground hover:bg-secondary"
         >
           Cancel
-        </a>
+        </Link>
       </div>
     </form>
   )

@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { AttendanceStatus } from "@prisma/client"
 import { AttendanceFilters } from "@/components/attendance/AttendanceFilters"
 import { MarkAttendanceForm } from "@/components/attendance/MarkAttendanceForm"
@@ -16,6 +17,7 @@ const STATUS_CONFIG: Record<AttendanceStatus, { badgeClasses: string; dotClasses
 interface SearchParams {
   date?: string
   employeeId?: string
+  tab?: string
 }
 
 export default async function AttendancePage({
@@ -32,133 +34,199 @@ export default async function AttendancePage({
 
   const isAdminLike = ["SUPER_ADMIN", "ADMIN", "HR", "LEAD"].includes(user.role)
 
-  // Fetch attendance records
-  const records = await prisma.attendance.findMany({
-    where: {
-      date: filterDate,
-      ...(isAdminLike
-        ? params.employeeId ? { employeeId: params.employeeId } : {}
-        : { employee: { userId: user.userId } }),
-    },
-    include: {
-      employee: {
-        include: {
-          user: { select: { name: true, email: true } },
-          department: { select: { name: true } },
-          designation: { select: { title: true } },
-        },
-      },
-    },
-    orderBy: { employee: { employeeCode: "asc" } },
-  })
+  const tab = params.tab || "my"
 
-  // If admin, also get all employees for the filter
-  const employees = isAdminLike
-    ? await prisma.employee.findMany({
-        select: { id: true, employeeCode: true, user: { select: { name: true } } },
-        where: { status: "ACTIVE" },
-        orderBy: { employeeCode: "asc" },
-      })
-    : []
+  // Fetch attendance records (We need ALL active employees if tab === "team")
+  let teamData: Array<{
+    employee: any;
+    record: any;
+  }> = []
+
+  if (tab === "team" && isAdminLike) {
+    const allActive = await prisma.employee.findMany({
+      where: { status: "ACTIVE" },
+      include: {
+        user: { select: { name: true, email: true, role: true } },
+        attendances: {
+          where: { date: filterDate }
+        }
+      },
+      orderBy: { employeeCode: "asc" },
+    })
+
+    teamData = allActive.map(emp => ({
+      employee: emp,
+      record: emp.attendances.length > 0 ? emp.attendances[0] : null
+    }))
+  }
+
+  // Fetch my past attendance for "my" tab
+  let myRecords: any[] = []
+  if (tab === "my") {
+    myRecords = await prisma.attendance.findMany({
+      where: { employee: { userId: user.userId } },
+      orderBy: { date: 'desc' },
+      take: 5,
+    })
+  }
 
   const formatTime = (dt: Date | null) =>
     dt ? new Date(dt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—"
 
   const formatDate = (dt: Date) =>
-    new Date(dt).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })
+    new Date(dt).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit", year: "numeric" })
+
+  const presentCount = teamData.filter(d => d.record && (d.record.status === "PRESENT" || d.record.status === "HALF_DAY")).length
+  const notMarkedCount = teamData.filter(d => !d.record).length
+  const totalCount = teamData.length
 
   return (
     <main className="flex-1 p-6 flex flex-col gap-6 w-full">
       {/* Header & Page Controls Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">Workforce Attendance</h1>
-            <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Daily Roster</span>
-          </div>
-          <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">Showing attendance logs and status for {formatDate(filterDate)}.</p>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-1.5 text-secondary dark:text-slate-400 font-label-sm text-label-sm">
+          <span>Dashboard</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+          <span className="text-on-surface dark:text-white font-semibold">Attendance</span>
         </div>
+        <h1 className="text-3xl font-bold text-on-surface dark:text-white tracking-tight mt-1">Attendance</h1>
+        <p className="text-secondary dark:text-slate-400 text-sm">Mark today's attendance and track office presence</p>
       </div>
 
-      {["ENGINEER", "LEAD", "HR"].includes(user.role) && (
-        <div className="w-full max-w-2xl mx-auto my-4">
-          <MarkAttendanceForm />
+      {/* Tabs */}
+      <div className="flex items-center gap-2">
+        <Link 
+          href="?tab=my"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "my" ? "bg-surface-container-high dark:bg-slate-800 text-on-surface dark:text-white border border-outline-variant dark:border-slate-700" : "text-secondary dark:text-slate-400 hover:text-on-surface dark:hover:text-white"}`}
+        >
+          <span className="material-symbols-outlined text-lg">person</span>
+          My Attendance
+        </Link>
+        {isAdminLike && (
+          <Link 
+            href="?tab=team"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "team" ? "bg-surface-container-high dark:bg-slate-800 text-on-surface dark:text-white border border-outline-variant dark:border-slate-700" : "text-secondary dark:text-slate-400 hover:text-on-surface dark:hover:text-white"}`}
+          >
+            <span className="material-symbols-outlined text-lg">groups</span>
+            Team Attendance
+          </Link>
+        )}
+      </div>
+
+      {tab === "my" && (
+        <div className="w-full max-w-3xl mx-auto mt-4">
+          <MarkAttendanceForm recentAttendances={myRecords} />
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-surface-container-lowest dark:bg-slate-950 p-3 border border-outline-variant dark:border-slate-800 rounded">
-        <AttendanceFilters
-          employees={employees.map((e) => ({ id: e.id, name: e.user.name || e.employeeCode, code: e.employeeCode }))}
-          isAdminLike={isAdminLike}
-          currentDate={filterDate.toISOString().split("T")[0]}
-          currentEmployeeId={params.employeeId}
-        />
-      </div>
-
-      {/* Table */}
-      <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded overflow-hidden shadow-xs flex flex-col">
-        <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400">
-          <div className="flex items-center gap-3">
-            <span className="font-label-sm text-label-sm text-on-surface dark:text-white font-medium">{records.length} records</span>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          {records.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-16">
-              <p className="text-[14px] font-medium text-on-surface dark:text-white">No attendance records</p>
-              <p className="text-[13px] text-secondary dark:text-slate-400">No records found for the selected date and filters.</p>
+      {tab === "team" && isAdminLike && (
+        <div className="flex flex-col gap-6">
+          {/* Filters */}
+          <div className="bg-surface-container-lowest dark:bg-slate-900/50 p-4 border border-outline-variant dark:border-slate-800 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+              <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-secondary dark:text-slate-300 w-full sm:w-auto">
+                <span>{formatDate(filterDate)}</span>
+                <span className="material-symbols-outlined text-sm">calendar_today</span>
+              </div>
+              <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-secondary dark:text-slate-300 w-full sm:w-64">
+                <span className="material-symbols-outlined text-secondary dark:text-slate-500 text-lg">search</span>
+                <input 
+                  type="text" 
+                  placeholder="Search by name or role..." 
+                  className="bg-transparent border-none outline-none w-full placeholder:text-secondary/70 dark:placeholder:text-slate-500 text-on-surface dark:text-white" 
+                />
+              </div>
             </div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm select-none">
-                  <th className="py-2.5 px-4 font-semibold">Employee</th>
-                  <th className="py-2.5 px-4 font-semibold">Department</th>
-                  <th className="py-2.5 px-4 font-semibold">Status</th>
-                  <th className="py-2.5 px-4 font-semibold">Check In</th>
-                  <th className="py-2.5 px-4 font-semibold">Check Out</th>
-                  <th className="py-2.5 px-4 font-semibold">Notes</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant font-body-md text-body-md">
-                {records.map((rec) => {
-                  const config = STATUS_CONFIG[rec.status]
-                  return (
-                    <tr key={rec.id} className="hover:bg-surface-bright/70 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-on-surface dark:text-white font-label-md leading-tight">{rec.employee.user.name || rec.employee.user.email}</span>
-                          <span className="text-secondary dark:text-slate-400 font-label-sm text-[11px]">{rec.employee.employeeCode}</span>
+            <div className="text-sm text-secondary dark:text-slate-400 font-medium">
+              {totalCount} of {totalCount} employees
+            </div>
+          </div>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 border-t-4 border-t-emerald-500 rounded-xl p-5 flex items-center justify-between shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-secondary dark:text-slate-400 mb-1">Present</p>
+                <p className="text-3xl font-bold text-on-surface dark:text-white">{presentCount}</p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-500 flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">check_circle</span>
+              </div>
+            </div>
+            
+            <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 border-t-4 border-t-orange-500 rounded-xl p-5 flex items-center justify-between shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-secondary dark:text-slate-400 mb-1">Not Marked</p>
+                <p className="text-3xl font-bold text-on-surface dark:text-white">{notMarkedCount}</p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-500 flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">cancel</span>
+              </div>
+            </div>
+            
+            <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 border-t-4 border-t-blue-500 rounded-xl p-5 flex items-center justify-between shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-secondary dark:text-slate-400 mb-1">Total Employees</p>
+                <p className="text-3xl font-bold text-on-surface dark:text-white">{totalCount}</p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-500 flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">groups</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex flex-col">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="bg-surface-container dark:bg-slate-800/50 border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <th className="py-3 px-6">Photo</th>
+                    <th className="py-3 px-6">Employee</th>
+                    <th className="py-3 px-6">Role</th>
+                    <th className="py-3 px-6">Status</th>
+                    <th className="py-3 px-6">Marked At</th>
+                    <th className="py-3 px-6 text-right">Distance</th>
+                    <th className="py-3 px-6 text-right">This Month</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant dark:divide-slate-800 text-sm">
+                  {teamData.map(({ employee, record }) => (
+                    <tr key={employee.id} className="hover:bg-surface-container/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="py-3 px-6 text-secondary/50 dark:text-slate-500">—</td>
+                      <td className="py-3 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-surface-container-highest dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-secondary dark:text-slate-400">
+                            {employee.user.name ? employee.user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : '??'}
+                          </div>
+                          <span className="font-semibold text-on-surface dark:text-white">{employee.user.name || employee.user.email}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="font-medium text-secondary dark:text-slate-400">{rec.employee.department?.name ?? "—"}</span>
+                      <td className="py-3 px-6 text-secondary dark:text-slate-400">{employee.user.role}</td>
+                      <td className="py-3 px-6">
+                        {record ? (
+                          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
+                            <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                            Present
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-on-surface dark:text-white font-medium text-xs">
+                            <span className="material-symbols-outlined text-[16px] text-secondary dark:text-slate-400">help</span>
+                            Not Marked
+                          </div>
+                        )}
                       </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border ${config.badgeClasses} font-label-sm text-label-sm`}>
-                          <span className={`w-1 h-1 rounded-full ${config.dotClasses}`}></span>
-                          {config.label}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-tabular-data font-medium text-on-surface dark:text-white">{formatTime(rec.checkIn)}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-tabular-data font-medium text-on-surface dark:text-white">{formatTime(rec.checkOut)}</span>
-                      </td>
-                      <td className="py-3 px-4 max-w-[210px]">
-                        <p className="truncate text-secondary dark:text-slate-400" title={rec.notes || ""}>{rec.notes ?? "—"}</p>
-                      </td>
+                      <td className="py-3 px-6 text-secondary dark:text-slate-400">{formatTime(record?.checkIn || null)}</td>
+                      <td className="py-3 px-6 text-secondary dark:text-slate-400 text-right">—</td>
+                      <td className="py-3 px-6 text-on-surface dark:text-white text-right font-medium">0 days</td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </main>
   )
 }

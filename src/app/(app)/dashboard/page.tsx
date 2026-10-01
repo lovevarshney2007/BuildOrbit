@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { AnimatedCard } from "@/components/ui/PageAnimator"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { BusinessWorkforceChart, CRMLeadPipelineChart, AttendanceDonutChart } from "@/components/dashboard/DashboardCharts"
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -445,177 +446,222 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full p-6 md:p-8">
+      {/* SEATS ALERT (Only for Super Admin) */}
+      {user.role === "SUPER_ADMIN" && (
+        <AnimatedCard delay={0.02} className="relative rounded-xl bg-red-500 text-white p-4 px-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="bg-red-400/30 p-2 rounded shrink-0">
+              <span className="material-symbols-outlined text-[20px]">groups</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] bg-red-400/40 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">SEATS</span>
+              </div>
+              <h3 className="font-bold text-lg leading-tight mb-1">All seats are in use</h3>
+              <p className="text-red-100 text-sm">You are using {totalEmployees} of {totalEmployees} seats on the active license. New users cannot be added until seats free up or the license is upgraded.</p>
+              <div className="flex items-center gap-2 mt-3">
+                <span className="bg-red-600/50 px-2 py-0.5 rounded text-xs font-semibold">{totalEmployees}/{totalEmployees} seats</span>
+                <span className="bg-red-600/50 px-2 py-0.5 rounded text-xs font-semibold">No seats left</span>
+              </div>
+            </div>
+          </div>
+          <button className="absolute top-4 right-4 text-red-200 hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </AnimatedCard>
+      )}
+
       {/* HERO BANNER */}
-      <AnimatedCard delay={0.05} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-md p-8 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="absolute inset-0 opacity-5">
-          <span className="material-symbols-outlined absolute top-0 right-0 translate-x-1/4 -translate-y-1/4" style={{ fontSize: "240px" }}>dashboard</span>
+      <AnimatedCard delay={0.05} className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-primary-container text-on-primary shadow-md p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 opacity-10 select-none pointer-events-none">
+          <span className="font-black text-[120px] leading-none whitespace-nowrap">Keep<br/>going</span>
         </div>
         <div className="relative z-10 flex-1">
-          <p className="text-white/70 font-semibold mb-1 text-sm tracking-widest uppercase">
-            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          <p className="text-on-primary/80 font-semibold mb-1 text-sm tracking-widest uppercase">
+            Good {greeting}
           </p>
           <h1 className="text-4xl font-bold tracking-tight mb-2">
-            Good {greeting}, {user.name?.split(" ")[0]}
+            {user.name}!
           </h1>
-          <p className="text-white/80 font-medium">
-            {user.role.replace("_", " ")} Dashboard · BuildOrbit
+          <p className="text-on-primary/90 font-medium">
+            Here's what's happening across your organization today.
           </p>
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row gap-4">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 flex flex-col items-center gap-1 min-w-[100px]">
-            <span className="text-3xl font-bold text-white">{totalEmployees}</span>
-            <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Active Staff</span>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 px-5 flex items-center gap-3">
+            <span className="material-symbols-outlined">badge</span>
+            <div>
+              <p className="text-on-primary/70 text-[10px] font-bold uppercase tracking-wider">ROLE</p>
+              <p className="font-semibold">{user.role === "SUPER_ADMIN" ? "Super Admin" : user.role === "ADMIN" ? "Admin" : user.role === "HR" ? "HR" : user.role}</p>
+            </div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 flex flex-col items-center gap-1 min-w-[100px]">
-            <span className="text-3xl font-bold text-white">{attendanceRate}%</span>
-            <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Present Today</span>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 px-5 flex items-center gap-3">
+            <span className="material-symbols-outlined">event_available</span>
+            <div>
+              <p className="text-on-primary/70 text-[10px] font-bold uppercase tracking-wider">TODAY</p>
+              <p className="font-semibold">Not Marked</p>
+            </div>
           </div>
         </div>
       </AnimatedCard>
 
       {/* METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <Link href="/workforce/employees">
-          <AnimatedCard delay={0.05} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between">
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Total Workforce</span>
-              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors">groups</span>
-            </div>
-            <div className="mt-3">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{totalEmployees}</span>
-            </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Active employees in system</p>
-          </AnimatedCard>
-        </Link>
-
-        <Link href="/workforce/attendance">
-          <AnimatedCard delay={0.10} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between">
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Present Today</span>
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-label-md text-label-md font-semibold">{attendanceRate}% Rate</span>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{presentToday}</span>
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">/ {totalEmployees}</span>
-            </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Marked present today</p>
-          </AnimatedCard>
-        </Link>
-
-        <Link href="/workforce/attendance">
-          <AnimatedCard delay={0.15} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between">
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">On Leave Today</span>
-              <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors">event_busy</span>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{onLeaveToday}</span>
-              <span className="font-label-md text-label-md text-secondary dark:text-slate-400">
-                {totalEmployees > 0 ? Math.round((onLeaveToday / totalEmployees) * 100) : 0}% of staff
-              </span>
-            </div>
-            <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Marked on leave today</p>
-          </AnimatedCard>
-        </Link>
-
-        {isAdminLike && (
-          <Link href="/hr/leave-approval">
-            <AnimatedCard delay={0.20} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-on-surface dark:text-white font-medium">Pending Approvals</span>
-                {pendingLeaveCount > 0 && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 border border-amber-300 text-amber-800 dark:text-amber-400 font-label-md text-label-md font-bold">Action Needed</span>
-                )}
+          <AnimatedCard delay={0.05} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Total Employees</span>
+              <div className="w-8 h-8 rounded bg-blue-50 text-blue-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px]">groups</span>
               </div>
-              <div className="mt-3">
-                <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{pendingLeaveCount}</span>
-              </div>
-              <p className="font-body-md text-body-md text-on-surface dark:text-white/70 mt-2">Leave requests awaiting review</p>
-            </AnimatedCard>
-          </Link>
-        )}
-
-        {isLeadOrAdmin && (
-          <Link href="/crm/leads">
-            <AnimatedCard delay={0.25} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Active CRM Leads</span>
-                <span className="material-symbols-outlined text-secondary dark:text-slate-400 group-hover:text-slate-900 dark:text-white transition-colors">leaderboard</span>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">{totalActiveLeads}</span>
-                {totalPipelineValue > 0 && (
-                  <span className="inline-flex items-center font-label-md text-label-md text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800 text-xs">
-                    {formatCurrency(totalPipelineValue)}
-                  </span>
-                )}
-              </div>
-              <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">Pipeline value (excl. lost)</p>
-            </AnimatedCard>
-          </Link>
-        )}
-
-        {isAdminLike && (
-          <Link href="/hr/payroll">
-            <AnimatedCard delay={0.30} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-secondary dark:text-slate-400">Payroll This Month</span>
-                {draftPayrolls > 0 && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 text-slate-800 dark:text-slate-200 font-label-md text-label-md font-semibold">
-                    {draftPayrolls} Draft{draftPayrolls !== 1 ? "s" : ""}
-                  </span>
-                )}
-              </div>
-              <div className="mt-3">
-                <span className="text-4xl text-on-surface dark:text-white font-tabular-data tracking-tight">
-                  {currentMonthPayrolls.length > 0 ? formatCurrency(totalNetPayroll) : "—"}
-                </span>
-              </div>
-              <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-2">
-                {currentMonthPayrolls.length} records · {new Date(currentYear, currentMonth - 1).toLocaleString("default", { month: "long", year: "numeric" })}
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{totalEmployees}</span>
+              <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1 mt-1">
+                <span className="material-symbols-outlined text-[12px]">arrow_outward</span>
+                Active employees
               </p>
-            </AnimatedCard>
-          </Link>
-        )}
+            </div>
+          </AnimatedCard>
+        </Link>
+
+        <Link href="/workforce/employees">
+          <AnimatedCard delay={0.10} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Active Users</span>
+              <div className="w-8 h-8 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px]">person_check</span>
+              </div>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{totalEmployees}</span>
+              <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1 mt-1">
+                <span className="material-symbols-outlined text-[12px]">arrow_outward</span>
+                vs. last 7 days
+              </p>
+            </div>
+          </AnimatedCard>
+        </Link>
+
+        <Link href="/workforce/attendance">
+          <AnimatedCard delay={0.15} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Today's Attendance</span>
+              <div className="w-8 h-8 rounded bg-purple-50 text-purple-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+              </div>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{presentToday}<span className="text-sm text-secondary dark:text-slate-400">/{totalEmployees}</span></span>
+              <p className="text-[11px] text-secondary dark:text-slate-400 font-medium mt-1">
+                {attendanceRate}%
+              </p>
+            </div>
+          </AnimatedCard>
+        </Link>
+
+        <Link href="/hr/leave-approval">
+          <AnimatedCard delay={0.20} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Pending Leave</span>
+              <div className="w-8 h-8 rounded bg-amber-50 text-amber-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px]">event_busy</span>
+              </div>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{pendingLeaveCount}</span>
+              <p className="text-[11px] text-secondary dark:text-slate-400 font-medium mt-1">
+                Awaiting Approval
+              </p>
+            </div>
+          </AnimatedCard>
+        </Link>
+
+        <Link href="/crm/leads">
+          <AnimatedCard delay={0.25} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Open Leads</span>
+              <div className="w-8 h-8 rounded bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px]">leaderboard</span>
+              </div>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{totalActiveLeads}</span>
+              <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1 mt-1">
+                <span className="material-symbols-outlined text-[12px]">arrow_outward</span>
+                vs. last month
+              </p>
+            </div>
+          </AnimatedCard>
+        </Link>
+
+        <Link href="/hr/payroll">
+          <AnimatedCard delay={0.30} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Payroll Pending</span>
+              <div className="w-8 h-8 rounded bg-pink-50 text-pink-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px]">currency_rupee</span>
+              </div>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{draftPayrolls}</span>
+              <p className="text-[11px] text-secondary dark:text-slate-400 font-medium mt-1">
+                {currentMonthPayrolls.filter(p => p.status === "PAID").length} processed
+              </p>
+            </div>
+          </AnimatedCard>
+        </Link>
       </div>
 
       {/* LOWER SECTION */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight">Department Overview</h2>
-              <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-1">Active headcount per department.</p>
+        <div className="xl:col-span-2 flex flex-col gap-6">
+          {/* CHARTS CONTAINER */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">Business & Workforce</h2>
+              <BusinessWorkforceChart />
             </div>
-            <Link href="/workforce/employees" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-              View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </Link>
+            
+            <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">CRM & Lead Pipeline</h2>
+              <CRMLeadPipelineChart />
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            {departments.length === 0 ? (
-              <div className="flex items-center justify-center py-12 text-secondary dark:text-slate-400">No departments configured.</div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-outline-variant dark:border-slate-800 font-label-md text-label-md text-secondary dark:text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-6 font-semibold">Department</th>
-                    <th className="py-3 px-4 font-semibold text-right">Active Headcount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant font-tabular-data text-body-lg text-on-surface dark:text-white">
-                  {departments.map(dept => (
-                    <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-colors">
-                      <td className="py-4 px-6 font-medium">{dept.name}</td>
-                      <td className="py-4 px-4 text-right font-semibold text-lg">{dept.employees.length}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          <div className="px-6 py-3 bg-slate-50 dark:bg-slate-900 border-t border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-md text-label-md">
-            {departments.length} departments · {totalEmployees} total active employees
-          </div>
+          {/* ATTENDANCE DONUT (Only for Super Admin/Admin) */}
+          {isAdminLike && (
+            <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">Today's Workforce Status</h2>
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="w-full md:w-1/2">
+                  <AttendanceDonutChart present={presentToday} onLeave={onLeaveToday} absent={totalEmployees - presentToday - onLeaveToday} />
+                </div>
+                <div className="w-full md:w-1/2 flex flex-col gap-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                      <span className="font-semibold text-on-surface dark:text-white">Present</span>
+                    </div>
+                    <span className="font-bold text-lg text-emerald-600 dark:text-emerald-400">{presentToday}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                      <span className="font-semibold text-on-surface dark:text-white">On Leave</span>
+                    </div>
+                    <span className="font-bold text-lg text-amber-600 dark:text-amber-400">{onLeaveToday}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+                      <span className="font-semibold text-on-surface dark:text-white">Absent</span>
+                    </div>
+                    <span className="font-bold text-lg text-rose-600 dark:text-rose-400">{totalEmployees - presentToday - onLeaveToday}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-6">
@@ -673,6 +719,48 @@ export default async function DashboardPage() {
               )}
             </div>
           </div>
+          
+          {/* LOGIN & SECURITY ACTIVITY WIDGET */}
+          {isAdminLike && (
+            <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-outline-variant dark:border-slate-800">
+                <span className="material-symbols-outlined text-slate-500">security</span>
+                <h3 className="text-lg font-semibold text-on-surface dark:text-white tracking-tight">Login Activity</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[16px]">login</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface dark:text-white">Successful login (New Device)</p>
+                    <p className="text-xs text-secondary dark:text-slate-400">Chrome on Mac OS • Mumbai, India</p>
+                    <p className="text-[10px] text-tertiary mt-0.5">2 mins ago</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[16px]">gpp_bad</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface dark:text-white">Failed login attempt</p>
+                    <p className="text-xs text-secondary dark:text-slate-400">Invalid password • Unknown IP</p>
+                    <p className="text-[10px] text-tertiary mt-0.5">1 hour ago</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[16px]">vpn_key</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface dark:text-white">Password Changed</p>
+                    <p className="text-xs text-secondary dark:text-slate-400">User: hr_lead@buildorbit.com</p>
+                    <p className="text-[10px] text-tertiary mt-0.5">Yesterday, 10:45 AM</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {isAdminLike && (
             <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm p-6 flex-1">

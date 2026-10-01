@@ -41,11 +41,20 @@ export async function markDailyAttendance(data: FormData) {
     throw new Error(`You are ${Math.round(distance)}m away from the office. You must be within 100m.`)
   }
 
-  const employee = await prisma.employee.findUnique({
+  let employee = await prisma.employee.findUnique({
     where: { userId: session.userId }
   })
 
-  if (!employee) throw new Error("Employee profile not found.")
+  if (!employee) {
+    // Auto-create employee profile for users (like super admin) who don't have one yet
+    employee = await prisma.employee.create({
+      data: {
+        userId: session.userId,
+        employeeCode: `EMP-${session.userId.substring(0, 6).toUpperCase()}`,
+        joiningDate: new Date(),
+      }
+    })
+  }
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)

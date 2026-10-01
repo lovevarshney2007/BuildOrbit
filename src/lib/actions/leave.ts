@@ -64,13 +64,12 @@ export async function applyLeaveAction(
   const msPerDay = 1000 * 60 * 60 * 24
   const days = Math.round((end.getTime() - start.getTime()) / msPerDay) + 1
 
-  // Get employee with user details
-  const employee = await prisma.employee.findFirst({ 
-    where: { userId },
-    include: { user: true } 
+  // Get user details
+  const requestingUser = await prisma.user.findUnique({ 
+    where: { id: userId } 
   })
-  if (!employee) {
-    return { message: "Employee profile not found." }
+  if (!requestingUser) {
+    return { message: "User profile not found." }
   }
 
   const leaveTypeRecord = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
@@ -92,12 +91,12 @@ export async function applyLeaveAction(
     const hrUsers = await prisma.user.findMany({ where: { role: "HR", isActive: true } })
     const hrEmails = hrUsers.map((u) => u.email)
     
-    if (hrEmails.length > 0 && employee.user?.name && leaveTypeRecord) {
+    if (hrEmails.length > 0 && requestingUser.name && leaveTypeRecord) {
       await sendEmail({
         to: hrEmails,
-        subject: `New Leave Request: ${employee.user.name}`,
+        subject: `New Leave Request: ${requestingUser.name}`,
         react: LeaveRequestEmail({
-          employeeName: employee.user.name,
+          employeeName: requestingUser.name,
           leaveType: leaveTypeRecord.name,
           startDate: start,
           endDate: end,

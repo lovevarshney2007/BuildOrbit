@@ -28,6 +28,17 @@ export const navConfig: NavGroup[] = [
     ],
   },
   {
+    title: "CRM",
+    items: [
+      {
+        label: "Lead Follow-ups",
+        href: "/crm/leads",
+        icon: "leaderboard",
+        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
+      },
+    ],
+  },
+  {
     title: "WORKFORCE",
     items: [
       {
@@ -54,6 +65,12 @@ export const navConfig: NavGroup[] = [
     title: "REPORTS",
     items: [
       {
+        label: "Lead Reports",
+        href: "/reports/leads",
+        icon: "query_stats",
+        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
+      },
+      {
         label: "Attendance Report",
         href: "/reports/attendance",
         icon: "analytics",
@@ -64,12 +81,6 @@ export const navConfig: NavGroup[] = [
         href: "/reports/payroll",
         icon: "receipt_long",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
-      },
-      {
-        label: "Lead Reports",
-        href: "/reports/leads",
-        icon: "query_stats",
-        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
       },
     ],
   },
@@ -97,17 +108,6 @@ export const navConfig: NavGroup[] = [
     ],
   },
   {
-    title: "CRM",
-    items: [
-      {
-        label: "Lead Follow-ups",
-        href: "/crm/leads",
-        icon: "leaderboard",
-        roles: ["SUPER_ADMIN", "ADMIN", "LEAD"],
-      },
-    ],
-  },
-  {
     title: "ADMINISTRATION",
     items: [
       {
@@ -117,9 +117,15 @@ export const navConfig: NavGroup[] = [
         roles: ["SUPER_ADMIN", "ADMIN"],
       },
       {
+        label: "Roles & Permissions",
+        href: "/admin/roles",
+        icon: "admin_panel_settings",
+        roles: ["SUPER_ADMIN"],
+      },
+      {
         label: "Login Activity",
         href: "/admin/login-activity",
-        icon: "admin_panel_settings",
+        icon: "history",
         roles: ["SUPER_ADMIN", "ADMIN"],
       },
     ],

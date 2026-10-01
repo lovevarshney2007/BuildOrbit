@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import { LeadsClient } from "@/components/crm/LeadsClient"
 
 export default async function LeadsPage() {
   const user = await getCurrentUser()
@@ -35,6 +36,10 @@ export default async function LeadsPage() {
   
   const totalARR = leads.filter(l => l.status !== "LOST").reduce((sum, l) => sum + Number(l.value || 0), 0)
 
+  const users = await prisma.user.findMany({
+    select: { id: true, name: true }
+  })
+
   return (
     <main className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden w-full">
       {/* SUB-HEADER: Breadcrumb & Title Area */}
@@ -51,263 +56,80 @@ export default async function LeadsPage() {
               <span className="px-2 py-0.5 bg-surface-container-high text-on-secondary-container border border-outline-variant dark:border-slate-800 rounded font-label-sm text-label-sm">FY25 Pipeline</span>
             </div>
           </div>
-          {/* Controls Bar */}
-          <div className="flex items-center gap-2">
-            <button className="bg-primary-container text-on-primary font-label-md text-label-md px-3.5 h-8 rounded flex items-center gap-1.5 hover:bg-primary transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              <span>+ Create Lead</span>
-            </button>
-          </div>
+          {/* Controls Bar is now handled in LeadsClient or removed from here to avoid duplicate */}
         </div>
 
-        {/* HIGH-DENSITY SUMMARY STRIP */}
-        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 divide-x divide-outline-variant border border-outline-variant dark:border-slate-800 rounded bg-surface-bright">
-          <div className="p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400 tracking-normal">Total Active Pipeline</span>
+        {/* TOP STAT CARDS */}
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 mb-1">Total Leads</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white">{leads.length}</p>
             </div>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="font-metric-num text-metric-num text-on-surface dark:text-white tracking-tight">{formatCurrency(totalARR)}</span>
-              <span className="font-tabular-data text-tabular-data text-secondary dark:text-slate-400">ARR</span>
-            </div>
-            <div className="font-label-sm text-label-sm text-secondary dark:text-slate-400 mt-0.5">{leads.filter(l => l.status !== "LOST").length} Enterprise Pursuits</div>
-          </div>
-          <div className="p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400 tracking-normal">Win Rate</span>
-            </div>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="font-metric-num text-metric-num text-on-surface dark:text-white tracking-tight">
-                {leads.length > 0 ? Math.round((leadsByStatus.CONVERTED.length / leads.length) * 100) : 0}%
-              </span>
-            </div>
-            <div className="font-label-sm text-label-sm text-secondary dark:text-slate-400 mt-0.5">{leadsByStatus.CONVERTED.length} of {leads.length} Final Negotiations</div>
-          </div>
-        </div>
-      </div>
-
-      {/* KANBAN PIPELINE BOARD (6 Stage Columns) */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 pb-12" style={{
-        /* Custom scrollbar */
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#c3c6d7 #eff4ff'
-      }}>
-        <div className="flex items-start gap-4 h-full min-w-max pb-2">
-          
-          {/* COLUMN 1: New Inbound */}
-          <div className="w-[320px] flex flex-col h-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shrink-0">
-            <div className="p-3 border-b border-outline-variant dark:border-slate-800 bg-surface-bright flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-secondary"></span>
-                <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white">1. New Inbound</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary dark:text-slate-400">
-                <span>{leadsByStatus.NEW.length} Deals</span>
-              </div>
-            </div>
-            <div className="p-2 space-y-2 overflow-y-auto flex-1">
-              {leadsByStatus.NEW.map(lead => (
-                <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 hover:border-outline transition-all cursor-pointer border-l-4 border-l-secondary">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface dark:text-white">{lead.title}</span>
-                    </div>
-                    <span className="font-tabular-data text-tabular-data font-semibold text-primary">{formatCurrency(lead.value)}<span className="text-secondary dark:text-slate-400 text-[10px] font-normal">/yr</span></span>
-                  </div>
-                  <div className="mt-2 text-secondary dark:text-slate-400 font-body-sm text-body-sm">
-                    {lead.contactName} <span className="text-[11px] text-tertiary">({lead.company || "Unknown"})</span>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-outline-variant dark:border-slate-800 flex items-center justify-between text-secondary dark:text-slate-400 font-label-sm text-label-sm">
-                    <div className="flex items-center gap-1 text-on-surface dark:text-white">
-                      <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                      <span>{lead.assignedTo?.name || "Unassigned"}</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-primary text-[14px]">schedule</span>
-                    <span>Expected close: {formatDate(lead.expectedClose)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* COLUMN 2: Contacted & Discovery */}
-          <div className="w-[320px] flex flex-col h-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shrink-0">
-            <div className="p-3 border-b border-outline-variant dark:border-slate-800 bg-surface-bright flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary"></span>
-                <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white">2. Contacted</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary dark:text-slate-400">
-                <span>{leadsByStatus.CONTACTED.length} Deals</span>
-              </div>
-            </div>
-            <div className="p-2 space-y-2 overflow-y-auto flex-1">
-              {leadsByStatus.CONTACTED.map(lead => (
-                <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 hover:border-outline transition-all cursor-pointer border-l-4 border-l-primary">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface dark:text-white">{lead.title}</span>
-                    </div>
-                    <span className="font-tabular-data text-tabular-data font-semibold text-primary">{formatCurrency(lead.value)}<span className="text-secondary dark:text-slate-400 text-[10px] font-normal">/yr</span></span>
-                  </div>
-                  <div className="mt-2 text-secondary dark:text-slate-400 font-body-sm text-body-sm">
-                    {lead.contactName} <span className="text-[11px] text-tertiary">({lead.company || "Unknown"})</span>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-outline-variant dark:border-slate-800 flex items-center justify-between text-secondary dark:text-slate-400 font-label-sm text-label-sm">
-                    <div className="flex items-center gap-1 text-on-surface dark:text-white">
-                      <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                      <span>{lead.assignedTo?.name || "Unassigned"}</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-primary text-[14px]">schedule</span>
-                    <span>Expected close: {formatDate(lead.expectedClose)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* COLUMN 3: Qualified */}
-          <div className="w-[320px] flex flex-col h-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shrink-0">
-            <div className="p-3 border-b border-outline-variant dark:border-slate-800 bg-surface-bright flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#2563EB]"></span>
-                <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white">3. Qualified</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary dark:text-slate-400">
-                <span>{leadsByStatus.QUALIFIED.length} Deals</span>
-              </div>
-            </div>
-            <div className="p-2 space-y-2 overflow-y-auto flex-1">
-              {leadsByStatus.QUALIFIED.map(lead => (
-                <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 hover:border-outline transition-all cursor-pointer border-l-4 border-l-[#2563EB]">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface dark:text-white">{lead.title}</span>
-                    </div>
-                    <span className="font-tabular-data text-tabular-data font-semibold text-primary">{formatCurrency(lead.value)}<span className="text-secondary dark:text-slate-400 text-[10px] font-normal">/yr</span></span>
-                  </div>
-                  <div className="mt-2 text-secondary dark:text-slate-400 font-body-sm text-body-sm">
-                    {lead.contactName} <span className="text-[11px] text-tertiary">({lead.company || "Unknown"})</span>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-outline-variant dark:border-slate-800 flex items-center justify-between text-secondary dark:text-slate-400 font-label-sm text-label-sm">
-                    <div className="flex items-center gap-1 text-on-surface dark:text-white">
-                      <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                      <span>{lead.assignedTo?.name || "Unassigned"}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* COLUMN 4: Proposal */}
-          <div className="w-[320px] flex flex-col h-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shrink-0">
-            <div className="p-3 border-b border-outline-variant dark:border-slate-800 bg-surface-bright flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#004AC6]"></span>
-                <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white">4. Proposal Sent</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary dark:text-slate-400">
-                <span>{leadsByStatus.PROPOSAL.length} Deals</span>
-              </div>
-            </div>
-            <div className="p-2 space-y-2 overflow-y-auto flex-1">
-              {leadsByStatus.PROPOSAL.map(lead => (
-                <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 hover:border-outline transition-all cursor-pointer border-l-4 border-l-[#004AC6]">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface dark:text-white">{lead.title}</span>
-                    </div>
-                    <span className="font-tabular-data text-tabular-data font-semibold text-primary">{formatCurrency(lead.value)}<span className="text-secondary dark:text-slate-400 text-[10px] font-normal">/yr</span></span>
-                  </div>
-                  <div className="mt-2 text-secondary dark:text-slate-400 font-body-sm text-body-sm">
-                    {lead.contactName} <span className="text-[11px] text-tertiary">({lead.company || "Unknown"})</span>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-outline-variant dark:border-slate-800 flex items-center justify-between text-secondary dark:text-slate-400 font-label-sm text-label-sm">
-                    <div className="flex items-center gap-1 text-on-surface dark:text-white">
-                      <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                      <span>{lead.assignedTo?.name || "Unassigned"}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">groups</span>
             </div>
           </div>
           
-          {/* COLUMN 5: Negotiation */}
-          <div className="w-[320px] flex flex-col h-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shrink-0">
-            <div className="p-3 border-b border-outline-variant dark:border-slate-800 bg-surface-bright flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#D97706]"></span>
-                <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white">5. Negotiation</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary dark:text-slate-400">
-                <span>{leadsByStatus.NEGOTIATION.length} Deals</span>
-              </div>
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm border-b-4 border-b-blue-500">
+            <div>
+              <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 mb-1">New Leads</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white">{leadsByStatus.NEW.length}</p>
             </div>
-            <div className="p-2 space-y-2 overflow-y-auto flex-1">
-              {leadsByStatus.NEGOTIATION.map(lead => (
-                <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 hover:border-outline transition-all cursor-pointer border-l-4 border-l-[#D97706]">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface dark:text-white">{lead.title}</span>
-                    </div>
-                    <span className="font-tabular-data text-tabular-data font-semibold text-primary">{formatCurrency(lead.value)}<span className="text-secondary dark:text-slate-400 text-[10px] font-normal">/yr</span></span>
-                  </div>
-                  <div className="mt-2 text-secondary dark:text-slate-400 font-body-sm text-body-sm">
-                    {lead.contactName} <span className="text-[11px] text-tertiary">({lead.company || "Unknown"})</span>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-outline-variant dark:border-slate-800 flex items-center justify-between text-secondary dark:text-slate-400 font-label-sm text-label-sm">
-                    <div className="flex items-center gap-1 text-on-surface dark:text-white">
-                      <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                      <span>{lead.assignedTo?.name || "Unassigned"}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* COLUMN 6: Closed Won */}
-          <div className="w-[320px] flex flex-col h-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded shrink-0">
-            <div className="p-3 border-b border-outline-variant dark:border-slate-800 bg-[#ECFDF5] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#059669]"></span>
-                <span className="font-headline-sm text-headline-sm text-[#065F46]">6. Closed Won</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-[#047857]">
-                <span>{leadsByStatus.CONVERTED.length} Deals</span>
-              </div>
-            </div>
-            <div className="p-2 space-y-2 overflow-y-auto flex-1">
-              {leadsByStatus.CONVERTED.map(lead => (
-                <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-3 hover:border-outline transition-all cursor-pointer border-l-4 border-l-[#059669]">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface dark:text-white">{lead.title}</span>
-                    </div>
-                    <span className="font-tabular-data text-tabular-data font-semibold text-primary">{formatCurrency(lead.value)}<span className="text-secondary dark:text-slate-400 text-[10px] font-normal">/yr</span></span>
-                  </div>
-                  <div className="mt-2 text-secondary dark:text-slate-400 font-body-sm text-body-sm">
-                    {lead.contactName} <span className="text-[11px] text-tertiary">({lead.company || "Unknown"})</span>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-outline-variant dark:border-slate-800 flex items-center justify-between text-secondary dark:text-slate-400 font-label-sm text-label-sm">
-                    <div className="flex items-center gap-1 text-on-surface dark:text-white">
-                      <span className="material-symbols-outlined text-[14px]">account_circle</span>
-                      <span>{lead.assignedTo?.name || "Unassigned"}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">person_add</span>
             </div>
           </div>
           
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm border-b-4 border-b-amber-500">
+            <div>
+              <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 mb-1">In Progress</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white">
+                {leadsByStatus.CONTACTED.length + leadsByStatus.QUALIFIED.length + leadsByStatus.PROPOSAL.length + leadsByStatus.NEGOTIATION.length}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">show_chart</span>
+            </div>
+          </div>
+          
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm border-b-4 border-b-emerald-500">
+            <div>
+              <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 mb-1">Won</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white">{leadsByStatus.CONVERTED.length}</p>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">call_made</span>
+            </div>
+          </div>
+          
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm border-b-4 border-b-red-500">
+            <div>
+              <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 mb-1">Overdue</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white">
+                {leads.filter(l => l.expectedClose && new Date(l.expectedClose) < new Date() && l.status !== "CONVERTED" && l.status !== "LOST").length}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">event_busy</span>
+            </div>
+          </div>
+          
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm border-b-4 border-b-orange-500">
+            <div>
+              <p className="text-[12px] font-semibold text-secondary dark:text-slate-400 mb-1">Due Today</p>
+              <p className="text-3xl font-bold text-on-surface dark:text-white">
+                {leads.filter(l => l.expectedClose && new Date(l.expectedClose).toDateString() === new Date().toDateString() && l.status !== "CONVERTED" && l.status !== "LOST").length}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">schedule</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      <LeadsClient leads={leads} users={users} />
     </main>
   )
 }
