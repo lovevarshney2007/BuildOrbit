@@ -39,6 +39,21 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
   const [message, setMessage] = useState("")
   const [addError, setAddError] = useState("")
   const [addLoading, setAddLoading] = useState(false)
+  const [modalForm, setModalForm] = useState({ basic: 0, allowance: 0, deduction: 0 })
+
+  function handleEmpChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const emp = activeEmployees.find(x => x.id === e.target.value)
+    if (emp) {
+      const basic = Math.round(emp.basicSalary / 12)
+      setModalForm({
+        basic,
+        allowance: Math.round(basic * 0.4),
+        deduction: Math.round(basic * 0.1)
+      })
+    } else {
+      setModalForm({ basic: 0, allowance: 0, deduction: 0 })
+    }
+  }
 
   async function handleGenerate() {
     setGenerating(true)
@@ -165,6 +180,7 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
                 <select
                   name="employeeId"
                   required
+                  onChange={handleEmpChange}
                   className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="">Select employee</option>
@@ -183,8 +199,9 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
                     type="number"
                     name="basicSalary"
                     min="0"
-                    step="100"
-                    defaultValue={0}
+                    step="1"
+                    value={modalForm.basic}
+                    onChange={(e) => setModalForm(prev => ({ ...prev, basic: Number(e.target.value) }))}
                     required
                     className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
@@ -195,8 +212,9 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
                     type="number"
                     name="allowances"
                     min="0"
-                    step="100"
-                    defaultValue={0}
+                    step="1"
+                    value={modalForm.allowance}
+                    onChange={(e) => setModalForm(prev => ({ ...prev, allowance: Number(e.target.value) }))}
                     className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
@@ -206,8 +224,9 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
                     type="number"
                     name="deductions"
                     min="0"
-                    step="100"
-                    defaultValue={0}
+                    step="1"
+                    value={modalForm.deduction}
+                    onChange={(e) => setModalForm(prev => ({ ...prev, deduction: Number(e.target.value) }))}
                     className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                 </div>

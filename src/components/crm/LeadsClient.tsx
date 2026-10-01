@@ -90,19 +90,60 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
 
   const uniqueAssignees = Array.from(new Set(leads.map(l => l.assignedTo?.name).filter(Boolean))) as string[]
 
+  function handleDownload() {
+    if (filteredLeads.length === 0) {
+      alert("No leads to download")
+      return
+    }
+    const headers = ["Title", "Contact Name", "Email", "Phone", "Company", "Status", "Source", "Value", "Assigned To", "Close Date", "Created At"]
+    const rows = filteredLeads.map(l => [
+      `"${(l.title || "").replace(/"/g, '""')}"`,
+      `"${(l.contactName || "").replace(/"/g, '""')}"`,
+      `"${(l.contactEmail || "").replace(/"/g, '""')}"`,
+      `"${(l.contactPhone || "").replace(/"/g, '""')}"`,
+      `"${(l.company || "").replace(/"/g, '""')}"`,
+      l.status,
+      l.source,
+      l.value || 0,
+      `"${(l.assignedTo?.name || "Unassigned").replace(/"/g, '""')}"`,
+      l.expectedClose ? String(l.expectedClose).split('T')[0] : "",
+      l.createdAt ? String(l.createdAt).split('T')[0] : ""
+    ])
+    
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n")
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `leads_export_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden h-full">
       {/* HEADER / FILTERS */}
       <div className="p-6 pb-2 shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-on-surface dark:text-white">All Leads</h2>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary-dark text-white font-label-md text-label-md px-4 h-9 rounded flex items-center gap-1.5 transition-colors shadow-sm"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            <span>Create Lead</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleDownload}
+              className="bg-surface-container-high border border-outline-variant dark:border-slate-700 hover:bg-surface-container-highest text-on-surface dark:text-white font-label-md text-label-md px-4 h-9 rounded flex items-center gap-1.5 transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[18px]">download</span>
+              <span>Export CSV</span>
+            </button>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-primary hover:bg-primary-dark text-white font-label-md text-label-md px-4 h-9 rounded flex items-center gap-1.5 transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              <span>Create Lead</span>
+            </button>
+          </div>
         </div>
         
         <div className="flex items-center justify-between bg-surface-container-lowest dark:bg-slate-950 p-3 rounded-xl border border-outline-variant dark:border-slate-800">

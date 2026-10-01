@@ -72,6 +72,21 @@ export function LeadDetailActions({ leadId, currentStatus, currentNotes, current
     }
   }
 
+  async function handleLeadDelete() {
+    if (!confirm("Are you sure you want to delete this lead? This action cannot be undone.")) return
+    
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/leads/${leadId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error((await res.json()).error || "Failed to delete lead")
+      router.push("/crm/leads")
+      router.refresh()
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to delete lead")
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       <div className="flex items-center gap-2">
@@ -88,6 +103,14 @@ export function LeadDetailActions({ leadId, currentStatus, currentNotes, current
         >
           <span className="material-symbols-outlined text-[16px]">edit</span>
           Edit Lead
+        </button>
+        <button
+          onClick={handleLeadDelete}
+          disabled={loading}
+          className="px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50 border border-red-200"
+        >
+          <span className="material-symbols-outlined text-[16px]">delete</span>
+          Delete
         </button>
       </div>
 

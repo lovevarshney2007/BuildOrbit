@@ -50,3 +50,21 @@ export async function GET(
   if (!lead) return NextResponse.json({ error: "Not found" }, { status: 404 })
   return NextResponse.json(lead)
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!["SUPER_ADMIN", "ADMIN", "LEAD"].includes(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+
+  const { id } = await params
+  
+  try {
+    await prisma.lead.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to delete lead" }, { status: 500 })
+  }
+}

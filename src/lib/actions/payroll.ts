@@ -81,7 +81,7 @@ export async function generatePayrollForMonth(month: number, year: number) {
       continue
     }
 
-    const basic = Number(emp.basicSalary)
+    const basic = Math.round(Number(emp.basicSalary) / 12)
     // Simple allowance = 40% of basic, deductions = 10%
     const allowances = Math.round(basic * 0.4)
     const deductions = Math.round(basic * 0.1)
