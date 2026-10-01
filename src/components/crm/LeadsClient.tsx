@@ -55,6 +55,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
     e.preventDefault()
     setIsSubmitting(true)
     const formData = new FormData(e.currentTarget)
+    console.log("Submitting lead from client:", Object.fromEntries(formData))
     try {
       await createLead(formData)
       setIsModalOpen(false)

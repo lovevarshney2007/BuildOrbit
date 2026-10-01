@@ -6,8 +6,11 @@ import { revalidatePath } from "next/cache"
 import { LeadSource } from "@prisma/client"
 
 export async function createLead(formData: FormData) {
+  console.log("createLead SERVER ACTION TRIGGERED:", Object.fromEntries(formData))
+  
   const user = await getCurrentUser()
   if (!user || !["SUPER_ADMIN", "ADMIN", "LEAD"].includes(user.role)) {
+    console.error("Unauthorized lead creation attempt by user:", user?.id)
     throw new Error("Unauthorized")
   }
 
