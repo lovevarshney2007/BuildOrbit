@@ -249,9 +249,9 @@ export async function verifyOtpAction(
       errors: validated.error.flatten().fieldErrors, 
       step: "VERIFY_OTP", 
       data: { 
-        name: formData.get("name"), 
-        email: formData.get("email"), 
-        password: formData.get("password") 
+        name: formData.get("name")?.toString(), 
+        email: formData.get("email")?.toString(), 
+        password: formData.get("password")?.toString() 
       } 
     }
   }

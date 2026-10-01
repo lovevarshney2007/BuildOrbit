@@ -28,7 +28,7 @@ async function runTests() {
     } else {
       console.error("❌ OTP sending failed:", res);
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("❌ OTP sending threw error:", e);
   }
 
@@ -50,8 +50,8 @@ async function runTests() {
       } else {
          console.log("❌ OTP Verification didn't redirect (Unexpected)");
       }
-    } catch (e: any) {
-      if (e.message && e.message.includes("NEXT_REDIRECT")) {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) {
         console.log("✅ OTP Verification succeeded, user created, and redirected to dashboard");
       } else {
         console.error("❌ OTP Verification threw error:", e);
@@ -71,8 +71,8 @@ async function runTests() {
     } else {
       console.log("❌ Login didn't redirect (Unexpected)");
     }
-  } catch (e: any) {
-    if (e.message && e.message.includes("NEXT_REDIRECT")) {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) {
       console.log("✅ Login succeeded and redirected to dashboard");
     } else {
       console.error("❌ Login threw error:", e);

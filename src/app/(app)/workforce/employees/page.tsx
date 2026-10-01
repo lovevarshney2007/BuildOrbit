@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { EmployeeStatus } from "@prisma/client"
+import { EmployeeStatus, Role } from "@prisma/client"
 import Link from "next/link"
 
 interface SearchParams {
@@ -44,7 +44,7 @@ export default async function EmployeesPage({
   const search = params.search?.toLowerCase() ?? ""
   const departmentId = params.department
   const statusFilter = params.status as EmployeeStatus | undefined
-  const roleFilter = params.role
+  const roleFilter = params.role as Role | undefined
 
   const employees = await prisma.employee.findMany({
     where: {
