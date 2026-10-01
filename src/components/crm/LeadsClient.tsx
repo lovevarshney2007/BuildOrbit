@@ -4,6 +4,7 @@ import { useState } from "react"
 import { createLead } from "@/lib/actions/crm"
 import { LeadSource, LeadStatus } from "@prisma/client"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 type LeadType = {
   id: string
@@ -31,6 +32,7 @@ const STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "NE
 export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserType[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
   const [filterAssigned, setFilterAssigned] = useState<string>("ALL")
 
@@ -56,7 +58,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
     try {
       await createLead(formData)
       setIsModalOpen(false)
-      // reset not needed because modal unmounts
+      router.refresh()
     } catch (error: any) {
       alert(error.message || "Failed to create lead")
     } finally {
@@ -217,9 +219,10 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
                   <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Source</label>
                   <select 
                     name="source" 
+                    defaultValue=""
                     className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white"
                   >
-                    <option value="" disabled selected>Select source</option>
+                    <option value="" disabled>Select source</option>
                     {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
