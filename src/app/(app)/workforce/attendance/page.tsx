@@ -80,7 +80,7 @@ export default async function AttendancePage({
         </div>
       </div>
 
-      {user.role === "ENGINEER" && (
+      {["ENGINEER", "LEAD", "HR"].includes(user.role) && (
         <div className="w-full max-w-2xl mx-auto my-4">
           <MarkAttendanceForm />
         </div>
