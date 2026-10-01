@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { createLead } from "@/lib/actions/crm"
 import { LeadSource, LeadStatus } from "@prisma/client"
+import Link from "next/link"
 
 type LeadType = {
   id: string
@@ -123,10 +124,10 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredLeads.map(lead => (
-              <div key={lead.id} className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 hover:shadow-md transition-shadow flex flex-col h-full">
+              <Link key={lead.id} href={`/crm/leads/${lead.id}`} className="block bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all flex flex-col h-full group">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-on-surface dark:text-white leading-tight">{lead.title}</h3>
+                    <h3 className="font-semibold text-on-surface dark:text-white leading-tight group-hover:text-primary transition-colors">{lead.title}</h3>
                     <p className="text-xs text-secondary dark:text-slate-400 mt-1">{lead.company || "Unknown Company"}</p>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider">{lead.status}</span>
@@ -152,7 +153,7 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
                     <span className="text-on-surface dark:text-white font-medium">{formatDate(lead.expectedClose)}</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

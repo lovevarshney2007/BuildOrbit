@@ -1,5 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { redirect } from "next/navigation"
+import Link from "next/link"
+import { SettingsActionBar } from "./client"
 
 export default async function SettingsPage() {
   const user = await getCurrentUser()
@@ -46,44 +48,44 @@ export default async function SettingsPage() {
             <div className="px-3 py-1.5 font-label-sm text-label-sm text-secondary dark:text-slate-400 uppercase tracking-wider font-semibold">
               Governance Domains
             </div>
-            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="#">
+            <Link className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="/admin/settings">
               <span className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">verified</span>
                 <span>General &amp; Brand Identity</span>
               </span>
-            </a>
-            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="#">
+            </Link>
+            <Link className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="/admin">
               <span className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">account_tree</span>
                 <span>Organization Hierarchy &amp; Hub Locations</span>
               </span>
-            </a>
-            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="#">
+            </Link>
+            <Link className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="/workforce/attendance">
               <span className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">pin_drop</span>
                 <span>Attendance &amp; Geofencing Policies</span>
               </span>
-            </a>
+            </Link>
             {/* ACTIVE SUB-TAB */}
-            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded bg-surface-container-lowest dark:bg-slate-950 text-primary font-semibold border border-outline-variant dark:border-slate-800 shadow-sm" href="#">
+            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded bg-surface-container-lowest dark:bg-slate-950 text-primary font-semibold border border-outline-variant dark:border-slate-800 shadow-sm" href="/admin/settings">
               <span className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_month</span>
                 <span>Leave Quotas &amp; Accrual Rules</span>
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#0f172a]"></span>
             </a>
-            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="#">
+            <Link className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="/hr/payroll">
               <span className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">account_balance</span>
                 <span>Payroll Calendars &amp; Bank Routing</span>
               </span>
-            </a>
-            <a className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="#">
+            </Link>
+            <Link className="flex items-center justify-between px-3 py-2 font-label-md text-label-md rounded text-secondary dark:text-slate-400 hover:bg-surface-container dark:bg-slate-950 hover:text-on-surface dark:text-white transition-colors" href="/admin/roles">
               <span className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">security</span>
                 <span>Single Sign-On &amp; Security Governance</span>
               </span>
-            </a>
+            </Link>
           </div>
           {/* Compliance & Certification Strip */}
           <div className="p-3 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded space-y-2 mt-6">
@@ -398,27 +400,7 @@ export default async function SettingsPage() {
         </section>
       </div>
       
-      {/* PERSISTENT BOTTOM ACTION BAR */}
-      <div className="fixed bottom-0 lg:left-64 left-0 right-0 bg-surface-container-lowest dark:bg-slate-950 border-t border-outline-variant dark:border-slate-800 px-6 py-2.5 z-20 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-          </span>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-            <span className="font-label-md text-label-md text-on-surface dark:text-white font-semibold">Unsaved changes in Leave Policy #POL-882</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="px-3.5 py-1.5 bg-surface-bright hover:bg-surface-container dark:bg-slate-950 text-on-surface dark:text-white font-label-md text-label-md rounded border border-outline-variant dark:border-slate-800 transition-colors cursor-pointer" type="button">
-            Discard Changes
-          </button>
-          <button className="px-4 py-1.5 bg-[#0f172a] hover:bg-black text-white font-label-md text-label-md rounded transition-colors flex items-center gap-2 cursor-pointer shadow-sm" type="button">
-            <span className="material-symbols-outlined text-[16px]">cloud_sync</span>
-            <span>Publish Policy Update</span>
-          </button>
-        </div>
-      </div>
+      <SettingsActionBar />
     </div>
   )
 }

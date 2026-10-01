@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { LeaveApprovalActions } from "@/components/leave/LeaveApprovalActions"
 import { LeaveStatus } from "@prisma/client"
+import Link from "next/link"
 
 export default async function LeaveApprovalPage() {
   const user = await getCurrentUser()
@@ -37,18 +38,18 @@ export default async function LeaveApprovalPage() {
         </div>
         {/* Controls: Actions */}
         <div className="flex items-center gap-2.5">
-          <button className="h-8 px-3 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 hover:bg-surface-bright text-on-surface dark:text-white font-label-md text-label-md rounded flex items-center gap-2 transition-colors duration-150" type="button">
+          <Link href="/hr/leave-types" className="h-8 px-3 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 hover:bg-surface-bright text-on-surface dark:text-white font-label-md text-label-md rounded flex items-center gap-2 transition-colors duration-150">
             <span className="material-symbols-outlined text-[16px] text-secondary dark:text-slate-400">menu_book</span>
-            <span>Policy Guidelines</span>
-          </button>
-          <button className="h-8 px-3 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 hover:bg-surface-bright text-on-surface dark:text-white font-label-md text-label-md rounded flex items-center gap-2 transition-colors duration-150" type="button">
+            <span>Leave Types</span>
+          </Link>
+          <Link href="/workforce/attendance" className="h-8 px-3 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 hover:bg-surface-bright text-on-surface dark:text-white font-label-md text-label-md rounded flex items-center gap-2 transition-colors duration-150">
             <span className="material-symbols-outlined text-[16px] text-secondary dark:text-slate-400">calendar_month</span>
-            <span>Leave Calendar View</span>
-          </button>
-          <button className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150" type="button">
+            <span>Attendance View</span>
+          </Link>
+          <Link href="/workforce/leave/apply" className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150">
             <span className="material-symbols-outlined text-[18px]">add</span>
-            <span>+ Submit Leave Request</span>
-          </button>
+            <span>Submit Leave Request</span>
+          </Link>
         </div>
       </div>
 

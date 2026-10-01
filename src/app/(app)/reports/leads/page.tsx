@@ -57,7 +57,7 @@ export default async function LeadReportsPage({
   leads.forEach((lead) => {
     statusCounts[lead.status] = (statusCounts[lead.status] || 0) + 1
     sourceCounts[lead.source] = (sourceCounts[lead.source] || 0) + 1
-    if (lead.status === "WON") {
+    if (lead.status === "CONVERTED") {
       convertedCount++
       if (lead.value) {
         wonValue += Number(lead.value)

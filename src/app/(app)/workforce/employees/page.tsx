@@ -265,10 +265,7 @@ export default async function EmployeesPage({
                     </td>
                     <td className="px-3 py-1.5 text-right pr-4">
                       <div className="inline-flex items-center gap-1">
-                        <button className="text-primary hover:underline font-label-sm text-label-sm mr-1" type="button">View</button>
-                        <button className="p-1 hover:bg-surface-container dark:bg-slate-950 rounded text-secondary dark:text-slate-400 hover:text-on-surface dark:text-white" type="button">
-                          <span className="material-symbols-outlined text-[16px]">more_vert</span>
-                        </button>
+                        <Link href={`/workforce/employees/${emp.id}`} className="text-primary hover:underline font-label-sm text-label-sm mr-1">View</Link>
                       </div>
                     </td>
                   </tr>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { createLeaveType, updateLeaveType, deleteLeaveType, updateLeaveBalance } from "@/lib/actions/leave-type"
+import { saveApprovalWorkflowSettings, saveFinancialYearSettings } from "@/lib/actions/settings"
 import { useRouter } from "next/navigation"
 
 interface LeaveType {
@@ -42,7 +43,10 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
 
   // Settings
   const [workflowsActive, setWorkflowsActive] = useState(true)
+  const [requireHR, setRequireHR] = useState(true)
+  const [longLeaveDays, setLongLeaveDays] = useState(3)
   const [finYearStart, setFinYearStart] = useState("04") // April
+  const [settingsSaved, setSettingsSaved] = useState("")
 
   const [loading, setLoading] = useState(false)
 
@@ -303,11 +307,22 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
               </button>
             </div>
 
+            {settingsSaved === 'workflow' && (
+              <div className="text-sm text-emerald-600 flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">check_circle</span> Workflow settings saved!</div>
+            )}
             <button 
-              onClick={() => alert("Settings saved successfully!")}
-              className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium text-sm w-fit transition-colors"
+              onClick={async () => {
+                setLoading(true)
+                try {
+                  await saveApprovalWorkflowSettings({ multiLevelEnabled: workflowsActive, requireHRForLongLeave: requireHR, longLeaveThresholdDays: longLeaveDays })
+                  setSettingsSaved('workflow')
+                  setTimeout(() => setSettingsSaved(''), 3000)
+                } catch(err: any) { alert(err.message) } finally { setLoading(false) }
+              }}
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium text-sm w-fit transition-colors disabled:opacity-50"
             >
-              Save Workflow Settings
+              {loading ? 'Saving...' : 'Save Workflow Settings'}
             </button>
           </div>
         )}
@@ -349,11 +364,23 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
               </div>
             </div>
 
+            {settingsSaved === 'finyear' && (
+              <div className="text-sm text-emerald-600 flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">check_circle</span> Financial year saved!</div>
+            )}
             <button 
-              onClick={() => alert("Financial year updated successfully!")}
-              className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium text-sm w-fit transition-colors"
+              onClick={async () => {
+                setLoading(true)
+                const endMonthMap: Record<string, string> = { '01': '12', '04': '03', '07': '06', '10': '09' }
+                try {
+                  await saveFinancialYearSettings({ startMonth: finYearStart, endMonth: endMonthMap[finYearStart] || '03' })
+                  setSettingsSaved('finyear')
+                  setTimeout(() => setSettingsSaved(''), 3000)
+                } catch(err: any) { alert(err.message) } finally { setLoading(false) }
+              }}
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium text-sm w-fit transition-colors disabled:opacity-50"
             >
-              Save Configuration
+              {loading ? 'Saving...' : 'Save Configuration'}
             </button>
           </div>
         )}
