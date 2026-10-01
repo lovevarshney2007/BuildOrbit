@@ -10,7 +10,7 @@ export async function createLead(formData: FormData) {
   
   const user = await getCurrentUser()
   if (!user || !["SUPER_ADMIN", "ADMIN", "LEAD"].includes(user.role)) {
-    console.error("Unauthorized lead creation attempt by user:", user?.id)
+    console.error("Unauthorized lead creation attempt by user:", user?.userId)
     throw new Error("Unauthorized")
   }
 
