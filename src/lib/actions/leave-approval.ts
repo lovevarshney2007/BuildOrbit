@@ -24,10 +24,35 @@ export async function approveLeaveAction(requestId: string, approverId: string, 
       approvedAt: new Date(),
     },
     include: {
-      requester: true,
+      requester: {
+        include: {
+          employee: true
+        }
+      },
       leaveType: true,
     }
   })
+
+  // If approved, deduct from leave balance
+  if (status === LeaveStatus.APPROVED && updatedRequest.requester?.employee?.id) {
+    const year = updatedRequest.startDate.getFullYear()
+    try {
+      await prisma.leaveBalance.updateMany({
+        where: {
+          employeeId: updatedRequest.requester.employee.id,
+          leaveTypeId: updatedRequest.leaveTypeId,
+          year: year,
+        },
+        data: {
+          usedDays: {
+            increment: updatedRequest.days,
+          }
+        }
+      })
+    } catch (e) {
+      console.error("Failed to deduct leave balance", e)
+    }
+  }
 
   // Send email to employee
   try {
