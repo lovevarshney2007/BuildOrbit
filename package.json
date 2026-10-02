@@ -6,7 +6,19 @@
     "dev": "next dev --turbopack",
     "build": "prisma generate && prisma db push && next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "npx playwright test --project=setup --project=chromium-main --project=chromium-unauthenticated",
+    "test:e2e:all": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "test:e2e:report": "npx playwright show-report playwright-report",
+    "test:e2e:setup": "npx playwright test --project=setup",
+    "test:e2e:routes": "npx playwright test tests/e2e/02-routes.test.ts",
+    "test:e2e:auth": "npx playwright test tests/e2e/01-auth.test.ts",
+    "test:e2e:rbac": "npx playwright test tests/e2e/03-rbac.test.ts",
+    "test:e2e:crud": "npx playwright test tests/e2e/04-employee-crud.test.ts tests/e2e/05-leave.test.ts tests/e2e/06-payroll.test.ts tests/e2e/07-crm.test.ts",
+    "test:e2e:workflows": "npx playwright test tests/e2e/08-workflows.test.ts",
+    "test:e2e:headed": "npx playwright test --headed --project=chromium-main",
+    "test": "npm run test:e2e"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -33,6 +45,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",

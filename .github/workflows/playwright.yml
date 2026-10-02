@@ -1,0 +1,58 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
+          POSTGRES_DB: buildorbit_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 18
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Generate Prisma Client
+      run: npx prisma generate
+    - name: Setup Database
+      run: npx prisma db push --skip-generate
+      env:
+        DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+    - name: Seed Database
+      run: npx prisma db seed
+      env:
+        DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+    - name: Build Next.js App
+      run: npm run build
+      env:
+        DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+    - name: Run Playwright tests
+      run: npx playwright test
+      env:
+        DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+        PLAYWRIGHT_BASE_URL: http://localhost:3000
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30

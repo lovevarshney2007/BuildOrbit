@@ -13,6 +13,11 @@ export async function POST(
 
   const { id } = await params
 
+  const current = await prisma.payroll.findUnique({ where: { id } })
+  if (!current) {
+    return new Response("Not found", { status: 404 })
+  }
+
   await prisma.payroll.update({
     where: { id },
     data: { status: "PROCESSED" },

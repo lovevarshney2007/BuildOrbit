@@ -3,12 +3,12 @@ import type { NextRequest } from "next/server"
 import { decryptSession } from "@/lib/session"
 
 // Routes that are publicly accessible (no auth needed)
-const PUBLIC_PATHS = ["/login"]
+const PUBLIC_PATHS = ["/login", "/register"]
 
 // Routes that only unauthenticated users should access (redirect authenticated users away)
-const AUTH_ONLY_PATHS = ["/login"]
+const AUTH_ONLY_PATHS = ["/login", "/register"]
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip middleware for static assets and Next.js internals
