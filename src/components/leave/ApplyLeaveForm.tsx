@@ -7,16 +7,14 @@ import Link from "next/link"
 
 interface Props {
   leaveTypes: { id: string; name: string; daysAllowed: number }[]
-  userId: string
 }
 
-export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
+export function ApplyLeaveForm({ leaveTypes }: Props) {
   const [state, action, pending] = useActionState(applyLeaveAction, null)
   const [startDate, setStartDate] = useState(state?.fields?.startDate || "")
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <input type="hidden" name="userId" value={userId} />
 
       {state?.message && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
@@ -89,10 +87,11 @@ export function ApplyLeaveForm({ leaveTypes, userId }: Props) {
 
 
       <div>
-        <label className="mb-1 block text-[13px] font-medium text-on-surface dark:text-white">Reason</label>
+        <label className="mb-1 block text-[13px] font-medium text-on-surface dark:text-white">Reason <span className="text-red-500">*</span></label>
         <textarea
           name="reason"
           rows={3}
+          required
           defaultValue={state?.fields?.reason || ""}
           placeholder="Briefly explain the reason for your leave…"
           className="w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"

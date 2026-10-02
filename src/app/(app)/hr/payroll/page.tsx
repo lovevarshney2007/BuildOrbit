@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { PayrollPageClient } from "./client"
+import { PayrollRowActions } from "./row-actions"
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -217,10 +218,7 @@ export default async function PayrollPage({
                           <PayrollRowActions
                             payrollId={rec.id}
                             status={rec.status}
-                            employeeName={rec.employee.user.name || rec.employee.user.email}
-                            month={filterMonth}
-                            year={filterYear}
-                            netSalary={Number(rec.netSalary)}
+                            employeeId={rec.employee.id}
                           />
                         </td>
                       </tr>
@@ -240,49 +238,4 @@ export default async function PayrollPage({
   )
 }
 
-// Inline row action component (server)
-function PayrollRowActions({
-  payrollId, status, employeeName, month, year, netSalary
-}: {
-  payrollId: string
-  status: string
-  employeeName: string
-  month: number
-  year: number
-  netSalary: number
-}) {
-  // This needs to be a client component for interactivity
-  // We'll use a hidden form for status update
-  return (
-    <div className="flex items-center justify-end gap-1.5">
-      {/* Payslip link */}
-      <a
-        href={`/workforce/payslip?empId=${payrollId}`}
-        className="text-secondary dark:text-slate-400 hover:text-primary p-1 rounded font-label-sm text-label-sm underline text-xs"
-      >
-        Payslip
-      </a>
-      {/* Status action - only show if not paid */}
-      {status === "DRAFT" && (
-        <form action={`/api/payroll/${payrollId}/process`} method="POST">
-          <button
-            type="submit"
-            className="text-xs px-2 py-1 bg-primary text-white rounded hover:bg-primary/90 transition-colors font-medium"
-          >
-            Process
-          </button>
-        </form>
-      )}
-      {status === "PROCESSED" && (
-        <form action={`/api/payroll/${payrollId}/pay`} method="POST">
-          <button
-            type="submit"
-            className="text-xs px-2 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors font-medium"
-          >
-            Mark Paid
-          </button>
-        </form>
-      )}
-    </div>
-  )
-}
+// Row action component is now a client component in row-actions.tsx

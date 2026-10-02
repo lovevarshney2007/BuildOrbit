@@ -13,14 +13,33 @@ export default async function LeaveApprovalPage() {
     redirect("/dashboard")
   }
 
-  const pending = await prisma.leaveRequest.findMany({
-    where: { status: LeaveStatus.PENDING },
-    include: {
-      requester: { select: { name: true, email: true } },
-      leaveType: { select: { name: true } },
-    },
-    orderBy: { createdAt: "asc" },
-  })
+  const [pending, activeOnLeaveToday, approvedThisMonth] = await Promise.all([
+    prisma.leaveRequest.findMany({
+      where: { status: LeaveStatus.PENDING },
+      include: {
+        requester: { select: { name: true, email: true } },
+        leaveType: { select: { name: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    // Count employees on approved leave TODAY
+    prisma.leaveRequest.count({
+      where: {
+        status: LeaveStatus.APPROVED,
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() },
+      },
+    }),
+    // Count approved this month
+    prisma.leaveRequest.count({
+      where: {
+        status: LeaveStatus.APPROVED,
+        approvedAt: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        },
+      },
+    }),
+  ])
 
   const formatDate = (dt: Date) =>
     new Date(dt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
@@ -46,7 +65,7 @@ export default async function LeaveApprovalPage() {
             <span className="material-symbols-outlined text-[16px] text-secondary dark:text-slate-400">calendar_month</span>
             <span>Attendance View</span>
           </Link>
-          <Link href="/workforce/leave/apply" className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150">
+          <Link href="/workforce/leave/new" className="h-8 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded flex items-center gap-1.5 shadow-xs transition-colors duration-150">
             <span className="material-symbols-outlined text-[18px]">add</span>
             <span>Submit Leave Request</span>
           </Link>
@@ -62,11 +81,8 @@ export default async function LeaveApprovalPage() {
             <span className="material-symbols-outlined text-secondary dark:text-slate-400 text-[18px]">person_off</span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-metric-num text-metric-num text-on-surface dark:text-white">68</span>
+            <span className="font-metric-num text-metric-num text-on-surface dark:text-white">{activeOnLeaveToday}</span>
             <span className="font-body-sm text-body-sm text-secondary dark:text-slate-400">employees</span>
-          </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="px-1.5 py-0.5 rounded bg-surface-container dark:bg-slate-950 text-secondary dark:text-slate-400 text-[11px] font-medium font-tabular-data">4.8% of workforce</span>
           </div>
         </div>
         {/* Cell 2 */}
@@ -83,12 +99,12 @@ export default async function LeaveApprovalPage() {
         {/* Cell 3 */}
         <div className="p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400">Average Approval Turnaround</span>
-            <span className="material-symbols-outlined text-secondary dark:text-slate-400 text-[18px]">speed</span>
+            <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400">Approved This Month</span>
+            <span className="material-symbols-outlined text-secondary dark:text-slate-400 text-[18px]">task_alt</span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-metric-num text-metric-num text-on-surface dark:text-white">3.4</span>
-            <span className="font-body-sm text-body-sm text-secondary dark:text-slate-400">hours</span>
+            <span className="font-metric-num text-metric-num text-on-surface dark:text-white">{approvedThisMonth}</span>
+            <span className="font-body-sm text-body-sm text-secondary dark:text-slate-400">approvals</span>
           </div>
         </div>
         {/* Cell 4 */}

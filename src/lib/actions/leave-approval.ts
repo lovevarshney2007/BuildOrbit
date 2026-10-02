@@ -8,68 +8,104 @@ import { sendEmail } from "@/lib/email"
 import { LeaveApprovalEmail } from "@/components/emails/LeaveApprovalEmail"
 import type { ReactElement } from "react"
 
-export async function approveLeaveAction(requestId: string, approverId: string, action: "approve" | "reject") {
+export async function approveLeaveAction(
+  requestId: string,
+  _legacyApproverId: string, // kept for backward compatibility with existing calls but ignored
+  action: "approve" | "reject",
+  approverNote?: string,
+) {
+  // 1. Authenticate and authorize — derive approverId from session (never trust client)
   const session = await requireAuth()
   if (!["SUPER_ADMIN", "ADMIN", "HR"].includes(session.role)) {
     throw new Error("Unauthorized")
   }
+  const approverId = session.userId
 
-  const status = action === "approve" ? LeaveStatus.APPROVED : LeaveStatus.REJECTED
-
-  const updatedRequest = await prisma.leaveRequest.update({
+  // 2. Fetch the leave request and verify it is still PENDING
+  const leaveRequest = await prisma.leaveRequest.findUnique({
     where: { id: requestId },
-    data: {
-      status,
-      approverId,
-      approvedAt: new Date(),
-    },
     include: {
       requester: {
-        include: {
-          employee: true
-        }
+        include: { employee: true },
       },
       leaveType: true,
+    },
+  })
+
+  if (!leaveRequest) {
+    throw new Error("Leave request not found")
+  }
+
+  // 3. Prevent invalid state transitions — only PENDING → APPROVED/REJECTED is allowed
+  if (leaveRequest.status !== LeaveStatus.PENDING) {
+    throw new Error(
+      `Cannot ${action} a leave request that is already ${leaveRequest.status.toLowerCase()}.`
+    )
+  }
+
+  const newStatus = action === "approve" ? LeaveStatus.APPROVED : LeaveStatus.REJECTED
+
+  // 4. Use a transaction so leave balance update and status update are atomic
+  await prisma.$transaction(async (tx) => {
+    // Update leave request status
+    await tx.leaveRequest.update({
+      where: { id: requestId },
+      data: {
+        status: newStatus,
+        approverId,
+        approverNote: approverNote ?? null,
+        approvedAt: new Date(),
+      },
+    })
+
+    // If approved, deduct from leave balance
+    if (newStatus === LeaveStatus.APPROVED && leaveRequest.requester?.employee?.id) {
+      const year = leaveRequest.startDate.getFullYear()
+      
+      // Only update if a balance record exists — if not, skip silently
+      const balance = await tx.leaveBalance.findUnique({
+        where: {
+          employeeId_leaveTypeId_year: {
+            employeeId: leaveRequest.requester.employee.id,
+            leaveTypeId: leaveRequest.leaveTypeId,
+            year,
+          },
+        },
+      })
+
+      if (balance) {
+        // Cap usedDays at totalDays to prevent negative remaining
+        const newUsedDays = Math.min(balance.usedDays + leaveRequest.days, balance.totalDays)
+        await tx.leaveBalance.update({
+          where: {
+            employeeId_leaveTypeId_year: {
+              employeeId: leaveRequest.requester.employee.id,
+              leaveTypeId: leaveRequest.leaveTypeId,
+              year,
+            },
+          },
+          data: { usedDays: newUsedDays },
+        })
+      }
     }
   })
 
-  // If approved, deduct from leave balance
-  if (status === LeaveStatus.APPROVED && updatedRequest.requester?.employee?.id) {
-    const year = updatedRequest.startDate.getFullYear()
-    try {
-      await prisma.leaveBalance.updateMany({
-        where: {
-          employeeId: updatedRequest.requester.employee.id,
-          leaveTypeId: updatedRequest.leaveTypeId,
-          year: year,
-        },
-        data: {
-          usedDays: {
-            increment: updatedRequest.days,
-          }
-        }
-      })
-    } catch (e) {
-      console.error("Failed to deduct leave balance", e)
-    }
-  }
-
-  // Send email to employee
+  // 5. Send email to employee (best-effort — outside transaction)
   try {
-    const userEmail = updatedRequest.requester?.email
-    const userName = updatedRequest.requester?.name
-    const leaveTypeName = updatedRequest.leaveType?.name
-    
+    const userEmail = leaveRequest.requester?.email
+    const userName = leaveRequest.requester?.name
+    const leaveTypeName = leaveRequest.leaveType?.name
+
     if (userEmail && userName && leaveTypeName) {
       await sendEmail({
         to: userEmail,
-        subject: `Leave Request ${status === LeaveStatus.APPROVED ? "Approved" : "Rejected"}`,
+        subject: `Leave Request ${newStatus === LeaveStatus.APPROVED ? "Approved" : "Rejected"}`,
         react: LeaveApprovalEmail({
           employeeName: userName,
           leaveType: leaveTypeName,
-          startDate: updatedRequest.startDate,
-          endDate: updatedRequest.endDate,
-          status,
+          startDate: leaveRequest.startDate,
+          endDate: leaveRequest.endDate,
+          status: newStatus,
         }) as ReactElement,
       })
     }

@@ -64,7 +64,7 @@ export async function DELETE(
   try {
     await prisma.lead.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to delete lead" }, { status: 500 })
   }
 }

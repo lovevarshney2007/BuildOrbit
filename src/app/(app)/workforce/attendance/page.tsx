@@ -3,22 +3,33 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { AttendanceStatus } from "@prisma/client"
-import { AttendanceFilters } from "@/components/attendance/AttendanceFilters"
 import { MarkAttendanceForm } from "@/components/attendance/MarkAttendanceForm"
 import { AttendanceDateFilter } from "@/components/attendance/AttendanceDateFilter"
-
-const STATUS_CONFIG: Record<AttendanceStatus, { badgeClasses: string; dotClasses: string; label: string }> = {
-  PRESENT: { badgeClasses: "border-slate-300 bg-slate-100 dark:bg-slate-800 text-slate-950", dotClasses: "bg-slate-900", label: "Present" },
-  ABSENT: { badgeClasses: "border-red-200 bg-red-50 text-red-700", dotClasses: "bg-red-600", label: "Absent" },
-  HALF_DAY: { badgeClasses: "border-amber-200 bg-amber-50 text-amber-700", dotClasses: "bg-amber-600", label: "Half Day" },
-  ON_LEAVE: { badgeClasses: "border-indigo-200 bg-indigo-50 text-indigo-700", dotClasses: "bg-indigo-600", label: "On Leave" },
-  HOLIDAY: { badgeClasses: "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300", dotClasses: "bg-slate-600", label: "Holiday" },
-}
 
 interface SearchParams {
   date?: string
   employeeId?: string
   tab?: string
+}
+
+interface AttendanceRecord {
+  id: string
+  status: AttendanceStatus
+  checkIn: Date | null
+  checkOut: Date | null
+  date: Date
+}
+
+interface AttendanceEmployee {
+  id: string
+  employeeCode: string
+  user: { name: string | null; email: string; role: string }
+  attendances: AttendanceRecord[]
+}
+
+interface TeamDataItem {
+  employee: AttendanceEmployee
+  record: AttendanceRecord | null
 }
 
 export default async function AttendancePage({
@@ -37,11 +48,8 @@ export default async function AttendancePage({
 
   const tab = params.tab || "my"
 
-  // Fetch attendance records (We need ALL active employees if tab === "team")
-  let teamData: Array<{
-    employee: any;
-    record: any;
-  }> = []
+  // Fetch team attendance (admin/lead only)
+  let teamData: TeamDataItem[] = []
 
   if (tab === "team" && isAdminLike) {
     const allActive = await prisma.employee.findMany({
@@ -49,24 +57,24 @@ export default async function AttendancePage({
       include: {
         user: { select: { name: true, email: true, role: true } },
         attendances: {
-          where: { date: filterDate }
-        }
+          where: { date: filterDate },
+        },
       },
       orderBy: { employeeCode: "asc" },
     })
 
-    teamData = allActive.map(emp => ({
+    teamData = allActive.map((emp) => ({
       employee: emp,
-      record: emp.attendances.length > 0 ? emp.attendances[0] : null
+      record: emp.attendances.length > 0 ? emp.attendances[0] : null,
     }))
   }
 
   // Fetch my past attendance for "my" tab
-  let myRecords: any[] = []
+  let myRecords: AttendanceRecord[] = []
   if (tab === "my") {
     myRecords = await prisma.attendance.findMany({
       where: { employee: { userId: user.userId } },
-      orderBy: { date: 'desc' },
+      orderBy: { date: "desc" },
       take: 5,
     })
   }
@@ -74,11 +82,10 @@ export default async function AttendancePage({
   const formatTime = (dt: Date | null) =>
     dt ? new Date(dt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—"
 
-  const formatDate = (dt: Date) =>
-    new Date(dt).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit", year: "numeric" })
-
-  const presentCount = teamData.filter(d => d.record && (d.record.status === "PRESENT" || d.record.status === "HALF_DAY")).length
-  const notMarkedCount = teamData.filter(d => !d.record).length
+  const presentCount = teamData.filter(
+    (d) => d.record && (d.record.status === "PRESENT" || d.record.status === "HALF_DAY")
+  ).length
+  const notMarkedCount = teamData.filter((d) => !d.record).length
   const totalCount = teamData.length
 
   return (
@@ -87,26 +94,40 @@ export default async function AttendancePage({
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1.5 text-secondary dark:text-slate-400 font-label-sm text-label-sm">
           <span>Dashboard</span>
-          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+          <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>
+            chevron_right
+          </span>
           <span className="text-on-surface dark:text-white font-semibold">Attendance</span>
         </div>
-        <h1 className="text-3xl font-bold text-on-surface dark:text-white tracking-tight mt-1">Attendance</h1>
-        <p className="text-secondary dark:text-slate-400 text-sm">Mark today's attendance and track office presence</p>
+        <h1 className="text-3xl font-bold text-on-surface dark:text-white tracking-tight mt-1">
+          Attendance
+        </h1>
+        <p className="text-secondary dark:text-slate-400 text-sm">
+          Mark today&apos;s attendance and track office presence
+        </p>
       </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-2">
-        <Link 
+        <Link
           href="?tab=my"
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "my" ? "bg-surface-container-high dark:bg-slate-800 text-on-surface dark:text-white border border-outline-variant dark:border-slate-700" : "text-secondary dark:text-slate-400 hover:text-on-surface dark:hover:text-white"}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            tab === "my"
+              ? "bg-surface-container-high dark:bg-slate-800 text-on-surface dark:text-white border border-outline-variant dark:border-slate-700"
+              : "text-secondary dark:text-slate-400 hover:text-on-surface dark:hover:text-white"
+          }`}
         >
           <span className="material-symbols-outlined text-lg">person</span>
           My Attendance
         </Link>
         {isAdminLike && (
-          <Link 
+          <Link
             href="?tab=team"
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "team" ? "bg-surface-container-high dark:bg-slate-800 text-on-surface dark:text-white border border-outline-variant dark:border-slate-700" : "text-secondary dark:text-slate-400 hover:text-on-surface dark:hover:text-white"}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === "team"
+                ? "bg-surface-container-high dark:bg-slate-800 text-on-surface dark:text-white border border-outline-variant dark:border-slate-700"
+                : "text-secondary dark:text-slate-400 hover:text-on-surface dark:hover:text-white"
+            }`}
           >
             <span className="material-symbols-outlined text-lg">groups</span>
             Team Attendance
@@ -125,13 +146,15 @@ export default async function AttendancePage({
           {/* Filters */}
           <div className="bg-surface-container-lowest dark:bg-slate-900/50 p-4 border border-outline-variant dark:border-slate-800 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-              <AttendanceDateFilter currentDate={filterDate.toISOString().split('T')[0]} />
+              <AttendanceDateFilter currentDate={filterDate.toISOString().split("T")[0]} />
               <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-secondary dark:text-slate-300 w-full sm:w-64">
-                <span className="material-symbols-outlined text-secondary dark:text-slate-500 text-lg">search</span>
-                <input 
-                  type="text" 
-                  placeholder="Search by name or role..." 
-                  className="bg-transparent border-none outline-none w-full placeholder:text-secondary/70 dark:placeholder:text-slate-500 text-on-surface dark:text-white" 
+                <span className="material-symbols-outlined text-secondary dark:text-slate-500 text-lg">
+                  search
+                </span>
+                <input
+                  type="text"
+                  placeholder="Search by name or role..."
+                  className="bg-transparent border-none outline-none w-full placeholder:text-secondary/70 dark:placeholder:text-slate-500 text-on-surface dark:text-white"
                 />
               </div>
             </div>
@@ -151,7 +174,7 @@ export default async function AttendancePage({
                 <span className="material-symbols-outlined text-2xl">check_circle</span>
               </div>
             </div>
-            
+
             <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 border-t-4 border-t-orange-500 rounded-xl p-5 flex items-center justify-between shadow-sm">
               <div>
                 <p className="text-sm font-medium text-secondary dark:text-slate-400 mb-1">Not Marked</p>
@@ -161,7 +184,7 @@ export default async function AttendancePage({
                 <span className="material-symbols-outlined text-2xl">cancel</span>
               </div>
             </div>
-            
+
             <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 border-t-4 border-t-blue-500 rounded-xl p-5 flex items-center justify-between shadow-sm">
               <div>
                 <p className="text-sm font-medium text-secondary dark:text-slate-400 mb-1">Total Employees</p>
@@ -190,33 +213,53 @@ export default async function AttendancePage({
                 </thead>
                 <tbody className="divide-y divide-outline-variant dark:divide-slate-800 text-sm">
                   {teamData.map(({ employee, record }) => (
-                    <tr key={employee.id} className="hover:bg-surface-container/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <tr
+                      key={employee.id}
+                      className="hover:bg-surface-container/50 dark:hover:bg-slate-800/30 transition-colors"
+                    >
                       <td className="py-3 px-6 text-secondary/50 dark:text-slate-500">—</td>
                       <td className="py-3 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-surface-container-highest dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-secondary dark:text-slate-400">
-                            {employee.user.name ? employee.user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : '??'}
+                            {employee.user.name
+                              ? employee.user.name
+                                  .split(" ")
+                                  .map((n: string) => n[0])
+                                  .join("")
+                                  .substring(0, 2)
+                                  .toUpperCase()
+                              : "??"}
                           </div>
-                          <span className="font-semibold text-on-surface dark:text-white">{employee.user.name || employee.user.email}</span>
+                          <span className="font-semibold text-on-surface dark:text-white">
+                            {employee.user.name || employee.user.email}
+                          </span>
                         </div>
                       </td>
-                      <td className="py-3 px-6 text-secondary dark:text-slate-400">{employee.user.role}</td>
+                      <td className="py-3 px-6 text-secondary dark:text-slate-400">
+                        {employee.user.role}
+                      </td>
                       <td className="py-3 px-6">
                         {record ? (
                           <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
                             <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                            Present
+                            {record.status === "HALF_DAY" ? "Half Day" : "Present"}
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 text-on-surface dark:text-white font-medium text-xs">
-                            <span className="material-symbols-outlined text-[16px] text-secondary dark:text-slate-400">help</span>
+                            <span className="material-symbols-outlined text-[16px] text-secondary dark:text-slate-400">
+                              help
+                            </span>
                             Not Marked
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-6 text-secondary dark:text-slate-400">{formatTime(record?.checkIn || null)}</td>
+                      <td className="py-3 px-6 text-secondary dark:text-slate-400">
+                        {formatTime(record?.checkIn ?? null)}
+                      </td>
                       <td className="py-3 px-6 text-secondary dark:text-slate-400 text-right">—</td>
-                      <td className="py-3 px-6 text-on-surface dark:text-white text-right font-medium">0 days</td>
+                      <td className="py-3 px-6 text-on-surface dark:text-white text-right font-medium">
+                        —
+                      </td>
                     </tr>
                   ))}
                 </tbody>

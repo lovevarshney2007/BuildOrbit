@@ -68,7 +68,7 @@ export default async function EmployeesPage({
     orderBy: { employeeCode: "asc" },
   })
 
-  const departments = await prisma.department.findMany({ orderBy: { name: "asc" } })
+  // Note: departments query removed — department filter not currently rendered in UI
 
   const formatDate = (dt: Date) =>
     new Date(dt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
@@ -169,9 +169,9 @@ export default async function EmployeesPage({
             <button type="submit" className="w-full py-1.5 px-2 bg-primary text-on-primary rounded font-label-sm font-semibold transition-colors">
               Filter
             </button>
-            <a href="/workforce/employees" className="w-full py-1.5 px-2 bg-surface-container dark:bg-slate-950 text-on-surface dark:text-white rounded font-label-sm font-semibold text-center hover:bg-surface-container-high transition-colors">
+            <Link href="/workforce/employees" className="w-full py-1.5 px-2 bg-surface-container dark:bg-slate-950 text-on-surface dark:text-white rounded font-label-sm font-semibold text-center hover:bg-surface-container-high transition-colors">
               Reset
-            </a>
+            </Link>
           </div>
         </form>
       </section>

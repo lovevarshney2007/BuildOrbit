@@ -86,7 +86,6 @@ export default async function ApplyLeavePage() {
             <h2 className="text-base font-semibold text-on-surface dark:text-white mb-5">Apply for Leave</h2>
             <ApplyLeaveForm
               leaveTypes={leaveTypes.map((lt) => ({ id: lt.id, name: lt.name, daysAllowed: lt.daysAllowed }))}
-              userId={user.userId}
             />
           </div>
         </div>

@@ -394,8 +394,6 @@ export default async function DashboardPage() {
     leadValues,
     currentMonthPayrolls,
     recentLeaveRequests,
-    departments,
-    _recentLeads,
   ] = await Promise.all([
     prisma.employee.count({ where: { status: "ACTIVE" } }),
     prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
@@ -419,27 +417,11 @@ export default async function DashboardPage() {
           take: 5,
         })
       : Promise.resolve([] as Array<{ id: string; requester: { name: string | null; email: string }; leaveType: { name: string }; days: number; startDate: Date }>),
-    prisma.department.findMany({
-      include: {
-        employees: { where: { status: "ACTIVE" }, select: { id: true } }
-      }
-    }),
-    isLeadOrAdmin
-      ? prisma.lead.findMany({
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          select: { id: true, title: true, contactName: true, status: true, value: true },
-        })
-      : Promise.resolve([] as Array<{ id: string; title: string; contactName: string; status: string; value: unknown }>),
   ])
 
   const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0
-  const totalPipelineValue = leadValues.reduce((sum: number, l: { value: unknown }) => sum + Number(l.value || 0), 0)
-  const totalNetPayroll = currentMonthPayrolls.reduce((sum, p) => sum + Number(p.netSalary || 0), 0)
   const draftPayrolls = currentMonthPayrolls.filter(p => p.status === "DRAFT").length
-
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val)
+  const totalPipelineValue = leadValues.reduce((sum: number, l: { value: unknown }) => sum + Number(l.value || 0), 0)
 
   const hour = today.getHours()
   const greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening"
@@ -484,7 +466,7 @@ export default async function DashboardPage() {
             {user.name}!
           </h1>
           <p className="text-on-primary/90 font-medium">
-            Here's what's happening across your organization today.
+            Here&apos;s what&apos;s happening across your organization today.
           </p>
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row gap-4">
@@ -546,7 +528,7 @@ export default async function DashboardPage() {
         <Link href="/workforce/attendance">
           <AnimatedCard delay={0.15} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Today's Attendance</span>
+              <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Today&apos;s Attendance</span>
               <div className="w-8 h-8 rounded bg-purple-50 text-purple-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
               </div>
@@ -631,7 +613,7 @@ export default async function DashboardPage() {
           {/* ATTENDANCE DONUT (Only for Super Admin/Admin) */}
           {isAdminLike && (
             <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
-              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">Today's Workforce Status</h2>
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">Today&apos;s Workforce Status</h2>
               <div className="flex flex-col md:flex-row items-center gap-8">
                 <div className="w-full md:w-1/2">
                   <AttendanceDonutChart present={presentToday} onLeave={onLeaveToday} absent={totalEmployees - presentToday - onLeaveToday} />

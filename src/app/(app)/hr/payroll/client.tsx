@@ -44,7 +44,8 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
   function handleEmpChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const emp = activeEmployees.find(x => x.id === e.target.value)
     if (emp) {
-      const basic = Math.round(emp.basicSalary / 12)
+      // basicSalary is already the monthly salary, no need to divide by 12
+      const basic = Math.round(emp.basicSalary)
       setModalForm({
         basic,
         allowance: Math.round(basic * 0.4),

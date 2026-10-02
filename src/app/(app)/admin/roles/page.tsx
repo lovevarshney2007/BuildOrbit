@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super Admin",
@@ -172,11 +173,11 @@ export default async function RolesPage() {
         <div>
           <p className="font-semibold text-on-surface dark:text-white text-sm">Role Assignment</p>
           <p className="text-sm text-secondary dark:text-slate-400 mt-0.5">
-            To change a user's role, go to{" "}
-            <a href="/workforce/employees" className="text-primary hover:underline font-medium">
+            To change a user&apos;s role, go to{" "}
+            <Link href="/workforce/employees" className="text-primary hover:underline font-medium">
               Employees
-            </a>{" "}
-            and edit the employee's profile. Only Super Admins can view this page.
+            </Link>{" "}
+            and edit the employee&apos;s profile. Only Super Admins can view this page.
           </p>
         </div>
       </div>
