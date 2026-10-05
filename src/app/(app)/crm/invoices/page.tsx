@@ -71,7 +71,7 @@ export default async function InvoicesPage() {
           <div className="col-span-full flex flex-col items-center justify-center p-12 text-center border rounded-lg border-dashed">
             <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No invoices found</h3>
-            <p className="text-sm text-muted-foreground">You haven't generated any invoices yet.</p>
+            <p className="text-sm text-muted-foreground">You have not generated any invoices yet.</p>
           </div>
         )}
       </div>

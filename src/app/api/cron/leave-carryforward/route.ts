@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     let processedCount = 0
 
     for (const type of leaveTypes) {
-      if (!type.maxCarryForwardDays || type.maxCarryForwardDays <= 0) continue
+      if (!type.carryForwardMaxDays || type.carryForwardMaxDays <= 0) continue
 
       // Get all active balances from previous year for this type
       const oldBalances = await prisma.leaveBalance.findMany({
@@ -35,10 +35,11 @@ export async function GET(request: Request) {
       })
 
       for (const old of oldBalances) {
-        if (old.remaining <= 0) continue
+        const remaining = old.totalDays - old.usedDays - old.pendingDays;
+        if (remaining <= 0) continue
 
         // Calculate how much can be carried forward
-        const carryForwardAmount = Math.min(old.remaining, type.maxCarryForwardDays)
+        const carryForwardAmount = Math.min(remaining, type.carryForwardMaxDays)
 
         // Find or create balance for current year
         let newBalance = await prisma.leaveBalance.findUnique({
@@ -59,9 +60,8 @@ export async function GET(request: Request) {
               employeeId: old.employeeId,
               leaveTypeId: type.id,
               year: currentYear,
-              allocated: type.daysPerYear, // default
-              carriedOver: carryForwardAmount,
-              remaining: type.daysPerYear + carryForwardAmount
+              totalDays: type.daysAllowed + carryForwardAmount,
+              carriedForwardDays: carryForwardAmount,
             }
           })
         } else {
@@ -69,8 +69,8 @@ export async function GET(request: Request) {
           await prisma.leaveBalance.update({
             where: { id: newBalance.id },
             data: {
-              carriedOver: carryForwardAmount,
-              remaining: { increment: carryForwardAmount }
+              carriedForwardDays: carryForwardAmount,
+              totalDays: { increment: carryForwardAmount }
             }
           })
         }
