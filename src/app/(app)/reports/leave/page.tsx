@@ -14,23 +14,30 @@ export default async function LeaveReportPage() {
   const employees = await prisma.employee.findMany({
     where: { status: "ACTIVE" },
     include: {
-      user: { select: { name: true, email: true, role: true } },
       department: true,
       leaveBalances: {
         where: { year: currentYear },
         include: { leaveType: true }
       },
       // Fetch leave requests to find unpaid leaves taken this year
-      user_leaveRequests: {
-        where: {
-          status: "APPROVED",
-          startDate: {
-            gte: new Date(`${currentYear}-01-01`),
-            lte: new Date(`${currentYear}-12-31`)
+      // Fetch leave requests to find unpaid leaves taken this year
+      user: {
+        select: {
+          name: true,
+          email: true,
+          role: true,
+          leaveRequests: {
+            where: {
+              status: "APPROVED",
+              startDate: {
+                gte: new Date(`${currentYear}-01-01`),
+                lte: new Date(`${currentYear}-12-31`)
+              }
+            },
+            include: { leaveType: true }
           }
-        },
-        include: { leaveType: true }
-      }
+        }
+      },
     },
     orderBy: { employeeCode: 'asc' }
   })
@@ -51,7 +58,7 @@ export default async function LeaveReportPage() {
       }
     })
 
-    emp.user_leaveRequests.forEach(req => {
+    emp.user.leaveRequests.forEach(req => {
       if (req.paidSnapshot === false || req.leaveType.isPaid === false) {
         totalUsedUnpaid += req.days
       } else {
