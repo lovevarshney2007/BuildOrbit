@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createSiteAction, updateSiteAction } from "@/lib/actions/site"
+import { LocationPicker } from "@/components/ui/LocationPicker"
 
 type SiteFormData = {
   name: string
@@ -139,6 +140,17 @@ export function SiteForm({
             onChange={handleChange}
             className="h-10 px-3 rounded-lg border border-outline-variant bg-transparent text-on-surface dark:text-white focus:outline-none focus:border-primary" 
             placeholder="e.g. 77.0886"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5 md:col-span-2">
+          <label className="text-sm font-medium text-on-surface dark:text-white">Pin Location on Map</label>
+          <p className="text-xs text-secondary dark:text-slate-400 mb-2">Click anywhere on the map to set the exact coordinates.</p>
+          <LocationPicker 
+            latitude={formData.latitude} 
+            longitude={formData.longitude} 
+            radiusMeters={formData.radiusMeters}
+            onChange={(lat, lng) => setFormData(prev => ({ ...prev, latitude: Number(lat.toFixed(6)), longitude: Number(lng.toFixed(6)) }))}
           />
         </div>
 

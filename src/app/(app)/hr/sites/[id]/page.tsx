@@ -28,7 +28,7 @@ export default async function EditSitePage({ params }: { params: { id: string } 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div className="w-full max-w-4xl">
         <SiteForm 
           id={site.id} 
           initialData={{
@@ -43,28 +43,6 @@ export default async function EditSitePage({ params }: { params: { id: string } 
             region: site.region ?? "",
           }} 
         />
-        
-        {/* We can add a simple Leaflet/Google Maps iframe here for visualization */}
-        <div className="bg-surface dark:bg-surface-dark border border-outline-variant/30 rounded-2xl p-6 flex flex-col gap-4 sticky top-6">
-          <h3 className="font-title-lg text-title-lg text-on-surface dark:text-white">Geofence Preview</h3>
-          <p className="text-sm text-secondary dark:text-slate-400">Employees must be within {site.radiusMeters}m of this point.</p>
-          <div className="w-full h-[400px] bg-surface-variant rounded-xl overflow-hidden relative">
-            {/* Simple static map image or iframe */}
-            <iframe 
-              width="100%" 
-              height="100%" 
-              frameBorder="0" 
-              scrolling="no" 
-              marginHeight={0} 
-              marginWidth={0} 
-              src={`https://maps.google.com/maps?q=${site.latitude},${site.longitude}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
-            />
-            {/* Overlay circle (approximate) */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-primary/20 pointer-events-none" 
-                 style={{ width: Math.max(50, site.radiusMeters), height: Math.max(50, site.radiusMeters) }}>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   )
