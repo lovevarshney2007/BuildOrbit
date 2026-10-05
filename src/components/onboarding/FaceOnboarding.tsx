@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { getFaceDescriptor, loadModels } from "@/lib/face-recognition"
+import { getFaceDescriptor, loadFaceApiModels } from "@/lib/face-recognition"
 import { registerFaceAction } from "@/lib/actions/attendance"
 import { Loader2 } from "lucide-react"
 import { AnimatedCard } from "@/components/ui/PageAnimator"
@@ -17,7 +17,7 @@ export function FaceOnboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    loadModels().then(() => setIsModelsLoaded(true))
+    loadFaceApiModels().then(() => setIsModelsLoaded(true))
   }, [])
 
   const openCamera = async () => {
