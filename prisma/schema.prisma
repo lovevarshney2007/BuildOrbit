@@ -216,6 +216,7 @@ model Employee {
   teamId        String?
   status        EmployeeStatus @default(ACTIVE)
   basicSalary   Decimal        @default(0) @db.Decimal(10, 2)
+  faceDescriptor String?       @db.Text
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 

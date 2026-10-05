@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { markDailyAttendance, checkOutDailyAttendance } from "@/lib/actions/attendance"
+import { markDailyAttendance, checkOutDailyAttendance, registerFaceAction } from "@/lib/actions/attendance"
 import { AnimatedCard } from "@/components/ui/PageAnimator"
+import { getFaceDescriptor, loadFaceApiModels } from "@/lib/face-recognition"
 
 interface Props {
+  hasFaceRegistered?: boolean
   recentAttendances?: Array<{
     id: string
     date: Date
@@ -14,7 +16,7 @@ interface Props {
   }>
 }
 
-export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
+export function MarkAttendanceForm({ recentAttendances = [], hasFaceRegistered = false }: Props) {
   const [photoData, setPhotoData] = useState<string | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -33,6 +35,10 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
   useEffect(() => {
     // Only update on interval to avoid synchronous state update in effect body
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    
+    // Load face recognition models in background
+    loadFaceApiModels().catch(console.error)
+    
     return () => clearInterval(timer)
   }, [])
   
@@ -100,8 +106,32 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
   }
 
   const handleMarkAttendance = async () => {
-    if (!photoData) {
+    if (!photoData || !videoRef.current) {
       alert("Please take a photo first.")
+      return
+    }
+
+    setIsSubmitting(true)
+    
+    // Process face using AI
+    let faceDescriptor: Float32Array | null = null
+    try {
+      // Create a temporary image from the base64 data to detect face
+      const img = new Image()
+      img.src = photoData
+      await new Promise((resolve) => { img.onload = resolve })
+      
+      faceDescriptor = await getFaceDescriptor(img)
+      
+      if (!faceDescriptor) {
+        setIsSubmitting(false)
+        alert("No face detected in the photo. Please ensure your face is clearly visible and well lit.")
+        return
+      }
+    } catch (e) {
+      setIsSubmitting(false)
+      console.error(e)
+      alert("Face processing failed. Please try again.")
       return
     }
 
@@ -110,7 +140,6 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
       async (position) => {
         const { latitude, longitude, accuracy } = position.coords
         setIsLocating(false)
-        setIsSubmitting(true)
 
         try {
           const formData = new FormData()
@@ -118,8 +147,13 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
           formData.append("longitude", longitude.toString())
           formData.append("accuracy", accuracy.toString())
           formData.append("photo", photoData)
+          formData.append("faceDescriptor", JSON.stringify(Array.from(faceDescriptor!)))
           
-          if (isCheckedIn) {
+          if (!hasFaceRegistered) {
+            // First time: Register face
+            await registerFaceAction(formData)
+            alert("Face registered and attendance marked successfully!")
+          } else if (isCheckedIn) {
             await checkOutDailyAttendance(formData)
             alert("Checked out successfully!")
           } else {
@@ -134,6 +168,7 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
       },
       (geolocationError) => {
         setIsLocating(false)
+        setIsSubmitting(false)
         console.error("Geolocation error:", geolocationError)
         alert("Failed to get location. Please enable location services.")
       },

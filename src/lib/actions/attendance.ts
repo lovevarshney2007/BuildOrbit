@@ -3,20 +3,60 @@
 import { requireAuth } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-
 import { checkIn, checkOut, AttendanceError } from "@/lib/services/attendance-service"
+import { isFaceMatch } from "@/lib/domain/face"
+
+export async function registerFaceAction(data: FormData) {
+  const actor = await requireAuth()
+  
+  const faceDescriptorStr = data.get("faceDescriptor") as string
+  if (!faceDescriptorStr) {
+    throw new Error("No face descriptor provided.")
+  }
+
+  await prisma.employee.update({
+    where: { userId: actor.userId },
+    data: { faceDescriptor: faceDescriptorStr }
+  })
+
+  // We can also mark attendance right away since they just checked in during registration
+  return markDailyAttendance(data)
+}
+
+async function verifyFace(actorId: string, incomingDescriptorStr: string | null) {
+  if (!incomingDescriptorStr) throw new Error("No face detected by the camera.")
+  
+  const employee = await prisma.employee.findUnique({
+    where: { userId: actorId },
+    select: { faceDescriptor: true }
+  })
+
+  if (!employee?.faceDescriptor) {
+    throw new Error("Face not registered yet.")
+  }
+
+  const registeredDescriptor = JSON.parse(employee.faceDescriptor) as number[]
+  const incomingDescriptor = JSON.parse(incomingDescriptorStr) as number[]
+
+  if (!isFaceMatch(registeredDescriptor, incomingDescriptor)) {
+    throw new Error("Face recognition failed! Person does not match the registered profile.")
+  }
+}
 
 export async function markDailyAttendance(data: FormData) {
   const actor = await requireAuth()
   
   const lat = parseFloat(data.get("latitude") as string)
   const lng = parseFloat(data.get("longitude") as string)
-  const accuracy = parseFloat(data.get("accuracy") as string) || 10 // fallback to 10m if missing
-  const photo = data.get("photo") as string // We can store this in S3/DB later. Ignoring for geo-fence right now.
+  const accuracy = parseFloat(data.get("accuracy") as string) || 10 
+  const faceDescriptorStr = data.get("faceDescriptor") as string
 
-  if (isNaN(lat) || isNaN(lng) || !photo) {
-    throw new Error("Location and photo are required.")
+  if (isNaN(lat) || isNaN(lng)) {
+    throw new Error("Location is required.")
   }
+
+  // Verify face before proceeding
+  await verifyFace(actor.userId, faceDescriptorStr)
 
   try {
     await checkIn(prisma, {
@@ -42,11 +82,14 @@ export async function checkOutDailyAttendance(data: FormData) {
   
   const lat = parseFloat(data.get("latitude") as string)
   const lng = parseFloat(data.get("longitude") as string)
-  const accuracy = parseFloat(data.get("accuracy") as string) || 10 // fallback to 10m if missing
+  const accuracy = parseFloat(data.get("accuracy") as string) || 10 
+  const faceDescriptorStr = data.get("faceDescriptor") as string
 
-  // photo might be passed, but not strictly required by checkOut unless we want it
-  // if (isNaN(lat) || isNaN(lng)) { ... } but checkout handles missing/NaN by throwing inside if checkoutRequiresGeofence
-  
+  // We optionally verify face on checkout as well to prevent buddy punching on checkout
+  if (faceDescriptorStr) {
+    await verifyFace(actor.userId, faceDescriptorStr)
+  }
+
   try {
     await checkOut(prisma, {
       actor,

@@ -71,12 +71,20 @@ export default async function AttendancePage({
 
   // Fetch my past attendance for "my" tab
   let myRecords: AttendanceRecord[] = []
+  let hasFaceRegistered = false
+
   if (tab === "my") {
     myRecords = await prisma.attendance.findMany({
       where: { employee: { userId: user.userId } },
       orderBy: { date: "desc" },
       take: 5,
     })
+    
+    const myEmployee = await prisma.employee.findUnique({
+      where: { userId: user.userId },
+      select: { faceDescriptor: true }
+    })
+    hasFaceRegistered = !!myEmployee?.faceDescriptor
   }
 
   const formatTime = (dt: Date | null) =>
@@ -137,7 +145,7 @@ export default async function AttendancePage({
 
       {tab === "my" && (
         <div className="w-full max-w-3xl mx-auto mt-4">
-          <MarkAttendanceForm recentAttendances={myRecords} />
+          <MarkAttendanceForm recentAttendances={myRecords} hasFaceRegistered={hasFaceRegistered} />
         </div>
       )}
 
