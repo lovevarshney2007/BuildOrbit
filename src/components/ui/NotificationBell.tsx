@@ -20,14 +20,16 @@ export function NotificationBell() {
   const [, startTransition] = useTransition()
   const router = useRouter()
 
-  useEffect(() => {
-    loadNotifications()
-  }, [])
 
   async function loadNotifications() {
     const data = await getNotifications()
     setNotifications(data as Notification[])
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadNotifications()
+  }, [])
 
   const unreadCount = notifications.filter(n => !n.isRead).length
 

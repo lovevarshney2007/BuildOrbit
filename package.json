@@ -29,6 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.11.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "face-api.js": "^0.22.2",
     "framer-motion": "^13.4.6",
     "jose": "^6.2.12",

@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
-import { PageHeader, PageHeaderHeading } from "@/components/page-header"
+import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,9 +26,7 @@ export default async function InvoicesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <PageHeader>
-          <PageHeaderHeading>Invoices</PageHeaderHeading>
-        </PageHeader>
+        <PageHeader title="Invoices" />
         {/* Placeholder for future New Invoice form dialog */}
         <Button disabled>
           <Plus className="mr-2 h-4 w-4" />
@@ -44,8 +42,8 @@ export default async function InvoicesPage() {
                 {invoice.invoiceNumber}
               </CardTitle>
               <Badge variant={
-                invoice.status === "PAID" ? "default" :
-                invoice.status === "SENT" ? "secondary" : "outline"
+                invoice.status === "PAID" ? "success" :
+                invoice.status === "SENT" ? "info" : "outline"
               }>
                 {invoice.status}
               </Badge>
@@ -60,11 +58,9 @@ export default async function InvoicesPage() {
               </p>
 
               {invoice.pdfUrl && (
-                <Button variant="outline" size="sm" className="w-full mt-4" asChild>
-                  <Link href={invoice.pdfUrl} target="_blank">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Link>
+                <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => window.open(invoice.pdfUrl as string, '_blank')}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
                 </Button>
               )}
             </CardContent>

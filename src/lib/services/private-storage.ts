@@ -28,7 +28,7 @@ export function generateStorageKey(namespace: string, ownerId: string, extension
 export async function putObject(key: string, bytes: Uint8Array): Promise<string> {
   const buffer = Buffer.from(bytes)
   
-  const uploadResult = await new Promise<any>((resolve, reject) => {
+  const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: key,
@@ -36,7 +36,7 @@ export async function putObject(key: string, bytes: Uint8Array): Promise<string>
       },
       (error, result) => {
         if (error) return reject(error)
-        resolve(result)
+        resolve(result as { secure_url: string })
       }
     )
     uploadStream.end(buffer)
