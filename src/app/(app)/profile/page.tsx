@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { ProfileForm } from "./client-form"
+import { DocumentUploader } from "./document-uploader"
 
 export default async function ProfilePage() {
   const user = await getCurrentUser()
@@ -12,6 +13,9 @@ export default async function ProfilePage() {
     include: {
       department: true,
       designation: true,
+      employeeDocs: {
+        orderBy: { uploadedAt: "desc" }
+      }
     }
   })
 
@@ -112,28 +116,43 @@ export default async function ProfilePage() {
         </div>
 
         {/* COLUMN 2 & 3: Personal Information Form */}
-        <div className="lg:col-span-2 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-5 flex flex-col shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-outline-variant dark:border-slate-800 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-primary">person</span>
-              <h2 className="font-headline-sm text-headline-sm text-on-surface dark:text-white">Personal Information</h2>
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-5 flex flex-col shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant dark:border-slate-800 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-primary">person</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface dark:text-white">Personal Information</h2>
+              </div>
+            </div>
+            <div className="flex-1">
+              {employee ? (
+                <ProfileForm 
+                  initialData={{
+                    phone: employee.phone || "",
+                    address: employee.address || "",
+                    dateOfBirth: employee.dateOfBirth ? employee.dateOfBirth.toISOString().split("T")[0] : "",
+                  }}
+                />
+              ) : (
+                <div className="text-[13px] text-secondary dark:text-slate-400 p-4 bg-surface-container-low rounded">
+                  No employee record found for your user account. Please contact HR.
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex-1">
-            {employee ? (
-              <ProfileForm 
-                initialData={{
-                  phone: employee.phone || "",
-                  address: employee.address || "",
-                  dateOfBirth: employee.dateOfBirth ? employee.dateOfBirth.toISOString().split("T")[0] : "",
-                }}
-              />
-            ) : (
-              <div className="text-[13px] text-secondary dark:text-slate-400 p-4 bg-surface-container-low rounded">
-                No employee record found for your user account. Please contact HR.
+
+          {/* DOCUMENT MANAGEMENT */}
+          {employee && (
+            <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded p-5 flex flex-col shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-outline-variant dark:border-slate-800 mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-primary">folder_shared</span>
+                  <h2 className="font-headline-sm text-headline-sm text-on-surface dark:text-white">Documents Vault</h2>
+                </div>
               </div>
-            )}
-          </div>
+              <DocumentUploader employeeId={employee.id} existingDocs={employee.employeeDocs} />
+            </div>
+          )}
         </div>
 
       </div>

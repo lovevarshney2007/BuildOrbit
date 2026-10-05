@@ -147,6 +147,7 @@ model User {
   createdLeads    Lead[]          @relation("CreatedLeads")
   auditLogs       AuditLog[]
   notifications   Notification[]
+  uploadedDocs    EmployeeDocument[] @relation("UploadedDocs")
 
   @@index([email])
   @@index([role])
@@ -229,6 +230,7 @@ model Employee {
   attendances     Attendance[]
   leaveBalances   LeaveBalance[]
   leaveDocuments  LeaveDocument[]
+  employeeDocs    EmployeeDocument[] @relation("EmployeeDocs")
   payrolls        Payroll[]
   siteAssignments EmployeeSiteAssignment[]
   shiftAssignments ShiftAssignment[]
@@ -480,7 +482,7 @@ model LeaveDocument {
   employeeId       String
   documentType     LeaveDocumentType
   originalFilename String
-  storageKey       String            @unique
+  storageKey       String            @unique // Can now hold Cloudinary public_id or secure_url
   mimeType         String
   sizeBytes        Int
   uploadedById     String
@@ -492,6 +494,40 @@ model LeaveDocument {
   @@index([leaveRequestId])
   @@index([employeeId])
   @@map("leave_documents")
+}
+
+// ===========================================================================
+// Employee Documents (Identity, Background, Offer Letters)
+// ===========================================================================
+
+enum EmployeeDocumentType {
+  ID_PROOF
+  ADDRESS_PROOF
+  OFFER_LETTER
+  CONTRACT
+  BANK_DETAILS
+  RESUME
+  OTHER
+}
+
+model EmployeeDocument {
+  id               String               @id @default(cuid())
+  employeeId       String
+  documentType     EmployeeDocumentType
+  title            String               // E.g., "Aadhar Card"
+  originalFilename String
+  storageKey       String               @unique // Cloudinary secure_url or public_id
+  mimeType         String
+  sizeBytes        Int
+  uploadedById     String
+  uploadedAt       DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  employee Employee @relation("EmployeeDocs", fields: [employeeId], references: [id], onDelete: Cascade)
+  uploadedBy User   @relation("UploadedDocs", fields: [uploadedById], references: [id])
+
+  @@index([employeeId])
+  @@map("employee_documents")
 }
 
 model Holiday {
