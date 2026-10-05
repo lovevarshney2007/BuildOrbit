@@ -25,11 +25,16 @@ export default async function LeaveRequestsPage({
 
   const params = await searchParams
   const statusFilter = params.status as LeaveStatus | undefined
-  const isAdminLike = ["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role)
+
+  if (["SUPER_ADMIN", "ADMIN"].includes(user.role)) {
+    redirect("/dashboard")
+  }
+
+  const isHR = user.role === "HR"
 
   const requests = await prisma.leaveRequest.findMany({
     where: {
-      ...(!isAdminLike ? { requesterId: user.userId } : {}),
+      ...(!isHR ? { requesterId: user.userId } : {}),
       status: statusFilter ?? undefined,
     },
     include: {
@@ -50,12 +55,12 @@ export default async function LeaveRequestsPage({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">
-              {isAdminLike ? "All Leave Requests" : "My Leave Requests"}
+              {isHR ? "All Leave Requests" : "My Leave Requests"}
             </h1>
             <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Cycle Q4-2026</span>
           </div>
           <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">
-            {isAdminLike ? "View all employee leave requests." : "Track and manage your time-off requests."}
+            {isHR ? "View all employee leave requests." : "Track and manage your time-off requests."}
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -109,7 +114,7 @@ export default async function LeaveRequestsPage({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm select-none">
-                  {isAdminLike && <th className="py-2.5 px-4 font-semibold">Employee</th>}
+                  {isHR && <th className="py-2.5 px-4 font-semibold">Employee</th>}
                   <th className="py-2.5 px-4 font-semibold">Leave Type</th>
                   <th className="py-2.5 px-4 font-semibold">Duration &amp; Dates</th>
                   <th className="py-2.5 px-4 font-semibold">Reason</th>
@@ -121,7 +126,7 @@ export default async function LeaveRequestsPage({
                   const config = STATUS_CONFIG[req.status]
                   return (
                     <tr key={req.id} className="hover:bg-surface-bright/70 transition-colors">
-                      {isAdminLike && (
+                      {isHR && (
                         <td className="py-3 px-4">
                           <div className="flex flex-col">
                             <span className="font-medium text-on-surface dark:text-white font-label-md leading-tight">{req.requester.name || req.requester.email}</span>

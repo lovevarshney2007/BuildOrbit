@@ -57,7 +57,7 @@ export const navConfig: NavGroup[] = [
         label: "Leave Request",
         href: "/workforce/leave",
         icon: "event_busy",
-        roles: [],
+        roles: ["HR", "LEAD", "ENGINEER"],
       },
     ],
   },

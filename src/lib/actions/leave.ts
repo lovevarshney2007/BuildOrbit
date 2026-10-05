@@ -28,6 +28,9 @@ export async function applyLeaveAction(
 ): Promise<ApplyLeaveState> {
   // 1. Authenticate - derive userId from server-side session (not from form data)
   const session = await requireAuth()
+  if (["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { message: "Admins and Super Admins do not need to apply for leave." }
+  }
   const userId = session.userId
 
   const fields = {

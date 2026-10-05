@@ -7,6 +7,9 @@ import Link from "next/link"
 export default async function ApplyLeavePage() {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
+  if (["SUPER_ADMIN", "ADMIN"].includes(user.role)) {
+    redirect("/dashboard")
+  }
 
   const currentYear = new Date().getFullYear()
 
