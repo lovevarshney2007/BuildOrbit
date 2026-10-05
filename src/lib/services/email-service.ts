@@ -13,14 +13,14 @@ export const emailService = {
       port: Number(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === "true" || false, 
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     })
   },
 
   async sendMail({ to, subject, html }: EmailOptions) {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.warn("⚠️ SMTP credentials not found. Email not sent.")
       console.log(`[Email to ${to}] Subject: ${subject}`)
       return { success: false, reason: "No SMTP credentials configured" }
@@ -29,7 +29,7 @@ export const emailService = {
     try {
       const transporter = this.getTransporter()
       const info = await transporter.sendMail({
-        from: `"${process.env.SMTP_FROM_NAME || 'BuildOrbit HR'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+        from: `"${process.env.SMTP_FROM_NAME || 'BuildOrbit HR'}" <${process.env.SMTP_FROM_EMAIL || process.env.EMAIL_USER}>`,
         to,
         subject,
         html,
