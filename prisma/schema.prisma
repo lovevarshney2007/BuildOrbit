@@ -51,6 +51,59 @@ enum PayrollStatus {
   PAID
 }
 
+// Business category of a leave type. Drives reporting buckets (e.g. "Medical Leave").
+enum LeaveCategory {
+  GENERAL
+  MEDICAL
+  OTHER
+}
+
+// Payroll effect of an approved leave of this type (configured in Leave Master).
+enum LeavePayrollImpact {
+  NONE // no salary deduction (paid leave)
+  DEDUCTION // deduct `payrollDeductionPercent` of the daily rate per leave day
+}
+
+enum HalfDayPeriod {
+  FIRST_HALF
+  SECOND_HALF
+}
+
+enum LeaveDocumentType {
+  PRESCRIPTION
+  MEDICAL_CERTIFICATE
+  DOCTOR_NOTE
+  HOSPITAL_DOCUMENT
+  MEDICAL_REPORT
+  OTHER
+}
+
+enum AttendanceMethod {
+  GEOFENCE // GPS verified against the assigned site
+  MANUAL // created/edited by an authorised user
+  LEAVE_SYSTEM // generated from an approved leave
+  LEGACY // pre-geofence records
+}
+
+enum PayrollDivisorMode {
+  CALENDAR_DAYS
+  WORKING_DAYS
+  FIXED
+}
+
+enum PayrollRounding {
+  NONE
+  ROUND
+  FLOOR
+  CEIL
+}
+
+enum PayrollAdjustmentStatus {
+  PENDING // waiting to be applied (explicit recalculation or carried into next draft payroll)
+  APPLIED
+  DISMISSED
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -86,12 +139,13 @@ model User {
   updatedAt    DateTime @updatedAt
 
   // Relations
-  employee       Employee?
+  employee        Employee?
   loginActivities LoginActivity[]
-  leaveRequests  LeaveRequest[]  @relation("RequesterLeaveRequests")
-  approvedLeaves LeaveRequest[]  @relation("ApproverLeaveRequests")
-  assignedLeads  Lead[]          @relation("AssignedLeads")
-  createdLeads   Lead[]          @relation("CreatedLeads")
+  leaveRequests   LeaveRequest[]  @relation("RequesterLeaveRequests")
+  approvedLeaves  LeaveRequest[]  @relation("ApproverLeaveRequests")
+  assignedLeads   Lead[]          @relation("AssignedLeads")
+  createdLeads    Lead[]          @relation("CreatedLeads")
+  auditLogs       AuditLog[]
 
   @@index([email])
   @@index([role])
@@ -159,21 +213,109 @@ model Employee {
   joiningDate   DateTime
   departmentId  String?
   designationId String?
+  teamId        String?
   status        EmployeeStatus @default(ACTIVE)
   basicSalary   Decimal        @default(0) @db.Decimal(10, 2)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department     Department?   @relation(fields: [departmentId], references: [id])
-  designation    Designation?  @relation(fields: [designationId], references: [id])
-  attendances    Attendance[]
-  leaveBalances  LeaveBalance[]
-  payrolls       Payroll[]
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department      Department?              @relation(fields: [departmentId], references: [id])
+  designation     Designation?             @relation(fields: [designationId], references: [id])
+  team            Team?                    @relation("TeamMembers", fields: [teamId], references: [id], onDelete: SetNull)
+  ledTeams        Team[]                   @relation("TeamLead")
+  attendances     Attendance[]
+  leaveBalances   LeaveBalance[]
+  leaveDocuments  LeaveDocument[]
+  payrolls        Payroll[]
+  siteAssignments EmployeeSiteAssignment[]
 
   @@index([departmentId])
+  @@index([teamId])
   @@index([status])
   @@map("employees")
+}
+
+// ===========================================================================
+// Teams, Sites and Site Assignment (geo-fenced attendance)
+// ===========================================================================
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  leadId      String? // Employee who leads the team (team/attendance visibility for LEAD role)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lead            Employee?            @relation("TeamLead", fields: [leadId], references: [id], onDelete: SetNull)
+  members         Employee[]           @relation("TeamMembers")
+  siteAssignments TeamSiteAssignment[]
+
+  @@index([leadId])
+  @@map("teams")
+}
+
+model Site {
+  id           String   @id @default(cuid())
+  name         String
+  code         String   @unique
+  address      String?
+  latitude     Float
+  longitude    Float
+  radiusMeters Int // geofence radius
+  isActive     Boolean  @default(true)
+  projectName  String? // project / client
+  region       String? // region / zone
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employeeAssignments EmployeeSiteAssignment[]
+  teamAssignments     TeamSiteAssignment[]
+  attendances         Attendance[]
+
+  @@index([isActive])
+  @@map("sites")
+}
+
+// Individual assignment — takes precedence over team assignment.
+model EmployeeSiteAssignment {
+  id             String    @id @default(cuid())
+  employeeId     String
+  siteId         String
+  effectiveFrom  DateTime  @db.Date
+  effectiveUntil DateTime? @db.Date
+  isActive       Boolean   @default(true)
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  site     Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, isActive])
+  @@index([siteId])
+  @@map("employee_site_assignments")
+}
+
+model TeamSiteAssignment {
+  id             String    @id @default(cuid())
+  teamId         String
+  siteId         String
+  effectiveFrom  DateTime  @db.Date
+  effectiveUntil DateTime? @db.Date
+  isActive       Boolean   @default(true)
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, isActive])
+  @@index([siteId])
+  @@map("team_site_assignments")
 }
 
 // ===========================================================================
@@ -181,21 +323,45 @@ model Employee {
 // ===========================================================================
 
 model Attendance {
-  id          String           @id @default(cuid())
-  employeeId  String
-  date        DateTime         @db.Date
-  status      AttendanceStatus @default(PRESENT)
-  checkIn     DateTime?
-  checkOut    DateTime?
-  notes       String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id         String           @id @default(cuid())
+  employeeId String
+  date       DateTime         @db.Date
+  status     AttendanceStatus @default(PRESENT)
+  checkIn    DateTime?
+  checkOut   DateTime?
+  notes      String?
+  source     AttendanceMethod @default(LEGACY)
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  // Geofence verification (captured only at check-in / check-out, never tracked continuously)
+  siteId                   String?
+  latitude                 Float?
+  longitude                Float?
+  accuracyMeters           Float?
+  distanceFromSite         Float?
+  locationVerified         Boolean @default(false)
+  checkOutLatitude         Float?
+  checkOutLongitude        Float?
+  checkOutAccuracyMeters   Float?
+  checkOutDistanceFromSite Float?
+  workedMinutes            Int?
+
+  // Set when this row was produced by an approved leave
+  leaveRequestId String?
+  leaveTypeId    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employee     Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  site         Site?         @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  leaveRequest LeaveRequest? @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  leaveType    LeaveType?    @relation(fields: [leaveTypeId], references: [id], onDelete: SetNull)
 
   @@unique([employeeId, date])
   @@index([employeeId])
   @@index([date])
+  @@index([siteId])
+  @@index([leaveRequestId])
   @@map("attendances")
 }
 
@@ -204,30 +370,61 @@ model Attendance {
 // ===========================================================================
 
 model LeaveType {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String        @id @default(cuid())
+  name        String        @unique
+  code        String?       @unique
   description String?
-  daysAllowed Int      @default(0)
-  isPaid      Boolean  @default(true)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  category    LeaveCategory @default(GENERAL)
+  daysAllowed Int           @default(0) // annual allocation
+  isPaid      Boolean       @default(true)
+  isActive    Boolean       @default(true)
+
+  // Balance policy
+  tracksBalance       Boolean @default(true) // false = unlimited (e.g. loss-of-pay leave)
+  carryForwardAllowed Boolean @default(false)
+  carryForwardMaxDays Float   @default(0)
+
+  // Request policy
+  maxConsecutiveDays Int?
+  requiresApproval   Boolean @default(true)
+  allowHalfDay       Boolean @default(true)
+  minServiceDays     Int     @default(0) // eligibility: days since joining
+  applicableRoles    Role[] // empty = every role
+
+  // Supporting document policy
+  requiresDocument          Boolean @default(false)
+  documentRequiredAfterDays Int? // when set, document needed only if request days > this value
+
+  // Payroll policy
+  payrollImpact           LeavePayrollImpact @default(NONE)
+  payrollDeductionPercent Float              @default(100)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   leaveBalances LeaveBalance[]
   leaveRequests LeaveRequest[]
+  attendances   Attendance[]
 
   @@map("leave_types")
 }
 
+// Balance model: remaining = totalDays - usedDays - pendingDays
+//   PENDING request   -> pendingDays += days   (reservation)
+//   APPROVED          -> pendingDays -= days, usedDays += days
+//   REJECTED/CANCELLED(pending) -> pendingDays -= days
+//   CANCELLED(approved) -> usedDays -= days
 model LeaveBalance {
-  id          String   @id @default(cuid())
-  employeeId  String
-  leaveTypeId String
-  year        Int
-  totalDays   Int
-  usedDays    Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  employeeId         String
+  leaveTypeId        String
+  year               Int
+  totalDays          Float
+  usedDays           Float    @default(0)
+  pendingDays        Float    @default(0)
+  carriedForwardDays Float    @default(0) // portion of totalDays that was carried from last year
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   employee  Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
@@ -237,54 +434,168 @@ model LeaveBalance {
 }
 
 model LeaveRequest {
-  id          String      @id @default(cuid())
-  requesterId String
-  leaveTypeId String
-  startDate   DateTime    @db.Date
-  endDate     DateTime    @db.Date
-  days        Int
-  reason      String
-  status      LeaveStatus @default(PENDING)
-  approverId  String?
-  approverNote String?
-  approvedAt  DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String         @id @default(cuid())
+  requesterId   String
+  leaveTypeId   String
+  startDate     DateTime       @db.Date
+  endDate       DateTime       @db.Date
+  days          Float // working days, 0.5 steps
+  isHalfDay     Boolean        @default(false)
+  halfDayPeriod HalfDayPeriod?
+  reason        String
+  status        LeaveStatus    @default(PENDING)
+  approverId    String?
+  approverNote  String?
+  approvedAt    DateTime?
+  cancelledAt   DateTime?
+  cancelReason  String?
 
-  requester User       @relation("RequesterLeaveRequests", fields: [requesterId], references: [id])
-  approver  User?      @relation("ApproverLeaveRequests", fields: [approverId], references: [id])
-  leaveType LeaveType  @relation(fields: [leaveTypeId], references: [id])
+  // Policy snapshot taken at approval time so later Leave Master edits never rewrite history/payroll.
+  paidSnapshot             Boolean?
+  deductionPercentSnapshot Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requester          User                @relation("RequesterLeaveRequests", fields: [requesterId], references: [id])
+  approver           User?               @relation("ApproverLeaveRequests", fields: [approverId], references: [id])
+  leaveType          LeaveType           @relation(fields: [leaveTypeId], references: [id])
+  documents          LeaveDocument[]
+  attendances        Attendance[]
+  payrollAdjustments PayrollAdjustment[]
 
   @@index([requesterId])
   @@index([status])
+  @@index([startDate, endDate])
   @@map("leave_requests")
+}
+
+// Sensitive medical/supporting document. The file lives in PRIVATE storage (never public/).
+model LeaveDocument {
+  id               String            @id @default(cuid())
+  leaveRequestId   String
+  employeeId       String
+  documentType     LeaveDocumentType
+  originalFilename String
+  storageKey       String            @unique
+  mimeType         String
+  sizeBytes        Int
+  uploadedById     String
+  uploadedAt       DateTime          @default(now())
+
+  leaveRequest LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([leaveRequestId])
+  @@index([employeeId])
+  @@map("leave_documents")
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  name      String
+  createdAt DateTime @default(now())
+
+  @@map("holidays")
+}
+
+// Single-row organisation configuration (id is always "default").
+model OrganizationPolicy {
+  id                       String             @id @default("default")
+  timezone                 String             @default("Asia/Kolkata")
+  weeklyOffDays            Int[]              @default([0, 6]) // 0 = Sunday ... 6 = Saturday
+  payrollDivisorMode       PayrollDivisorMode @default(CALENDAR_DAYS)
+  payrollFixedDivisor      Int                @default(30)
+  payrollRounding          PayrollRounding    @default(ROUND)
+  gpsMaxAccuracyMeters     Int                @default(100)
+  requireSiteAssignment    Boolean            @default(true)
+  checkoutRequiresGeofence Boolean            @default(false)
+  maxDocumentSizeMb        Int                @default(5)
+  updatedAt                DateTime           @updatedAt
+
+  @@map("organization_policy")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json? // never contains medical content or coordinates
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 // ===========================================================================
 // Payroll
 // ===========================================================================
 
+// deductions = otherDeductions + leaveDeduction + carriedAdjustments
+// netSalary  = basicSalary + allowances - deductions
 model Payroll {
-  id           String        @id @default(cuid())
-  employeeId   String
-  month        Int           // 1-12
-  year         Int
-  basicSalary  Decimal       @db.Decimal(10, 2)
-  allowances   Decimal       @default(0) @db.Decimal(10, 2)
-  deductions   Decimal       @default(0) @db.Decimal(10, 2)
-  netSalary    Decimal       @db.Decimal(10, 2)
-  status       PayrollStatus @default(DRAFT)
-  paidAt       DateTime?
-  notes        String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  employeeId  String
+  month       Int // 1-12
+  year        Int
+  basicSalary Decimal       @db.Decimal(10, 2)
+  allowances  Decimal       @default(0) @db.Decimal(10, 2)
+  deductions  Decimal       @default(0) @db.Decimal(10, 2)
+  netSalary   Decimal       @db.Decimal(10, 2)
+  status      PayrollStatus @default(DRAFT)
+  paidAt      DateTime?
+  notes       String?
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  // Leave impact breakdown (calculated by the centralized payroll service)
+  otherDeductions    Decimal?  @db.Decimal(10, 2) // manual / non-leave deductions
+  leaveDeduction     Decimal   @default(0) @db.Decimal(10, 2)
+  carriedAdjustments Decimal   @default(0) @db.Decimal(10, 2)
+  paidLeaveDays      Float     @default(0)
+  unpaidLeaveDays    Float     @default(0)
+  medicalLeaveDays   Float     @default(0)
+  otherLeaveDays     Float     @default(0)
+  dailyRate          Decimal   @default(0) @db.Decimal(10, 2)
+  calculatedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employee    Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  adjustments PayrollAdjustment[] @relation("PayrollAdjustments")
 
   @@unique([employeeId, month, year])
   @@index([employeeId])
   @@index([year, month])
   @@map("payrolls")
+}
+
+// Explicit correction for an already PROCESSED / PAID payroll whose leave inputs changed.
+// amount > 0 = additional deduction, amount < 0 = credit.
+model PayrollAdjustment {
+  id               String                  @id @default(cuid())
+  payrollId        String
+  leaveRequestId   String?
+  amount           Decimal                 @db.Decimal(10, 2)
+  reason           String
+  status           PayrollAdjustmentStatus @default(PENDING)
+  appliedPayrollId String?
+  createdById      String?
+  createdAt        DateTime                @default(now())
+  appliedAt        DateTime?
+
+  payroll      Payroll       @relation("PayrollAdjustments", fields: [payrollId], references: [id], onDelete: Cascade)
+  leaveRequest LeaveRequest? @relation(fields: [leaveRequestId], references: [id], onDelete: SetNull)
+
+  @@index([payrollId, status])
+  @@index([leaveRequestId])
+  @@map("payroll_adjustments")
 }
 
 // ===========================================================================
@@ -319,13 +630,13 @@ model Lead {
 }
 
 model LeadFollowUp {
-  id          String   @id @default(cuid())
-  leadId      String
-  notes       String
+  id           String   @id @default(cuid())
+  leadId       String
+  notes        String
   followUpDate DateTime @db.Date
-  isDone      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isDone       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
 

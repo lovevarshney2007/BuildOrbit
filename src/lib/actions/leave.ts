@@ -3,11 +3,13 @@
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { redirect } from "next/navigation"
-import { LeaveStatus } from "@prisma/client"
 import { requireAuth } from "@/lib/session"
 import { sendEmail } from "@/lib/email"
 import { LeaveRequestEmail } from "@/components/emails/LeaveRequestEmail"
 import type { ReactElement } from "react"
+import { applyLeave } from "@/lib/services/leave-service"
+import { LeaveError } from "@/lib/domain/leave-policy"
+import { Role } from "@prisma/client"
 
 const ApplyLeaveSchema = z.object({
   leaveTypeId: z.string().min(1, "Leave type is required"),
@@ -26,12 +28,7 @@ export async function applyLeaveAction(
   _prev: ApplyLeaveState,
   formData: FormData,
 ): Promise<ApplyLeaveState> {
-  // 1. Authenticate - derive userId from server-side session (not from form data)
   const session = await requireAuth()
-  if (["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
-    return { message: "Admins and Super Admins do not need to apply for leave." }
-  }
-  const userId = session.userId
 
   const fields = {
     leaveTypeId: formData.get("leaveTypeId") as string,
@@ -40,7 +37,6 @@ export async function applyLeaveAction(
     reason: formData.get("reason") as string,
   }
 
-  // 2. Validate input
   const validated = ApplyLeaveSchema.safeParse(fields)
 
   if (!validated.success) {
@@ -49,121 +45,51 @@ export async function applyLeaveAction(
 
   const { leaveTypeId, startDate, endDate, reason } = validated.data
 
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-    return { errors: { startDate: ["Invalid date provided."] }, fields }
-  }
-
-  if (start.getFullYear() > 2100 || end.getFullYear() > 2100) {
-    return { errors: { endDate: ["Year is too far in the future."] }, fields }
-  }
-
-  start.setHours(0, 0, 0, 0)
-  end.setHours(0, 0, 0, 0)
-
-  if (end < start) {
-    return { errors: { endDate: ["End date must be on or after start date."] }, fields }
-  }
-
-  const msPerDay = 1000 * 60 * 60 * 24
-  const days = Math.round((end.getTime() - start.getTime()) / msPerDay) + 1
-
-  // 3. Verify leave type exists and is active
-  const leaveTypeRecord = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
-  if (!leaveTypeRecord || !leaveTypeRecord.isActive) {
-    return { errors: { leaveTypeId: ["Leave type is not available."] }, fields }
-  }
-
-  // 4. Get employee record
-  const employee = await prisma.employee.findUnique({
-    where: { userId },
-    include: { user: true },
-  })
-  if (!employee) {
-    return { message: "Employee profile not found. Please contact HR." }
-  }
-
-  // 5. Check leave balance (if balance records exist for this employee/type/year)
-  const year = start.getFullYear()
-  const balance = await prisma.leaveBalance.findUnique({
-    where: {
-      employeeId_leaveTypeId_year: {
-        employeeId: employee.id,
-        leaveTypeId,
-        year,
-      },
-    },
-  })
-
-  if (balance !== null) {
-    const remaining = balance.totalDays - balance.usedDays
-    if (days > remaining) {
-      return {
-        errors: {
-          endDate: [
-            `Insufficient leave balance. You have ${remaining} day(s) remaining but requested ${days} day(s).`,
-          ],
-        },
-        fields,
-      }
-    }
-  }
-
-  // 6. Check for overlapping pending/approved leave requests
-  const overlapping = await prisma.leaveRequest.findFirst({
-    where: {
-      requesterId: userId,
-      status: { in: [LeaveStatus.PENDING, LeaveStatus.APPROVED] },
-      // Check if date ranges overlap: existing.start <= new.end AND existing.end >= new.start
-      startDate: { lte: end },
-      endDate: { gte: start },
-    },
-  })
-
-  if (overlapping) {
-    return {
-      errors: {
-        startDate: [
-          `You already have a ${overlapping.status.toLowerCase()} leave request overlapping these dates (${overlapping.startDate.toLocaleDateString()} – ${overlapping.endDate.toLocaleDateString()}).`,
-        ],
-      },
-      fields,
-    }
-  }
-
-  // 7. Create leave request
-  await prisma.leaveRequest.create({
-    data: {
-      requesterId: userId,
-      leaveTypeId,
-      startDate: start,
-      endDate: end,
-      days,
-      reason,
-      status: LeaveStatus.PENDING,
-    },
-  })
-
-  // 8. Send email to HR (best-effort)
+  let leaveRequest;
   try {
-    const hrUsers = await prisma.user.findMany({ where: { role: "HR", isActive: true } })
-    const hrEmails = hrUsers.map((u) => u.email)
+    leaveRequest = await applyLeave(prisma, {
+      actor: { userId: session.userId, role: session.role as Role },
+      leaveTypeId,
+      startDate,
+      endDate,
+      reason,
+    })
+  } catch (err) {
+    if (err instanceof LeaveError) {
+      if (err.field) {
+        return { errors: { [err.field]: [err.message] }, fields }
+      }
+      return { message: err.message, fields }
+    }
+    console.error(err)
+    return { message: "An unexpected error occurred while applying for leave.", fields }
+  }
 
-    if (hrEmails.length > 0 && employee.user.name) {
-      await sendEmail({
-        to: hrEmails,
-        subject: `New Leave Request: ${employee.user.name}`,
-        react: LeaveRequestEmail({
-          employeeName: employee.user.name,
-          leaveType: leaveTypeRecord.name,
-          startDate: start,
-          endDate: end,
-          reason,
-          days,
-        }) as ReactElement,
-      })
+  // Send email to HR (best-effort)
+  try {
+    const employee = await prisma.employee.findUnique({
+      where: { userId: session.userId },
+      include: { user: true },
+    })
+    const leaveTypeRecord = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
+    if (employee && leaveTypeRecord) {
+      const hrUsers = await prisma.user.findMany({ where: { role: "HR", isActive: true } })
+      const hrEmails = hrUsers.map((u) => u.email)
+
+      if (hrEmails.length > 0 && employee.user.name) {
+        await sendEmail({
+          to: hrEmails,
+          subject: `New Leave Request: ${employee.user.name}`,
+          react: LeaveRequestEmail({
+            employeeName: employee.user.name,
+            leaveType: leaveTypeRecord.name,
+            startDate: leaveRequest.startDate,
+            endDate: leaveRequest.endDate,
+            reason,
+            days: leaveRequest.days,
+          }) as ReactElement,
+        })
+      }
     }
   } catch (error) {
     console.error("Failed to send leave request email", error)

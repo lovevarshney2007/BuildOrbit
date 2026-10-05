@@ -250,6 +250,9 @@ export async function createTestLeaveRequest(
   const days = options?.days ?? 1;
   const start = new Date();
   start.setDate(start.getDate() + startDaysFromNow);
+  while (start.getDay() === 0 || start.getDay() === 6) {
+    start.setDate(start.getDate() + 1);
+  }
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);
   end.setDate(end.getDate() + days - 1);

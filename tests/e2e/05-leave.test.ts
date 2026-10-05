@@ -87,7 +87,13 @@ test.describe("Leave Application — Form & Validation @main @forms", () => {
 
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 10);
-    const dateStr = futureDate.toISOString().split("T")[0];
+    while (futureDate.getDay() === 0 || futureDate.getDay() === 6) {
+      futureDate.setDate(futureDate.getDate() + 1);
+    }
+    const yyyy = futureDate.getFullYear();
+    const mm = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(futureDate.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
 
     await page.fill('[name="startDate"]', dateStr);
     await page.fill('[name="endDate"]', dateStr);
@@ -125,7 +131,13 @@ test.describe("Leave Application — Form & Validation @main @forms", () => {
 
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 20); // 20 days from now
-    const dateStr = futureDate.toISOString().split("T")[0];
+    while (futureDate.getDay() === 0 || futureDate.getDay() === 6) {
+      futureDate.setDate(futureDate.getDate() + 1);
+    }
+    const yyyy = futureDate.getFullYear();
+    const mm = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(futureDate.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
 
     const leaveCountBefore = await prisma.leaveRequest.count({
       where: { requesterId: engineer.id },
@@ -341,6 +353,8 @@ test.describe("Leave Approval — HR Workflow @main @workflow", () => {
 // ============================================================
 
 test.describe("Leave Business Rules @main @forms", () => {
+  test.use({ storageState: "tests/e2e/.auth/engineer.json" });
+
   test("cannot apply overlapping leave", async ({ page }) => {
     // Create a pending leave for engineer
     const engineer = await prisma.user.findUnique({
@@ -360,6 +374,9 @@ test.describe("Leave Business Rules @main @forms", () => {
     // Create a pending leave for 30 days from now
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + 30);
+    while (startDate.getDay() === 0 || startDate.getDay() === 6) {
+      startDate.setDate(startDate.getDate() + 1);
+    }
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(startDate);
 
@@ -376,7 +393,10 @@ test.describe("Leave Business Rules @main @forms", () => {
     });
 
     try {
-      const dateStr = startDate.toISOString().split("T")[0];
+      const yyyy = startDate.getFullYear();
+      const mm = String(startDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(startDate.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
 
       await page.goto("/workforce/leave/new");
       await page.waitForLoadState("domcontentloaded");
