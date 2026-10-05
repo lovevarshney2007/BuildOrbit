@@ -117,6 +117,18 @@ export const navConfig: NavGroup[] = [
         icon: "payments",
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
+      {
+        label: "Shift Management",
+        href: "/hr/shifts",
+        icon: "schedule",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
+        label: "Employee Invitations",
+        href: "/hr/invitations",
+        icon: "person_add",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
     ],
   },
   {

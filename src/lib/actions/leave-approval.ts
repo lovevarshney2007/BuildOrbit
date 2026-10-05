@@ -60,6 +60,16 @@ export async function approveLeaveAction(
           status: leaveRequest.status as "APPROVED" | "REJECTED",
         }) as ReactElement,
       })
+
+      // In-app notification
+      const { createNotification } = await import("@/lib/actions/notifications")
+      await createNotification({
+        userId: populatedRequest.requester.id,
+        type: leaveRequest.status === LeaveStatus.APPROVED ? "LEAVE_APPROVED" : "LEAVE_REJECTED",
+        title: `Leave Request ${leaveRequest.status === LeaveStatus.APPROVED ? "Approved ✓" : "Rejected ✗"}`,
+        message: `Your ${leaveTypeName} request has been ${leaveRequest.status === LeaveStatus.APPROVED ? "approved" : "rejected"}.`,
+        link: "/workforce/leave",
+      })
     }
   } catch (error) {
     console.error("Failed to send leave approval email", error)
