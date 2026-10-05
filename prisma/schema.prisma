@@ -662,6 +662,7 @@ model Lead {
   assignedTo User?          @relation("AssignedLeads", fields: [assignedToId], references: [id])
   createdBy  User           @relation("CreatedLeads", fields: [createdById], references: [id])
   followUps  LeadFollowUp[]
+  client     Client?
 
   @@index([status])
   @@index([assignedToId])
@@ -790,4 +791,54 @@ model EmployeeInvitation {
   @@index([token])
   @@index([email])
   @@map("employee_invitations")
+}
+
+// ===========================================================================
+// CRM Additions: Clients & Invoices
+// ===========================================================================
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  company      String?
+  address      String?
+  leadId       String?  @unique // Link to the original lead
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  invoices     Invoice[]
+  lead         Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@map("clients")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  clientId      String
+  amount        Decimal  @db.Decimal(10, 2)
+  tax           Decimal? @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+  status        InvoiceStatus @default(DRAFT)
+  dueDate       DateTime @db.Date
+  notes         String?
+  pdfUrl        String?  // Cloudinary secure_url for the invoice PDF
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([status])
+  @@map("invoices")
 }

@@ -78,7 +78,7 @@ export default async function PayslipPrintPage({ params }: { params: { id: strin
             </div>
             <div className="grid grid-cols-3">
               <span className="text-slate-500 font-medium">Designation:</span>
-              <span className="col-span-2 font-semibold text-slate-700">{employee.designation?.name || "Employee"}</span>
+              <span className="col-span-2 font-semibold text-slate-700">{employee.designation?.title || "Employee"}</span>
             </div>
           </div>
           <div className="space-y-3">

@@ -14,37 +14,53 @@ import { randomUUID } from "crypto"
 import { mkdir, readFile, rm, writeFile } from "fs/promises"
 import path from "path"
 
-const KEY_RE = /^[a-z0-9-]+\/[a-z0-9-]+\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/
+import { cloudinary } from "@/lib/cloudinary"
 
 export function storageRoot(): string {
-  return path.resolve(process.env.PRIVATE_STORAGE_DIR || path.join(process.cwd(), ".private-storage"))
+  return "cloudinary://buildorbit"
 }
 
 export function generateStorageKey(namespace: string, ownerId: string, extension: string): string {
-  const safe = (s: string) => s.toLowerCase().replace(/[^a-z0-9-]/g, "")
-  const key = `${safe(namespace)}/${safe(ownerId)}/${randomUUID()}.${extension}`
-  if (!KEY_RE.test(key)) throw new Error("Generated storage key is invalid")
-  return key
+  // Not used anymore as we return secure_url directly, but keeping signature
+  return `buildorbit/${namespace}/${ownerId}/${Date.now()}`
 }
 
-function resolveKey(key: string): string {
-  if (!KEY_RE.test(key)) throw new Error("Invalid storage key")
-  const root = storageRoot()
-  const full = path.resolve(root, key)
-  if (!full.startsWith(root + path.sep)) throw new Error("Invalid storage key")
-  return full
-}
+export async function putObject(key: string, bytes: Uint8Array): Promise<string> {
+  const buffer = Buffer.from(bytes)
+  
+  const uploadResult = await new Promise<any>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: key,
+        resource_type: "auto", 
+      },
+      (error, result) => {
+        if (error) return reject(error)
+        resolve(result)
+      }
+    )
+    uploadStream.end(buffer)
+  })
 
-export async function putObject(key: string, bytes: Uint8Array): Promise<void> {
-  const full = resolveKey(key)
-  await mkdir(path.dirname(full), { recursive: true })
-  await writeFile(full, bytes, { mode: 0o600 })
+  // Return the secure URL directly, which will be saved in storageKey in DB
+  return uploadResult.secure_url
 }
 
 export async function getObject(key: string): Promise<Buffer> {
-  return readFile(resolveKey(key))
+  // We no longer read buffers for Cloudinary URLs in the app directly via getObject.
+  // Instead, the app should just link to the secure_url.
+  throw new Error("getObject is deprecated with Cloudinary. Use the storageKey URL directly.")
 }
 
 export async function deleteObject(key: string): Promise<void> {
-  await rm(resolveKey(key), { force: true })
+  try {
+    const urlParts = key.split('/')
+    const fileWithExt = urlParts.pop() 
+    const publicIdWithExt = urlParts.slice(urlParts.indexOf('buildorbit')).join('/') + '/' + fileWithExt
+    const publicId = publicIdWithExt.replace(/\.[^/.]+$/, "")
+
+    await cloudinary.uploader.destroy(publicId)
+  } catch (e) {
+    console.error("Failed to delete from Cloudinary", e)
+  }
 }

@@ -45,6 +45,19 @@ export async function applyLeaveAction(
 
   const { leaveTypeId, startDate, endDate, reason } = validated.data
 
+  let documentInput = null;
+  const medicalCert = formData.get("medicalCertificate") as File | null;
+  
+  if (medicalCert && medicalCert.size > 0) {
+    const arrayBuffer = await medicalCert.arrayBuffer();
+    documentInput = {
+      bytes: new Uint8Array(arrayBuffer),
+      filename: medicalCert.name,
+      declaredMime: medicalCert.type,
+      documentType: "MEDICAL_CERTIFICATE" as const
+    };
+  }
+
   let leaveRequest;
   try {
     leaveRequest = await applyLeave(prisma, {
@@ -53,6 +66,7 @@ export async function applyLeaveAction(
       startDate,
       endDate,
       reason,
+      document: documentInput
     })
   } catch (err) {
     if (err instanceof LeaveError) {

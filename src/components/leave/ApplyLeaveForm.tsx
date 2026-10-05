@@ -12,6 +12,7 @@ interface Props {
 export function ApplyLeaveForm({ leaveTypes }: Props) {
   const [state, action, pending] = useActionState(applyLeaveAction, null)
   const [startDate, setStartDate] = useState(state?.fields?.startDate || "")
+  const [selectedLeaveType, setSelectedLeaveType] = useState(state?.fields?.leaveTypeId || "")
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -27,6 +28,7 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
         <select
           name="leaveTypeId"
           defaultValue={state?.fields?.leaveTypeId || ""}
+          onChange={(e) => setSelectedLeaveType(e.target.value)}
           required
           className="h-9 w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
         >
@@ -100,6 +102,20 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
           <p className="mt-1 text-[12px] text-red-600">{state.errors.reason[0]}</p>
         )}
       </div>
+
+      {leaveTypes.find(lt => lt.id === selectedLeaveType)?.name.toLowerCase().includes("sick") && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900">
+          <label className="mb-1 block text-[13px] font-medium text-amber-900 dark:text-amber-500">Medical Certificate <span className="text-red-500">*</span></label>
+          <p className="text-[11px] text-amber-700 dark:text-amber-600 mb-2">A medical certificate is mandatory for sick leaves.</p>
+          <input
+            type="file"
+            name="medicalCertificate"
+            required
+            accept=".pdf,image/*"
+            className="w-full text-sm text-amber-900 dark:text-amber-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-amber-200 dark:file:bg-amber-800 file:text-amber-900 dark:file:text-amber-200 hover:file:bg-amber-300 dark:hover:file:bg-amber-700"
+          />
+        </div>
+      )}
 
       <div className="flex gap-3">
         <button

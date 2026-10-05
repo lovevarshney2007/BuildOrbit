@@ -185,15 +185,15 @@ export async function applyLeave(db: PrismaClient, input: ApplyLeaveInput): Prom
       })
 
       if (validatedDoc && validatedDoc.ok && input.document) {
-        storedKey = generateStorageKey("leave-documents", employee.id, validatedDoc.extension)
-        await putObject(storedKey, input.document.bytes)
+        const folderKey = generateStorageKey("leave-documents", employee.id, validatedDoc.extension)
+        storedKey = await putObject(folderKey, input.document.bytes)
         await tx.leaveDocument.create({
           data: {
             leaveRequestId: request.id,
             employeeId: employee.id,
             documentType: input.document.documentType,
             originalFilename: validatedDoc.filename,
-            storageKey: storedKey,
+            storageKey: storedKey, // Cloudinary URL
             mimeType: validatedDoc.mime,
             sizeBytes: input.document.bytes.length,
             uploadedById: actor.userId,

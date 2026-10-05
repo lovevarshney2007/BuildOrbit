@@ -24,6 +24,10 @@ export default async function DashboardPage() {
       )
     }
 
+    if (!employee.faceDescriptor) {
+      redirect("/onboarding")
+    }
+
     const now = new Date()
     const currentYear = now.getFullYear()
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
