@@ -21,10 +21,26 @@ export async function POST(
     return new Response("Must be PROCESSED before paying", { status: 400 })
   }
 
-  await prisma.payroll.update({
+  const payroll = await prisma.payroll.update({
     where: { id },
     data: { status: "PAID", paidAt: new Date() },
+    include: { employee: { include: { user: true } } }
   })
+
+  // Send Payslip Generated Email Notification
+  if (payroll.employee?.user?.email && payroll.employee?.user?.name) {
+    try {
+      const { emailService } = await import("@/lib/services/email-service")
+      await emailService.sendPayslipGeneratedAlert(
+        payroll.employee.user.email,
+        payroll.employee.user.name,
+        payroll.month,
+        payroll.year
+      )
+    } catch (e) {
+      console.error("Failed to send payslip email", e)
+    }
+  }
 
   return new Response(null, { status: 303, headers: { Location: "/hr/payroll" } })
 }

@@ -10,24 +10,46 @@ interface SendEmailOptions {
   react: ReactElement;
 }
 
+import { render } from "@react-email/render"
+
 export async function sendEmail({ to, subject, react }: SendEmailOptions) {
-  if (!resend) {
-    console.warn("RESEND_API_KEY is not set. Email will not be sent to", to);
-    return { success: false, error: new Error("RESEND_API_KEY not set") };
+  if (resend) {
+    try {
+      const data = await resend.emails.send({
+        from: "BuildOrbit <onboarding@resend.dev>", // using Resend's testing domain for now
+        to,
+        subject,
+        react,
+      });
+      console.log("Email sent successfully via Resend:", data);
+      return { success: true, data };
+    } catch (error) {
+      console.error("Failed to send email via Resend:", error);
+      return { success: false, error };
+    }
   }
-  try {
-    const data = await resend.emails.send({
-      from: "BuildOrbit <onboarding@resend.dev>", // using Resend's testing domain for now
-      to,
-      subject,
-      react,
-    });
-    console.log("Email sent successfully:", data);
-    return { success: true, data };
-  } catch (error) {
-    console.error("Failed to send email:", error);
-    return { success: false, error };
+
+  // Fallback to Nodemailer if Resend is not configured
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    try {
+      // For some components, rendering to HTML is async, some are sync. render is async in newer versions
+      const html = await render(react);
+      const info = await transporter.sendMail({
+        from: `"BuildOrbit" <${process.env.EMAIL_USER}>`,
+        to: Array.isArray(to) ? to.join(", ") : to,
+        subject,
+        html,
+      });
+      console.log("Email sent successfully via Nodemailer:", info.messageId);
+      return { success: true, data: info };
+    } catch (error) {
+      console.error("Failed to send email via Nodemailer:", error);
+      return { success: false, error };
+    }
   }
+
+  console.warn("Neither RESEND_API_KEY nor EMAIL_USER/EMAIL_PASS are set. Email will not be sent to", to);
+  return { success: false, error: new Error("No email provider configured") };
 }
 
 
