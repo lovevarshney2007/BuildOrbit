@@ -106,6 +106,11 @@ export async function updatePayrollStatus(id: string, status: PayrollStatus) {
     },
   })
 
+  // Auto-archive PDF Payslip when it reaches PROCESSED status
+  if (status === PayrollStatus.PROCESSED) {
+    import("@/lib/services/payslip-service").then(m => m.generateAndArchivePayslip(id)).catch(console.error)
+  }
+
   revalidatePath("/hr/payroll")
   revalidatePath("/workforce/payslip")
   return { success: true }

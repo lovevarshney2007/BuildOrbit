@@ -212,6 +212,9 @@ export async function applyLeave(db: PrismaClient, input: ApplyLeaveInput): Prom
         })
       }
       return request
+    }).then(res => {
+      import("@/lib/webhook").then(m => m.sendWebhookAlert(`⚠️ *New Leave Request:* ${employee.employeeCode} has applied for ${days} days of ${leaveType.name} (${start} to ${end}).`)).catch(console.error)
+      return res
     })
   } catch (err) {
     if (storedKey) await deleteObject(storedKey).catch(() => undefined)

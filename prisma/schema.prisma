@@ -349,6 +349,8 @@ model Attendance {
   checkOutAccuracyMeters   Float?
   checkOutDistanceFromSite Float?
   workedMinutes            Int?
+  isLate                   Boolean @default(false)
+  isEarlyLeft              Boolean @default(false)
 
   // Set when this row was produced by an approved leave
   leaveRequestId String?

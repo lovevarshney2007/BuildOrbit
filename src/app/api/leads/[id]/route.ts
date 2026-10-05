@@ -45,6 +45,9 @@ export async function PATCH(
             leadId: lead.id,
           }
         })
+        
+        // Fire & forget webhook
+        import("@/lib/webhook").then(m => m.sendWebhookAlert(`🎉 *New Client Alert!* The lead **${lead.title}** (${lead.company || lead.contactName}) was just converted!`)).catch(console.error)
       }
     }
 

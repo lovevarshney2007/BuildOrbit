@@ -170,8 +170,33 @@ export async function checkIn(db: PrismaClient, input: CheckInInput): Promise<At
       locationVerified: true,
       source: "GEOFENCE",
     }
-  } else {
     siteData = { source: "MANUAL", locationVerified: false, notes: "No site assigned — location not verified" }
+  }
+
+  let isLate = false
+  const shiftAssignment = await db.shiftAssignment.findFirst({
+    where: {
+      employeeId: employee.id,
+      isActive: true,
+      effectiveFrom: { lte: dateKeyToDate(date) },
+      OR: [
+        { effectiveUntil: null },
+        { effectiveUntil: { gte: dateKeyToDate(date) } }
+      ]
+    },
+    include: { shift: true }
+  })
+
+  if (shiftAssignment?.shift && !existing) {
+    const shiftStartTime = shiftAssignment.shift.startTime
+    const [hours, mins] = shiftStartTime.split(':').map(Number)
+    const expectedCheckIn = new Date(now)
+    expectedCheckIn.setHours(hours, mins, 0, 0)
+    
+    const gracePeriodMs = shiftAssignment.shift.gracePeriodMins * 60000
+    if (now.getTime() > expectedCheckIn.getTime() + gracePeriodMs) {
+      isLate = true
+    }
   }
 
   try {
@@ -188,6 +213,7 @@ export async function checkIn(db: PrismaClient, input: CheckInInput): Promise<At
               date: dateKeyToDate(date),
               status: "PRESENT",
               checkIn: now,
+              isLate,
             },
           })
       await writeAudit(tx, {
@@ -259,12 +285,37 @@ export async function checkOut(db: PrismaClient, input: CheckOutInput): Promise<
     }
   }
 
+  let isEarlyLeft = false
+  const shiftAssignment = await db.shiftAssignment.findFirst({
+    where: {
+      employeeId: employee.id,
+      isActive: true,
+      effectiveFrom: { lte: dateKeyToDate(today) },
+      OR: [
+        { effectiveUntil: null },
+        { effectiveUntil: { gte: dateKeyToDate(today) } }
+      ]
+    },
+    include: { shift: true }
+  })
+
+  if (shiftAssignment?.shift) {
+    const shiftEndTime = shiftAssignment.shift.endTime
+    const [hours, mins] = shiftEndTime.split(':').map(Number)
+    const expectedCheckOut = new Date(now)
+    expectedCheckOut.setHours(hours, mins, 0, 0)
+    
+    if (now.getTime() < expectedCheckOut.getTime()) {
+      isEarlyLeft = true
+    }
+  }
+
   const workedMinutes = Math.floor((now.getTime() - open.checkIn.getTime()) / 60000)
   return db.$transaction(async (tx) => {
     // guard against a concurrent double check-out
     const res = await tx.attendance.updateMany({
       where: { id: open.id, checkOut: null },
-      data: { checkOut: now, workedMinutes, ...(geo as Prisma.AttendanceUncheckedUpdateManyInput) },
+      data: { checkOut: now, workedMinutes, isEarlyLeft, ...(geo as Prisma.AttendanceUncheckedUpdateManyInput) },
     })
     if (res.count !== 1) throw new AttendanceError("ALREADY_CHECKED_OUT", "You have already checked out today.")
     await writeAudit(tx, {
