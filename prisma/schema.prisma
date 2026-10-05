@@ -509,6 +509,7 @@ enum EmployeeDocumentType {
   CONTRACT
   BANK_DETAILS
   RESUME
+  PAYSLIP
   OTHER
 }
 
