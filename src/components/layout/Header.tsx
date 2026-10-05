@@ -152,10 +152,12 @@ export function Header({
           {showCreate && (
             <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-lg p-2 z-50">
               <div className="px-3 py-2 text-xs font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Quick Create</div>
-              <Link href="/workforce/leave/new" onClick={() => setShowCreate(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
-                <span className="material-symbols-outlined text-[18px]">event</span>
-                Leave Request
-              </Link>
+              {!["SUPER_ADMIN", "ADMIN"].includes(user.role) && (
+                <Link href="/workforce/leave/new" onClick={() => setShowCreate(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                  <span className="material-symbols-outlined text-[18px]">event</span>
+                  Leave Request
+                </Link>
+              )}
               {user.role !== 'ENGINEER' && (
                 <Link href="/workforce/employees/new" onClick={() => setShowCreate(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
                   <span className="material-symbols-outlined text-[18px]">person_add</span>
