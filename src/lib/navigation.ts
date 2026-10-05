@@ -140,6 +140,12 @@ export const navConfig: NavGroup[] = [
         icon: "history",
         roles: ["SUPER_ADMIN", "ADMIN"],
       },
+      {
+        label: "Audit Logs",
+        href: "/admin/audit-logs",
+        icon: "policy",
+        roles: ["SUPER_ADMIN"],
+      },
     ],
   },
 ]

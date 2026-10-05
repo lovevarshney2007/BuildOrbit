@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function PayslipPage() {
   const user = await getCurrentUser()
@@ -57,9 +58,15 @@ export default async function PayslipPage() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <button className="text-primary hover:underline font-semibold text-sm flex items-center justify-end gap-1 w-full" disabled={ps.status !== 'PAID'}>
-                      <span className="material-symbols-outlined text-sm">download</span> Download
-                    </button>
+                    {ps.status === 'PAID' ? (
+                      <Link href={`/workforce/payslip/${ps.id}/print`} target="_blank" className="text-primary hover:underline font-semibold text-sm flex items-center justify-end gap-1 w-full">
+                        <span className="material-symbols-outlined text-sm">download</span> Download
+                      </Link>
+                    ) : (
+                      <button className="text-secondary/50 font-semibold text-sm flex items-center justify-end gap-1 w-full cursor-not-allowed" disabled>
+                        <span className="material-symbols-outlined text-sm">download</span> Download
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
