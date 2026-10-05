@@ -77,6 +77,12 @@ export const navConfig: NavGroup[] = [
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
+        label: "Leave Report",
+        href: "/reports/leave",
+        icon: "event_note",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
         label: "Payroll Summary",
         href: "/reports/payroll",
         icon: "receipt_long",
