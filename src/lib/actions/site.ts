@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getActor } from "@/lib/auth"
+import { requireAuth as getActor } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { createSite, updateSite, assignEmployeeToSite, assignTeamToSite, endSiteAssignment, saveTeam, setEmployeeTeam } from "@/lib/services/site-service"
 import { LeaveError } from "@/lib/domain/leave-policy"

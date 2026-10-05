@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { markDailyAttendance } from "@/lib/actions/attendance"
+import { markDailyAttendance, checkOutDailyAttendance } from "@/lib/actions/attendance"
 import { AnimatedCard } from "@/components/ui/PageAnimator"
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
     id: string
     date: Date
     checkIn: Date | null
+    checkOut: Date | null
     status: string
   }>
 }
@@ -19,6 +20,15 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
+
+  const todayRecord = recentAttendances.find(r => {
+    const d = new Date(r.date)
+    const t = new Date()
+    return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear()
+  })
+  
+  const isCheckedIn = !!(todayRecord && todayRecord.checkIn && !todayRecord.checkOut)
+  const isCheckedOut = !!(todayRecord && todayRecord.checkOut)
 
   useEffect(() => {
     // Only update on interval to avoid synchronous state update in effect body
@@ -109,8 +119,13 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
           formData.append("accuracy", accuracy.toString())
           formData.append("photo", photoData)
           
-          await markDailyAttendance(formData)
-          alert("Attendance marked successfully!")
+          if (isCheckedIn) {
+            await checkOutDailyAttendance(formData)
+            alert("Checked out successfully!")
+          } else {
+            await markDailyAttendance(formData)
+            alert("Attendance marked successfully!")
+          }
         } catch (error: unknown) {
           alert((error as Error).message || "Failed to mark attendance.")
         } finally {
@@ -206,20 +221,26 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
           )}
         </div>
 
-        <button 
-          onClick={handleMarkAttendance} 
-          disabled={!photoData || isSubmitting || isLocating}
-          className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-sm
-            ${!photoData || isSubmitting || isLocating ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark text-white hover:shadow'}`}
-        >
-          {isLocating ? (
-            <><span className="material-symbols-outlined animate-spin text-sm">my_location</span> Locating...</>
-          ) : isSubmitting ? (
-            <><span className="material-symbols-outlined animate-spin text-sm">sync</span> Verifying...</>
-          ) : (
-            <><span className="material-symbols-outlined text-sm">how_to_reg</span> Mark Attendance</>
-          )}
-        </button>
+        {isCheckedOut ? (
+          <div className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-sm bg-slate-200 dark:bg-slate-800 text-slate-500">
+            <span className="material-symbols-outlined text-sm">done_all</span> You have checked out for today
+          </div>
+        ) : (
+          <button 
+            onClick={handleMarkAttendance} 
+            disabled={!photoData || isSubmitting || isLocating}
+            className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-sm
+              ${!photoData || isSubmitting || isLocating ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : (isCheckedIn ? 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow' : 'bg-primary hover:bg-primary-dark text-white hover:shadow')}`}
+          >
+            {isLocating ? (
+              <><span className="material-symbols-outlined animate-spin text-sm">my_location</span> Locating...</>
+            ) : isSubmitting ? (
+              <><span className="material-symbols-outlined animate-spin text-sm">sync</span> Verifying...</>
+            ) : (
+              <><span className="material-symbols-outlined text-sm">{isCheckedIn ? 'logout' : 'how_to_reg'}</span> {isCheckedIn ? 'Check Out' : 'Mark Attendance'}</>
+            )}
+          </button>
+        )}
 
         {recentAttendances.length > 0 && (
           <div className="mt-4 pt-4 border-t border-outline-variant dark:border-slate-800">
@@ -245,8 +266,9 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
                   <div className="text-right">
                     <p className="text-sm font-semibold text-on-surface dark:text-white">
                       {record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      {record.checkOut ? ` - ${new Date(record.checkOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` : ''}
                     </p>
-                    <p className="text-xs text-secondary dark:text-slate-400">Time-in</p>
+                    <p className="text-xs text-secondary dark:text-slate-400">{record.checkOut ? 'Time in/out' : 'Time in'}</p>
                   </div>
                 </div>
               ))}
