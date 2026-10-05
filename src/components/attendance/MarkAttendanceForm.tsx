@@ -21,7 +21,7 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
 
   useEffect(() => {
-    setCurrentTime(new Date())
+    // Only update on interval to avoid synchronous state update in effect body
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
@@ -98,7 +98,7 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
     setIsLocating(true)
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords
+        const { latitude, longitude, accuracy } = position.coords
         setIsLocating(false)
         setIsSubmitting(true)
 
@@ -106,6 +106,7 @@ export function MarkAttendanceForm({ recentAttendances = [] }: Props) {
           const formData = new FormData()
           formData.append("latitude", latitude.toString())
           formData.append("longitude", longitude.toString())
+          formData.append("accuracy", accuracy.toString())
           formData.append("photo", photoData)
           
           await markDailyAttendance(formData)

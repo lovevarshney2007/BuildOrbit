@@ -94,6 +94,12 @@ export const navConfig: NavGroup[] = [
         roles: ["SUPER_ADMIN", "ADMIN", "HR"],
       },
       {
+        label: "Sites & Geofencing",
+        href: "/hr/sites",
+        icon: "pin_drop",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
         label: "Leave Approval",
         href: "/hr/leave-approval",
         icon: "rule",
