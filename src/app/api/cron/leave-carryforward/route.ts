@@ -34,47 +34,51 @@ export async function GET(request: Request) {
         }
       })
 
-      for (const old of oldBalances) {
-        const remaining = old.totalDays - old.usedDays - old.pendingDays;
-        if (remaining <= 0) continue
+      // Chunk array to avoid database connection exhaustion or serverless timeouts
+      const CHUNK_SIZE = 50;
+      for (let i = 0; i < oldBalances.length; i += CHUNK_SIZE) {
+        const chunk = oldBalances.slice(i, i + CHUNK_SIZE);
 
-        // Calculate how much can be carried forward
-        const carryForwardAmount = Math.min(remaining, type.carryForwardMaxDays)
+        await Promise.all(chunk.map(async (old) => {
+          const remaining = old.totalDays - old.usedDays - old.pendingDays;
+          if (remaining <= 0) return
 
-        // Find or create balance for current year
-        let newBalance = await prisma.leaveBalance.findUnique({
-          where: {
-            employeeId_leaveTypeId_year: {
-              employeeId: old.employeeId,
-              leaveTypeId: type.id,
-              year: currentYear
+          // Calculate how much can be carried forward
+          const carryForwardAmount = Math.min(remaining, type.carryForwardMaxDays!)
+
+          // Find or create balance for current year
+          let newBalance = await prisma.leaveBalance.findUnique({
+            where: {
+              employeeId_leaveTypeId_year: {
+                employeeId: old.employeeId,
+                leaveTypeId: type.id,
+                year: currentYear
+              }
             }
+          })
+
+          if (!newBalance) {
+            await prisma.leaveBalance.create({
+              data: {
+                employeeId: old.employeeId,
+                leaveTypeId: type.id,
+                year: currentYear,
+                totalDays: type.daysAllowed + carryForwardAmount,
+                carriedForwardDays: carryForwardAmount,
+              }
+            })
+          } else {
+            // Update existing current year balance
+            await prisma.leaveBalance.update({
+              where: { id: newBalance.id },
+              data: {
+                carriedForwardDays: carryForwardAmount,
+                totalDays: { increment: carryForwardAmount }
+              }
+            })
           }
-        })
-
-        if (!newBalance) {
-          // If no balance exists, base it on the current default allocation + carry forward
-          // Normally allocation is generated on Jan 1, but we do it gracefully here
-          newBalance = await prisma.leaveBalance.create({
-            data: {
-              employeeId: old.employeeId,
-              leaveTypeId: type.id,
-              year: currentYear,
-              totalDays: type.daysAllowed + carryForwardAmount,
-              carriedForwardDays: carryForwardAmount,
-            }
-          })
-        } else {
-          // Update existing current year balance
-          await prisma.leaveBalance.update({
-            where: { id: newBalance.id },
-            data: {
-              carriedForwardDays: carryForwardAmount,
-              totalDays: { increment: carryForwardAmount }
-            }
-          })
-        }
-        processedCount++
+          processedCount++
+        }));
       }
     }
 

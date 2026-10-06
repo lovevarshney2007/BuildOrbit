@@ -26,49 +26,58 @@ export async function GET(req: NextRequest) {
   let created = 0
   let skipped = 0
 
-  for (const employee of employees) {
-    // Check if payroll for this month already exists
-    const existing = await prisma.payroll.findFirst({
-      where: { employeeId: employee.id, month: payrollMonth, year: payrollYear }
-    })
+  // Chunk array to avoid database connection exhaustion or serverless timeouts
+  const CHUNK_SIZE = 50;
+  for (let i = 0; i < employees.length; i += CHUNK_SIZE) {
+    const chunk = employees.slice(i, i + CHUNK_SIZE);
 
-    if (existing) {
-      skipped++
-      continue
-    }
+    await Promise.all(chunk.map(async (employee) => {
+      // Check if payroll for this month already exists
+      const existing = await prisma.payroll.findFirst({
+        where: { employeeId: employee.id, month: payrollMonth, year: payrollYear }
+      })
 
-    // Calculate LWP days from approved leave requests
-    const unpaidLeaves = await prisma.leaveRequest.findMany({
-      where: {
-        requesterId: (await prisma.employee.findUnique({ where: { id: employee.id }, select: { userId: true } }))!.userId,
-        status: "APPROVED",
-        startDate: { gte: firstDayOfMonth, lte: lastDayOfMonth },
-        paidSnapshot: false,
+      if (existing) {
+        skipped++
+        return
       }
-    })
 
-    const unpaidLeaveDays = unpaidLeaves.reduce((sum, l) => sum + l.days, 0)
+      // Calculate LWP days from approved leave requests
+      const user = await prisma.employee.findUnique({ where: { id: employee.id }, select: { userId: true } })
+      if (!user) return
 
-    // Standard 30-day divisor for daily rate
-    const basicSalary = Number(employee.basicSalary)
-    const dailyRate = basicSalary / 30
-    const deductions = unpaidLeaveDays * dailyRate
-    const netSalary = Math.max(0, basicSalary - deductions)
+      const unpaidLeaves = await prisma.leaveRequest.findMany({
+        where: {
+          requesterId: user.userId,
+          status: "APPROVED",
+          startDate: { gte: firstDayOfMonth, lte: lastDayOfMonth },
+          paidSnapshot: false,
+        }
+      })
 
-    await prisma.payroll.create({
-      data: {
-        employeeId: employee.id,
-        month: payrollMonth,
-        year: payrollYear,
-        basicSalary: basicSalary,
-        deductions: deductions,
-        netSalary: netSalary,
-        paidLeaveDays: 0,
-        unpaidLeaveDays: unpaidLeaveDays,
-        status: "DRAFT",
-      }
-    })
-    created++
+      const unpaidLeaveDays = unpaidLeaves.reduce((sum, l) => sum + l.days, 0)
+
+      // Standard 30-day divisor for daily rate
+      const basicSalary = Number(employee.basicSalary)
+      const dailyRate = basicSalary / 30
+      const deductions = unpaidLeaveDays * dailyRate
+      const netSalary = Math.max(0, basicSalary - deductions)
+
+      await prisma.payroll.create({
+        data: {
+          employeeId: employee.id,
+          month: payrollMonth,
+          year: payrollYear,
+          basicSalary: basicSalary,
+          deductions: deductions,
+          netSalary: netSalary,
+          paidLeaveDays: 0,
+          unpaidLeaveDays: unpaidLeaveDays,
+          status: "DRAFT",
+        }
+      })
+      created++
+    }));
   }
 
   return NextResponse.json({

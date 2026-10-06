@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { updateOrgPolicy, addHoliday, deleteHoliday } from "@/lib/actions/settings"
+import { updateOrgPolicyAction, addHoliday, deleteHoliday } from "@/lib/actions/settings"
 
 const DAYS_OF_WEEK = [
   { id: 0, label: "Sunday" },
@@ -22,8 +22,14 @@ export function OrgPolicyForm({ initialData }: { initialData: { timezone: string
     e.preventDefault()
     setSaving(true)
     try {
-      await updateOrgPolicy({ timezone, weeklyOffDays: offDays })
-      alert("Organization Policy saved successfully!")
+      const result = await updateOrgPolicyAction({ timezone, weeklyOffDays: offDays })
+      if (result?.serverError) {
+        alert(result.serverError)
+      } else if (result?.validationErrors) {
+        alert("Validation error: " + JSON.stringify(result.validationErrors))
+      } else {
+        alert("Organization Policy saved successfully!")
+      }
     } catch (err: any) {
       alert(err.message || "Failed to save policy")
     } finally {

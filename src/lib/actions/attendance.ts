@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { checkIn, checkOut, AttendanceError } from "@/lib/services/attendance-service"
 import { isFaceMatch } from "@/lib/domain/face"
+import { encryptBiometricData, decryptBiometricData } from "@/lib/crypto"
 
 export async function registerFaceAction(data: FormData) {
   const actor = await requireAuth()
@@ -16,7 +17,7 @@ export async function registerFaceAction(data: FormData) {
 
   await prisma.employee.update({
     where: { userId: actor.userId },
-    data: { faceDescriptor: faceDescriptorStr }
+    data: { faceDescriptor: encryptBiometricData(faceDescriptorStr) }
   })
 
   // We can also mark attendance right away since they just checked in during registration
@@ -35,7 +36,8 @@ async function verifyFace(actorId: string, incomingDescriptorStr: string | null)
     throw new Error("Face not registered yet.")
   }
 
-  const registeredDescriptor = JSON.parse(employee.faceDescriptor) as number[]
+  const decryptedDescriptorStr = decryptBiometricData(employee.faceDescriptor)
+  const registeredDescriptor = JSON.parse(decryptedDescriptorStr) as number[]
   const incomingDescriptor = JSON.parse(incomingDescriptorStr) as number[]
 
   if (!isFaceMatch(registeredDescriptor, incomingDescriptor)) {

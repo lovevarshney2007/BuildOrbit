@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
+import { adminActionClient } from "@/lib/safe-action"
 
 // We store Financial Year config as a simple key-value in a settings table.
 // Since there's no Settings model in the schema, we'll use a simple file-based
@@ -85,17 +87,22 @@ export async function getAppSettings(): Promise<Record<string, unknown>> {
   return readSettings()
 }
 
-export async function updateOrgPolicy(data: { timezone: string, weeklyOffDays: number[] }) {
-  const user = await getCurrentUser();
-  if (!user || !["SUPER_ADMIN", "ADMIN"].includes(user.role)) throw new Error("Unauthorized");
-  await prisma.organizationPolicy.upsert({
-    where: { id: "default" },
-    update: data,
-    create: { id: "default", ...data }
+const updateOrgPolicySchema = z.object({
+  timezone: z.string().min(1),
+  weeklyOffDays: z.array(z.number())
+});
+
+export const updateOrgPolicyAction = adminActionClient
+  .schema(updateOrgPolicySchema)
+  .action(async ({ parsedInput: data }) => {
+    await prisma.organizationPolicy.upsert({
+      where: { id: "default" },
+      update: data,
+      create: { id: "default", ...data }
+    });
+    revalidatePath("/admin/settings");
+    return { success: true };
   });
-  revalidatePath("/admin/settings");
-  return { success: true };
-}
 
 export async function addHoliday(data: { name: string, date: string }) {
   const user = await getCurrentUser();
