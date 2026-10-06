@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 
-export async function createLeaveType(data: { name: string, description?: string, daysAllowed: number, isPaid: boolean, isActive: boolean }) {
+import { LeavePayrollImpact } from "@prisma/client"
+
+export async function createLeaveType(data: { name: string, description?: string, daysAllowed: number, isPaid: boolean, isActive: boolean, payrollImpact?: LeavePayrollImpact, payrollDeductionPercent?: number }) {
   const user = await getCurrentUser()
   if (!user || !["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role)) {
     throw new Error("Unauthorized")
@@ -18,7 +20,7 @@ export async function createLeaveType(data: { name: string, description?: string
   return { success: true }
 }
 
-export async function updateLeaveType(id: string, data: { name: string, description?: string, daysAllowed: number, isPaid: boolean, isActive: boolean }) {
+export async function updateLeaveType(id: string, data: { name: string, description?: string, daysAllowed: number, isPaid: boolean, isActive: boolean, payrollImpact?: LeavePayrollImpact, payrollDeductionPercent?: number }) {
   const user = await getCurrentUser()
   if (!user || !["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role)) {
     throw new Error("Unauthorized")

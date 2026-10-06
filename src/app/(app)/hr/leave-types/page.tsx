@@ -27,7 +27,9 @@ export default async function LeaveTypesPage() {
     description: lt.description,
     daysAllowed: lt.daysAllowed,
     isActive: lt.isActive,
-    isPaid: lt.isPaid
+    isPaid: lt.isPaid,
+    payrollImpact: lt.payrollImpact,
+    payrollDeductionPercent: lt.payrollDeductionPercent
   }))
 
   const employees = employeesRaw.map(emp => ({

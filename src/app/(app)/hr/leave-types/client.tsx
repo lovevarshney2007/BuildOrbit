@@ -12,6 +12,8 @@ interface LeaveType {
   daysAllowed: number
   isPaid: boolean
   isActive: boolean
+  payrollImpact?: "NONE" | "DEDUCTION" | "ADDITION"
+  payrollDeductionPercent?: number
 }
 
 interface EmployeeBalance {
@@ -75,7 +77,9 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
       description: fd.get("description") as string,
       daysAllowed: parseInt(fd.get("daysAllowed") as string) || 0,
       isPaid: fd.get("isPaid") === "true",
-      isActive: fd.get("isActive") === "true"
+      isActive: fd.get("isActive") === "true",
+      payrollImpact: (fd.get("payrollImpact") as any) || "NONE",
+      payrollDeductionPercent: parseInt(fd.get("payrollDeductionPercent") as string) || 0
     }
 
     try {
@@ -454,6 +458,33 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
                     <option value="true">Active</option>
                     <option value="false">Inactive</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-on-surface dark:text-slate-300">Payroll Impact</label>
+                  <select 
+                    name="payrollImpact" 
+                    defaultValue={editingType?.payrollImpact || "NONE"}
+                    className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="NONE">None (No Deduction)</option>
+                    <option value="DEDUCTION">Deduction (Cuts Salary)</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-on-surface dark:text-slate-300">Deduction %</label>
+                  <input 
+                    type="number" 
+                    name="payrollDeductionPercent" 
+                    defaultValue={editingType?.payrollDeductionPercent ?? 100}
+                    required 
+                    min="0"
+                    max="100"
+                    className="px-3 py-2 bg-surface-container dark:bg-slate-950 border border-outline-variant dark:border-slate-700 rounded-lg text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                  />
                 </div>
               </div>
 
