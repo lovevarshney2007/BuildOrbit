@@ -1,0 +1,18 @@
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const fs = require('fs');
+fs.writeFileSync('test.pdf', '%PDF-1.4\n%...\n'); // mock PDF
+
+cloudinary.uploader.upload('test.pdf', { folder: 'test', resource_type: 'auto' }, function(error, result) {
+  if (error) {
+    console.error("Cloudinary Error:", error);
+  } else {
+    console.log("Success:", result.secure_url);
+  }
+});
