@@ -157,18 +157,16 @@ export async function generatePayrollForMonth(month: number, year: number) {
       continue
     }
 
-    await prisma.payroll.create({
-      data: {
-        employeeId: emp.id,
-        month,
-        year,
-        basicSalary: basic,
-        allowances,
-        deductions,
-        netSalary: net,
-        status: PayrollStatus.DRAFT,
-        notes: `Auto-generated for ${month}/${year}`,
-      },
+    const { createPayrollRecord } = await import("@/lib/services/payroll-service")
+    await createPayrollRecord(prisma, {
+      employeeId: emp.id,
+      month,
+      year,
+      basicSalary: basic,
+      allowances,
+      deductions,
+      notes: `Auto-generated for ${month}/${year}`,
+      actorId: user.userId,
     })
     created++
   }
