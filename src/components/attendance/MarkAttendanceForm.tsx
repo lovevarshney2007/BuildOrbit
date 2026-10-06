@@ -74,11 +74,20 @@ export function MarkAttendanceForm({ recentAttendances = [], hasFaceRegistered =
   // Capture from Video Stream
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext("2d")
-      canvasRef.current.width = videoRef.current.videoWidth
-      canvasRef.current.height = videoRef.current.videoHeight
-      context?.drawImage(videoRef.current, 0, 0)
-      const dataUrl = canvasRef.current.toDataURL("image/jpeg")
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      const context = canvas.getContext("2d")
+      
+      // Scale down the image to max 800px width to avoid exceeding Next.js 1MB Server Action payload limit
+      const maxWidth = 800
+      const scale = Math.min(1, maxWidth / video.videoWidth)
+      
+      canvas.width = video.videoWidth * scale
+      canvas.height = video.videoHeight * scale
+      context?.drawImage(video, 0, 0, canvas.width, canvas.height)
+      
+      // Compress as JPEG at 70% quality
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.7)
       setPhotoData(dataUrl)
       
       // Stop stream
@@ -149,16 +158,21 @@ export function MarkAttendanceForm({ recentAttendances = [], hasFaceRegistered =
           formData.append("photo", photoData)
           formData.append("faceDescriptor", JSON.stringify(Array.from(faceDescriptor!)))
           
+          let result;
           if (!hasFaceRegistered) {
             // First time: Register face
-            await registerFaceAction(formData)
-            alert("Face registered and attendance marked successfully!")
+            result = await registerFaceAction(formData)
+            if (!result?.error) alert("Face registered and attendance marked successfully!")
           } else if (isCheckedIn) {
-            await checkOutDailyAttendance(formData)
-            alert("Checked out successfully!")
+            result = await checkOutDailyAttendance(formData)
+            if (!result?.error) alert("Checked out successfully!")
           } else {
-            await markDailyAttendance(formData)
-            alert("Attendance marked successfully!")
+            result = await markDailyAttendance(formData)
+            if (!result?.error) alert("Attendance marked successfully!")
+          }
+          
+          if (result?.error) {
+            alert(result.error)
           }
         } catch (error: unknown) {
           alert((error as Error).message || "Failed to mark attendance.")
