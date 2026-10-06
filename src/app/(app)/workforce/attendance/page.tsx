@@ -74,11 +74,18 @@ export default async function AttendancePage({
   let hasFaceRegistered = false
 
   if (tab === "my") {
-    myRecords = await prisma.attendance.findMany({
+    const rawRecords = await prisma.attendance.findMany({
       where: { employee: { userId: user.userId } },
       orderBy: { date: "desc" },
       take: 5,
     })
+    myRecords = rawRecords.map(r => ({
+      id: r.id,
+      date: r.date,
+      checkIn: r.checkIn,
+      checkOut: r.checkOut,
+      status: r.status,
+    }))
     
     const myEmployee = await prisma.employee.findUnique({
       where: { userId: user.userId },

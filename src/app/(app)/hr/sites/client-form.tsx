@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createSiteAction, updateSiteAction, assignEmployeeSiteAction, assignTeamSiteAction } from "@/lib/actions/site"
+import { createSiteAction, updateSiteAction, deleteSiteAction, assignEmployeeSiteAction, assignTeamSiteAction } from "@/lib/actions/site"
 import { LocationPicker } from "@/components/ui/LocationPicker"
 
 type SiteFormData = {
@@ -114,6 +114,30 @@ export function SiteForm({
     } catch (err) {
       setError("An unexpected error occurred")
     } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!id) return
+    if (!confirm("Are you sure you want to delete this site? This action cannot be undone.")) return
+    
+    setIsSubmitting(true)
+    setError("")
+    
+    try {
+      const result = await deleteSiteAction(id)
+      if (!result.success) {
+        setError(result.message || "Failed to delete site")
+        setIsSubmitting(false)
+        return
+      }
+      
+      alert("Site deleted successfully!")
+      router.push("/hr/sites")
+      router.refresh()
+    } catch (err) {
+      setError("An unexpected error occurred")
       setIsSubmitting(false)
     }
   }
@@ -314,6 +338,16 @@ export function SiteForm({
       )}
 
       <div className="flex items-center gap-3 justify-end pt-4 border-t border-outline-variant/30">
+        {id && (
+          <button 
+            type="button" 
+            onClick={handleDelete}
+            disabled={isSubmitting}
+            className="h-10 px-4 rounded-xl font-medium text-error hover:bg-error/10 transition-colors mr-auto"
+          >
+            Delete Site
+          </button>
+        )}
         <button 
           type="button" 
           onClick={() => router.back()}

@@ -129,6 +129,14 @@ export async function updateSite(db: PrismaClient, actor: Actor, id: string, raw
   })
 }
 
+export async function deleteSite(db: PrismaClient, actor: Actor, id: string): Promise<void> {
+  assertCan(actor.role, "site:manage")
+  return db.$transaction(async (tx) => {
+    await tx.site.delete({ where: { id } })
+    await writeAudit(tx, { actorId: actor.userId, action: "SITE_DELETED", entityType: "Site", entityId: id })
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Assignments
 // ---------------------------------------------------------------------------

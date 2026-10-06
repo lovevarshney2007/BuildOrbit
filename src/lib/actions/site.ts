@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireAuth as getActor } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
-import { createSite, updateSite, assignEmployeeToSite, assignTeamToSite, endSiteAssignment, saveTeam, setEmployeeTeam } from "@/lib/services/site-service"
+import { createSite, updateSite, deleteSite, assignEmployeeToSite, assignTeamToSite, endSiteAssignment, saveTeam, setEmployeeTeam } from "@/lib/services/site-service"
 import { LeaveError } from "@/lib/domain/leave-policy"
 
 export async function createSiteAction(data: unknown) {
@@ -32,6 +32,20 @@ export async function updateSiteAction(id: string, data: unknown) {
       return { success: false, message: err.message }
     }
     return { success: false, message: err?.message || "An unexpected error occurred" }
+  }
+}
+
+export async function deleteSiteAction(id: string) {
+  const actor = await getActor()
+  try {
+    await deleteSite(prisma, actor, id)
+    revalidatePath("/hr/sites")
+    return { success: true }
+  } catch (err: unknown) {
+    if (err instanceof LeaveError) {
+      return { success: false, message: err.message }
+    }
+    return { success: false, message: (err as Error)?.message || "An unexpected error occurred" }
   }
 }
 
