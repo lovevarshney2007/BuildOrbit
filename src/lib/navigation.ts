@@ -141,6 +141,12 @@ export const navConfig: NavGroup[] = [
     title: "ADMINISTRATION",
     items: [
       {
+        label: "Teams",
+        href: "/admin/teams",
+        icon: "hub",
+        roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+      },
+      {
         label: "Settings",
         href: "/admin/settings",
         icon: "settings",
