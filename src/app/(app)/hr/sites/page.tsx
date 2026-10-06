@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { MapPin, Users, Edit } from "lucide-react"
+import { DeleteSiteButton } from "./delete-button"
 
 export default async function SitesPage() {
   const user = await getCurrentUser()
@@ -64,9 +65,12 @@ export default async function SitesPage() {
                   </div>
                   <p className="text-secondary dark:text-slate-400 font-label-sm text-sm mt-0.5">Code: {site.code}</p>
                 </div>
-                <Link href={`/hr/sites/${site.id}`} className="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-                  <Edit size={18} />
-                </Link>
+                <div className="flex items-center gap-1">
+                  <Link href={`/hr/sites/${site.id}`} className="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                    <Edit size={18} />
+                  </Link>
+                  <DeleteSiteButton id={site.id} />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 py-3 border-y border-outline-variant/30 mt-1">
