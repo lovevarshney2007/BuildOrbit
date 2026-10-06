@@ -76,7 +76,8 @@ export async function applyLeaveAction(
       return { message: err.message, fields }
     }
     console.error(err)
-    return { message: "An unexpected error occurred while applying for leave.", fields }
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    return { message: `An unexpected error occurred: ${errorMessage}`, fields }
   }
 
   // Send email to HR (best-effort)

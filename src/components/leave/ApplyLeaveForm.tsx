@@ -11,8 +11,11 @@ interface Props {
 
 export function ApplyLeaveForm({ leaveTypes }: Props) {
   const [state, action, pending] = useActionState(applyLeaveAction, null)
+  const [leaveTypeId, setLeaveTypeId] = useState(state?.fields?.leaveTypeId || "")
   const [startDate, setStartDate] = useState(state?.fields?.startDate || "")
-  const [selectedLeaveType, setSelectedLeaveType] = useState(state?.fields?.leaveTypeId || "")
+  const [endDate, setEndDate] = useState(state?.fields?.endDate || "")
+  const [halfDay, setHalfDay] = useState(state?.fields?.halfDay === "true")
+  const [reason, setReason] = useState(state?.fields?.reason || "")
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -27,8 +30,8 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
         <label className="mb-1 block text-[13px] font-medium text-on-surface dark:text-white">Leave Type <span className="text-red-500">*</span></label>
         <select
           name="leaveTypeId"
-          defaultValue={state?.fields?.leaveTypeId || ""}
-          onChange={(e) => setSelectedLeaveType(e.target.value)}
+          value={leaveTypeId}
+          onChange={(e) => setLeaveTypeId(e.target.value)}
           required
           className="h-9 w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
         >
@@ -66,7 +69,8 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
             name="endDate"
             required
             min={startDate}
-            defaultValue={state?.fields?.endDate || ""}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
             className="h-9 w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {state?.errors?.endDate && (
@@ -82,7 +86,7 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
           <p className="text-[11px] text-secondary dark:text-slate-400">Apply for first half or second half only</p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" name="halfDay" value="true" className="sr-only peer" />
+          <input type="checkbox" name="halfDay" value="true" checked={halfDay} onChange={(e) => setHalfDay(e.target.checked)} className="sr-only peer" />
           <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary"></div>
         </label>
       </div>
@@ -94,7 +98,8 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
           name="reason"
           rows={3}
           required
-          defaultValue={state?.fields?.reason || ""}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
           placeholder="Briefly explain the reason for your leave…"
           className="w-full rounded-md border border-outline-variant dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-[13px] text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
         />
@@ -103,7 +108,7 @@ export function ApplyLeaveForm({ leaveTypes }: Props) {
         )}
       </div>
 
-      {leaveTypes.find(lt => lt.id === selectedLeaveType)?.name.toLowerCase().includes("sick") && (
+      {leaveTypes.find(lt => lt.id === leaveTypeId)?.name.toLowerCase().includes("sick") && (
         <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900">
           <label className="mb-1 block text-[13px] font-medium text-amber-900 dark:text-amber-500">Medical Certificate <span className="text-red-500">*</span></label>
           <p className="text-[11px] text-amber-700 dark:text-amber-600 mb-2">A medical certificate is mandatory for sick leaves.</p>
