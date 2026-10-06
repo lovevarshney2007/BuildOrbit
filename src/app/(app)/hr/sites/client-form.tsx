@@ -108,6 +108,7 @@ export function SiteForm({
         await Promise.all(promises)
       }
 
+      alert(id ? "Site updated successfully!" : "Site created successfully!")
       router.push("/hr/sites")
       router.refresh()
     } catch (err) {
