@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
-import { AnimatedCard } from "@/components/ui/AnimatedCard"
+import { AnimatedCard } from "@/components/ui/PageAnimator"
 import { CreateTeamForm } from "./CreateTeamForm"
 import { AssignMembersForm } from "./AssignMembersForm"
 
