@@ -52,8 +52,22 @@ export default async function AttendancePage({
   let teamData: TeamDataItem[] = []
 
   if (tab === "team" && isAdminLike) {
+    let teamFilter: any = { status: "ACTIVE" }
+    if (user.role === "LEAD") {
+      const leadEmployee = await prisma.employee.findUnique({ where: { userId: user.userId } })
+      if (leadEmployee) {
+        teamFilter = {
+          status: "ACTIVE",
+          OR: [
+            { team: { leadId: leadEmployee.id } },
+            { id: leadEmployee.id }
+          ]
+        }
+      }
+    }
+
     const allActive = await prisma.employee.findMany({
-      where: { status: "ACTIVE" },
+      where: teamFilter,
       include: {
         user: { select: { name: true, email: true, role: true } },
         attendances: {

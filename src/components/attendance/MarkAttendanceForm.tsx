@@ -135,6 +135,7 @@ export function MarkAttendanceForm({ recentAttendances = [], hasFaceRegistered =
       if (!faceDescriptor) {
         setIsSubmitting(false)
         alert("No face detected in the photo. Please ensure your face is clearly visible and well lit.")
+        resetPhoto()
         return
       }
     } catch (e) {
@@ -216,9 +217,6 @@ export function MarkAttendanceForm({ recentAttendances = [], hasFaceRegistered =
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photoData} alt="Captured" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none"></div>
-              <button onClick={resetPhoto} className="absolute top-4 right-4 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white w-10 h-10 rounded-full transition-all flex items-center justify-center shadow-md border border-slate-200 dark:border-slate-700 hover:scale-105 z-20 pointer-events-auto">
-                <span className="material-symbols-outlined text-lg">close</span>
-              </button>
             </div>
           )}
 
@@ -275,20 +273,32 @@ export function MarkAttendanceForm({ recentAttendances = [], hasFaceRegistered =
             <span className="material-symbols-outlined text-sm">done_all</span> You have checked out for today
           </div>
         ) : (
-          <button 
-            onClick={handleMarkAttendance} 
-            disabled={!photoData || isSubmitting || isLocating}
-            className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-sm
-              ${!photoData || isSubmitting || isLocating ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : (isCheckedIn ? 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow' : 'bg-primary hover:bg-primary-dark text-white hover:shadow')}`}
-          >
-            {isLocating ? (
-              <><span className="material-symbols-outlined animate-spin text-sm">my_location</span> Locating...</>
-            ) : isSubmitting ? (
-              <><span className="material-symbols-outlined animate-spin text-sm">sync</span> Verifying...</>
-            ) : (
-              <><span className="material-symbols-outlined text-sm">{isCheckedIn ? 'logout' : 'how_to_reg'}</span> {isCheckedIn ? 'Check Out' : 'Mark Attendance'}</>
+          <div className="flex gap-3 w-full">
+            {photoData && (
+              <button
+                type="button"
+                onClick={resetPhoto}
+                disabled={isSubmitting || isLocating}
+                className="flex-[1] h-12 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold transition-colors flex items-center justify-center"
+              >
+                Retake
+              </button>
             )}
-          </button>
+            <button 
+              onClick={handleMarkAttendance} 
+              disabled={!photoData || isSubmitting || isLocating}
+              className={`flex-[2] h-12 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-sm
+                ${!photoData || isSubmitting || isLocating ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : (isCheckedIn ? 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow' : 'bg-primary hover:bg-primary-dark text-white hover:shadow')}`}
+            >
+              {isLocating ? (
+                <><span className="material-symbols-outlined animate-spin text-sm">my_location</span> Locating...</>
+              ) : isSubmitting ? (
+                <><span className="material-symbols-outlined animate-spin text-sm">sync</span> Verifying...</>
+              ) : (
+                <><span className="material-symbols-outlined text-sm">{isCheckedIn ? 'logout' : 'how_to_reg'}</span> {isCheckedIn ? 'Check Out' : 'Mark Attendance'}</>
+              )}
+            </button>
+          </div>
         )}
 
         {recentAttendances.length > 0 && (

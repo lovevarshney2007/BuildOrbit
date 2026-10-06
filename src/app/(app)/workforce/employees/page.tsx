@@ -46,10 +46,24 @@ export default async function EmployeesPage({
   const statusFilter = params.status as EmployeeStatus | undefined
   const roleFilter = params.role as Role | undefined
 
+  let leadFilter: any = {}
+  if (user.role === "LEAD") {
+    const leadEmployee = await prisma.employee.findUnique({ where: { userId: user.userId } })
+    if (leadEmployee) {
+      leadFilter = {
+        OR: [
+          { team: { leadId: leadEmployee.id } },
+          { id: leadEmployee.id }
+        ]
+      }
+    }
+  }
+
   const employees = await prisma.employee.findMany({
     where: {
       status: statusFilter ?? undefined,
       departmentId: departmentId ?? undefined,
+      ...leadFilter,
       user: {
         role: roleFilter ?? undefined,
         ...(search ? {

@@ -67,6 +67,7 @@ export function FaceOnboarding() {
       if (!faceDescriptor) {
         setIsSubmitting(false)
         alert("No face detected in the photo. Please ensure your face is clearly visible and well lit.")
+        resetPhoto()
         return
       }
 
@@ -145,7 +146,7 @@ export function FaceOnboarding() {
             type="button"
             onClick={resetPhoto}
             disabled={isSubmitting}
-            className="flex-1 h-12 border border-outline-variant hover:bg-surface-container-low text-secondary rounded-xl font-medium transition-colors"
+            className="flex-1 h-12 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors"
           >
             Retake
           </button>

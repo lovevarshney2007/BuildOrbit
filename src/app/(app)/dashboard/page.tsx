@@ -9,12 +9,17 @@ export default async function DashboardPage() {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
 
-  if (user.role === "ENGINEER") {
-    const employee = await prisma.employee.findUnique({
-      where: { userId: user.userId },
-      include: { department: true }
-    })
+  const employee = await prisma.employee.findUnique({
+    where: { userId: user.userId },
+    include: { department: true }
+  })
 
+  // Force onboarding for any user (including LEAD, HR, ADMIN) who has an employee profile but hasn't registered their face
+  if (employee && !employee.faceDescriptor) {
+    redirect("/onboarding")
+  }
+
+  if (user.role === "ENGINEER" || user.role === "LEAD") {
     if (!employee) {
       return (
         <div className="p-8 text-center text-secondary dark:text-slate-400">
@@ -22,10 +27,6 @@ export default async function DashboardPage() {
           <p>Please contact HR.</p>
         </div>
       )
-    }
-
-    if (!employee.faceDescriptor) {
-      redirect("/onboarding")
     }
 
     const now = new Date()
@@ -36,6 +37,18 @@ export default async function DashboardPage() {
     today.setHours(0, 0, 0, 0)
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(today.getDate() - 7)
+
+    let teamStats = { total: 0, present: 0, onLeave: 0, pendingLeaves: 0, activeLeads: 0 }
+    if (user.role === "LEAD") {
+      const [tTotal, tPresent, tLeave, tPending, tLeads] = await Promise.all([
+        prisma.employee.count({ where: { status: "ACTIVE", team: { leadId: employee.id } } }),
+        prisma.attendance.count({ where: { date: today, status: "PRESENT", employee: { team: { leadId: employee.id } } } }),
+        prisma.attendance.count({ where: { date: today, status: "ON_LEAVE", employee: { team: { leadId: employee.id } } } }),
+        prisma.leaveRequest.count({ where: { status: "PENDING", requester: { employee: { team: { leadId: employee.id } } } } }),
+        prisma.lead.count({ where: { status: { not: "LOST" } } })
+      ])
+      teamStats = { total: tTotal, present: tPresent, onLeave: tLeave, pendingLeaves: tPending, activeLeads: tLeads }
+    }
 
     const [
       monthlyAttendance,
@@ -373,6 +386,43 @@ export default async function DashboardPage() {
             </AnimatedCard>
           </div>
         </div>
+
+        {/* TEAM OVERVIEW WIDGET FOR LEADS */}
+        {user.role === "LEAD" && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <AnimatedCard delay={0.60} className="p-6 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm md:col-span-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">groups</span>
+                  My Team Overview
+                </h3>
+                <Link href="/workforce/attendance?tab=team" className="text-sm font-semibold text-primary hover:underline">View Team Details</Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider mb-1">Team Members</p>
+                  <p className="text-2xl font-bold text-on-surface dark:text-white">{teamStats.total}</p>
+                </div>
+                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1">Present Today</p>
+                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{teamStats.present}</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-xl border border-orange-100 dark:border-orange-900/30">
+                  <p className="text-[10px] font-bold text-orange-600 dark:text-orange-500 uppercase tracking-wider mb-1">On Leave Today</p>
+                  <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">{teamStats.onLeave}</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/10 p-4 rounded-xl border border-purple-100 dark:border-purple-900/30">
+                  <p className="text-[10px] font-bold text-purple-600 dark:text-purple-500 uppercase tracking-wider mb-1">Pending Leaves</p>
+                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{teamStats.pendingLeaves}</p>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                  <p className="text-[10px] font-bold text-blue-600 dark:text-blue-500 uppercase tracking-wider mb-1">Active Leads</p>
+                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{teamStats.activeLeads}</p>
+                </div>
+              </div>
+            </AnimatedCard>
+          </div>
+        )}
       </div>
     )
   }
@@ -657,6 +707,16 @@ export default async function DashboardPage() {
               <h3 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight">Quick Actions</h3>
             </div>
             <div className="grid grid-cols-1 gap-3">
+              <Link href="/workforce/attendance" className="p-3 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
+                  <span className="material-symbols-outlined">co_present</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-on-surface dark:text-white">Mark Attendance</p>
+                  <p className="text-xs text-secondary dark:text-slate-400">Log your daily presence</p>
+                </div>
+                <span className="material-symbols-outlined text-outline group-hover:text-slate-900 dark:text-white transition-colors">arrow_forward</span>
+              </Link>
               {isAdminLike && (
                 <Link href="/hr/leave-approval" className="p-3 rounded-xl border border-outline-variant dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-left transition-all group shadow-sm hover:shadow-md flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white group-hover:bg-slate-900 group-hover:text-white transition-colors shrink-0">
