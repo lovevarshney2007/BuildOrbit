@@ -76,7 +76,14 @@ export async function applyLeaveAction(
       return { message: err.message, fields }
     }
     console.error(err)
-    const errorMessage = err instanceof Error ? err.message : String(err)
+    let errorMessage = "Unknown error"
+    if (err instanceof Error) {
+      errorMessage = err.message
+    } else if (typeof err === "object" && err !== null) {
+      errorMessage = JSON.stringify(err)
+    } else {
+      errorMessage = String(err)
+    }
     return { message: `An unexpected error occurred: ${errorMessage}`, fields }
   }
 
