@@ -37,6 +37,13 @@ function LocationMarker({ position, onChange, readOnly }: { position: [number, n
   // Recenter map when position prop changes significantly
   useEffect(() => {
     map.flyTo(position, map.getZoom(), { animate: true, duration: 0.5 })
+    
+    // Fix grey tile issue on first load or resize
+    const timer = setTimeout(() => {
+      map.invalidateSize()
+    }, 200)
+    
+    return () => clearTimeout(timer)
   }, [position[0], position[1], map])
 
   return position[0] !== 0 || position[1] !== 0 ? (
