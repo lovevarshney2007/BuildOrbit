@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 
-export default async function PayslipPrintPage({ params }: { params: { id: string } }) {
+export default async function PayslipPrintPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
 
@@ -12,9 +12,11 @@ export default async function PayslipPrintPage({ params }: { params: { id: strin
   })
 
   if (!currentUserEmployee) redirect("/workforce/payslip")
+  
+  const resolvedParams = await params;
 
   const payslip = await prisma.payroll.findUnique({
-    where: { id: params.id },
+    where: { id: resolvedParams.id },
     include: {
       employee: {
         include: { department: true, designation: true, user: true }
