@@ -2,9 +2,10 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 
-export default async function InviteAcceptPage({ params }: { params: { token: string } }) {
+export default async function InviteAcceptPage({ params }: { params: Promise<{ token: string }> }) {
+  const resolvedParams = await params
   const invitation = await prisma.employeeInvitation.findUnique({
-    where: { token: params.token }
+    where: { token: resolvedParams.token }
   })
 
   const isValid = invitation && invitation.status === "PENDING" && invitation.expiresAt > new Date()
@@ -29,7 +30,7 @@ export default async function InviteAcceptPage({ params }: { params: { token: st
               <p className="text-sm text-slate-500 mb-6">Welcome, {invitation.name}!</p>
             )}
             <Link
-              href={`/register?email=${encodeURIComponent(invitation.email)}&token=${params.token}`}
+              href={`/register?email=${encodeURIComponent(invitation.email)}&token=${resolvedParams.token}`}
               className="block w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors"
             >
               Accept & Create Account

@@ -88,9 +88,9 @@ export async function applyLeaveAction(
     const leaveTypeRecord = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
     if (employee && leaveTypeRecord) {
       const hrUsers = await prisma.user.findMany({ where: { role: "HR", isActive: true } })
-      const hrEmails = hrUsers.map((u) => u.email)
-
-      if (hrEmails.length > 0 && employee.user.name) {
+      if (hrUsers.length > 0 && employee.user.name) {
+        // Send email to HR
+        const hrEmails = hrUsers.map((u) => u.email)
         await sendEmail({
           to: hrEmails,
           subject: `New Leave Request: ${employee.user.name}`,
@@ -103,6 +103,18 @@ export async function applyLeaveAction(
             days: leaveRequest.days,
           }) as ReactElement,
         })
+        
+        // In-app notification to all HRs
+        const { createNotification } = await import("@/lib/actions/notifications")
+        await Promise.all(hrUsers.map(hr => 
+          createNotification({
+            userId: hr.id,
+            type: "LEAVE_APPLIED",
+            title: "New Leave Request",
+            message: `${employee.user.name} applied for ${leaveTypeRecord.name}.`,
+            link: "/hr/leave-approval",
+          })
+        ))
       }
     }
   } catch (error) {
