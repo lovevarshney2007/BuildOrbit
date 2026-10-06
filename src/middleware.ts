@@ -34,6 +34,7 @@ export async function middleware(request: NextRequest) {
   if (
     !isAuthenticated &&
     !PUBLIC_PATHS.some((p) => pathname === p) &&
+    !pathname.startsWith("/invite/") &&
     pathname !== "/"
   ) {
     const loginUrl = new URL("/login", request.url)
