@@ -32,7 +32,7 @@ const MATRIX: Record<Permission, Role[]> = {
   "attendance:mark": ["HR", "LEAD", "ENGINEER", "ADMIN", "SUPER_ADMIN"],
   "attendance:view-all": ["SUPER_ADMIN", "ADMIN", "HR"],
   "attendance:view-team": ["LEAD"],
-  "site:manage": ["SUPER_ADMIN", "ADMIN"],
+  "site:manage": ["SUPER_ADMIN", "ADMIN", "HR"],
   "site:view": ["SUPER_ADMIN", "ADMIN", "HR", "LEAD"],
   "site:assign": ["SUPER_ADMIN", "ADMIN", "HR"],
   "team:manage": ["SUPER_ADMIN", "ADMIN", "HR"],
