@@ -1,25 +1,34 @@
 "use client"
 
-import { useActionState, useState } from "react"
-import { sendOtpAction, verifyOtpAction, resendOtpAction } from "@/lib/actions/auth"
+import { useActionState, useState, Suspense, useEffect } from "react"
+import { sendOtpAction, verifyOtpAction, resendOtpAction, acceptInviteAction } from "@/lib/actions/auth"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get("token")
+  const inviteEmail = searchParams.get("email")
+
+  const [inviteState, inviteAction, invitePending] = useActionState(acceptInviteAction, null)
   const [sendState, sendAction, sendPending] = useActionState(sendOtpAction, null)
   const [verifyState, verifyAction, verifyPending] = useActionState(verifyOtpAction, null)
 
   const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(inviteEmail || "")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendMessage, setResendMessage] = useState("")
 
+  useEffect(() => {
+    if (inviteEmail) setEmail(inviteEmail)
+  }, [inviteEmail])
+
   const step = verifyState?.step || sendState?.step || "REGISTER"
-  const isOtpStep = step === "VERIFY_OTP"
+  const isOtpStep = step === "VERIFY_OTP" && !inviteToken
   
-  // Data from previous step (useful if form fails validation during OTP step)
   const activeData = verifyState?.data || sendState?.data || {}
 
   const handleResend = async () => {
@@ -36,12 +45,14 @@ export default function RegisterPage() {
     }
   }
 
+  const activeAction = inviteToken ? inviteAction : sendAction
+  const isPending = inviteToken ? invitePending : sendPending
+  const activeState = inviteToken ? inviteState : sendState
+
   return (
     <div className="flex-1 flex overflow-hidden min-h-screen bg-surface-container-lowest dark:bg-slate-950">
       
-      {/* Left side: Pixelated/Grid Visuals */}
       <div className="hidden lg:flex w-[55%] relative items-center justify-center overflow-hidden bg-[#0F172A]">
-        {/* Pixel/Grid Background Pattern */}
         <div 
           className="absolute inset-0 z-0 opacity-20 pointer-events-none" 
           style={{ 
@@ -51,7 +62,6 @@ export default function RegisterPage() {
         ></div>
         <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A]/80 via-transparent to-[#0F172A] z-0"></div>
 
-        {/* Decorative Pixel Blocks */}
         <div className="absolute top-20 left-20 w-20 h-20 bg-slate-900/20 backdrop-blur-sm grid grid-cols-4 grid-rows-4 z-0 gap-1 opacity-50">
           {[...Array(16)].map((_, i) => (
             <div key={i} className={`bg-slate-800 ${i % 3 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
@@ -89,7 +99,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right side: The Register/OTP Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-8 bg-surface-container-lowest dark:bg-slate-950 overflow-y-auto">
         <div className="w-full max-w-[420px] py-12">
           
@@ -98,18 +107,19 @@ export default function RegisterPage() {
               <div className="mb-8">
                 <h2 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight mb-2">Create an account</h2>
                 <p className="font-body-md text-body-md text-secondary dark:text-slate-400">
-                  Enter your details to get started.
+                  {inviteToken ? "Set your password to accept the invitation." : "Enter your details to get started."}
                 </p>
               </div>
 
-              {sendState?.message && (
+              {activeState?.message && (
                 <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-3">
                   <span className="material-symbols-outlined text-red-500 shrink-0">error</span>
-                  <span>{sendState.message}</span>
+                  <span>{activeState.message}</span>
                 </div>
               )}
 
-              <form action={sendAction} className="space-y-6">
+              <form action={activeAction} className="space-y-6">
+                {inviteToken && <input type="hidden" name="token" value={inviteToken} />}
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface dark:text-white font-medium mb-1.5" htmlFor="name">
                     Full Name
@@ -126,9 +136,9 @@ export default function RegisterPage() {
                       placeholder="Jane Doe"
                     />
                   </div>
-                  {sendState?.errors?.name && (
+                  {activeState?.errors?.name && (
                     <p className="text-sm text-red-600 mt-2">
-                      {sendState.errors.name[0]}
+                      {activeState.errors.name[0]}
                     </p>
                   )}
                 </div>
@@ -139,19 +149,20 @@ export default function RegisterPage() {
                   </label>
                   <div className="relative">
                     <input 
-                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+                      className="w-full h-12 px-4 bg-surface-bright border border-outline-variant dark:border-slate-800 hover:border-outline rounded-xl font-body-md text-body-md text-on-surface dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-900" 
                       id="email" 
                       name="email"
                       type="email" 
                       required
                       value={email}
+                      readOnly={!!inviteEmail}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@company.com"
                     />
                   </div>
-                  {sendState?.errors?.email && (
+                  {activeState?.errors?.email && (
                     <p className="text-sm text-red-600 mt-2">
-                      {sendState.errors.email[0]}
+                      {activeState.errors.email[0]}
                     </p>
                   )}
                 </div>
@@ -182,9 +193,9 @@ export default function RegisterPage() {
                       </span>
                     </button>
                   </div>
-                  {sendState?.errors?.password && (
+                  {activeState?.errors?.password && (
                     <p className="text-sm text-red-600 mt-2">
-                      {sendState.errors.password[0]}
+                      {activeState.errors.password[0]}
                     </p>
                   )}
                 </div>
@@ -193,15 +204,15 @@ export default function RegisterPage() {
                   <button 
                     className="w-full h-12 bg-primary hover:bg-primary/90 text-on-primary font-label-lg text-label-lg rounded-xl flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed" 
                     type="submit"
-                    disabled={sendPending}
+                    disabled={isPending}
                   >
-                    {sendPending ? (
+                    {isPending ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-                        <span>Sending OTP...</span>
+                        <span>{inviteToken ? "Creating Account..." : "Sending OTP..."}</span>
                       </>
                     ) : (
-                      <span>Register</span>
+                      <span>{inviteToken ? "Accept Invitation & Register" : "Register"}</span>
                     )}
                   </button>
                 </div>
@@ -305,5 +316,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <RegisterForm />
+    </Suspense>
   )
 }

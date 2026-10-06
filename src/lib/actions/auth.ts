@@ -315,3 +315,83 @@ export async function verifyOtpAction(
 
   redirect("/dashboard")
 }
+
+const AcceptInviteSchema = z.object({
+  token: z.string(),
+  name: z.string().min(1, { message: "Name is required." }),
+  email: z.string().email(),
+  password: z.string().min(6, { message: "Password must be at least 6 characters long." }),
+})
+
+export async function acceptInviteAction(
+  _prevState: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const validated = AcceptInviteSchema.safeParse({
+    token: formData.get("token"),
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+  })
+
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors, step: "REGISTER" }
+  }
+
+  const { token, name, email, password } = validated.data
+
+  const invitation = await prisma.employeeInvitation.findUnique({ where: { token } })
+  if (!invitation || invitation.status !== "PENDING" || invitation.expiresAt < new Date()) {
+    return { message: "Invalid or expired invitation token.", step: "REGISTER" }
+  }
+
+  if (invitation.email !== email) {
+    return { message: "Email does not match the invitation.", step: "REGISTER" }
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { email } })
+  if (existingUser) {
+    return { message: "An account with this email already exists.", step: "REGISTER" }
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10)
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      passwordHash,
+      role: invitation.role,
+      isActive: true,
+    }
+  })
+
+  await prisma.employeeInvitation.update({
+    where: { id: invitation.id },
+    data: { status: "ACCEPTED" }
+  })
+
+  const dept = await prisma.department.findFirst() || await prisma.department.create({ data: { name: "Engineering" } })
+  const desig = await prisma.designation.findFirst() || await prisma.designation.create({ data: { title: "Employee" } })
+
+  await prisma.employee.create({
+    data: {
+      userId: user.id,
+      employeeCode: `EMP${Math.floor(1000 + Math.random() * 9000)}`,
+      departmentId: dept.id,
+      designationId: desig.id,
+      basicSalary: 60000,
+      joiningDate: new Date(),
+      status: "ACTIVE",
+    }
+  })
+
+  await createSession({
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  })
+
+  redirect("/dashboard")
+}
