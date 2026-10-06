@@ -76,7 +76,7 @@ export function SiteForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface dark:bg-surface-dark border border-outline-variant/30 rounded-2xl p-6 flex flex-col gap-6 w-full max-w-3xl">
+    <form onSubmit={handleSubmit} className="bg-surface dark:bg-surface-dark border border-outline-variant/30 rounded-2xl p-6 flex flex-col gap-6 w-full">
       {error && (
         <div className="p-4 bg-error/10 text-error rounded-xl font-body-md">
           {error}
