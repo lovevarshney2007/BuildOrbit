@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { createLead } from "@/lib/actions/crm"
 import { LeadSource, LeadStatus } from "@prisma/client"
 import Link from "next/link"
@@ -53,9 +54,14 @@ const formatEnumString = (str: string) => {
 export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserType[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
   const [filterAssigned, setFilterAssigned] = useState<string>("ALL")
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const filteredLeads = leads.filter(lead => {
     if (filterStatus !== "ALL" && lead.status !== filterStatus) return false
@@ -229,8 +235,8 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
       </div>
 
       {/* CREATE LEAD MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      {mounted && isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-outline-variant dark:border-slate-800 flex items-center justify-between">
               <h2 className="text-lg font-bold text-on-surface dark:text-white">Add New Lead</h2>
@@ -349,7 +355,8 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
