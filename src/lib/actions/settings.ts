@@ -84,3 +84,31 @@ export async function saveApprovalWorkflowSettings(data: {
 export async function getAppSettings(): Promise<Record<string, unknown>> {
   return readSettings()
 }
+
+export async function updateOrgPolicy(data: { timezone: string, weeklyOffDays: number[] }) {
+  const user = await getCurrentUser();
+  if (!user || !["SUPER_ADMIN", "ADMIN"].includes(user.role)) throw new Error("Unauthorized");
+  await prisma.organizationPolicy.upsert({
+    where: { id: "default" },
+    update: data,
+    create: { id: "default", ...data }
+  });
+  revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+export async function addHoliday(data: { name: string, date: string }) {
+  const user = await getCurrentUser();
+  if (!user || !["SUPER_ADMIN", "ADMIN"].includes(user.role)) throw new Error("Unauthorized");
+  await prisma.holiday.create({ data: { name: data.name, date: new Date(data.date) } });
+  revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+export async function deleteHoliday(id: string) {
+  const user = await getCurrentUser();
+  if (!user || !["SUPER_ADMIN", "ADMIN"].includes(user.role)) throw new Error("Unauthorized");
+  await prisma.holiday.delete({ where: { id } });
+  revalidatePath("/admin/settings");
+  return { success: true };
+}

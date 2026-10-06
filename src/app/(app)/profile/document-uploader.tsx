@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { uploadEmployeeDocument, deleteEmployeeDocument } from "@/lib/actions/documents"
-import { EmployeeDocumentType, EmployeeDocument } from "@prisma/client"
+import { EmployeeDocument } from "@prisma/client"
 
 export function DocumentUploader({ 
   employeeId, 
@@ -23,8 +23,12 @@ export function DocumentUploader({
     try {
       await uploadEmployeeDocument(employeeId, formData)
       e.currentTarget.reset()
-    } catch (err: any) {
-      setError(err.message || "Upload failed")
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Upload failed")
+      } else {
+        setError("Upload failed")
+      }
     } finally {
       setIsUploading(false)
     }
@@ -34,8 +38,12 @@ export function DocumentUploader({
     if (!confirm("Are you sure you want to delete this document?")) return
     try {
       await deleteEmployeeDocument(docId)
-    } catch (err: any) {
-      alert(err.message || "Delete failed")
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message || "Delete failed")
+      } else {
+        alert("Delete failed")
+      }
     }
   }
 

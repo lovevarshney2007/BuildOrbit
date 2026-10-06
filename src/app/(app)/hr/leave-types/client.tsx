@@ -59,8 +59,9 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
     if (!confirm("Are you sure you want to delete this leave type?")) return
     try {
       await deleteLeaveType(id)
-    } catch (err: any) {
-      alert(err.message || "Failed to delete")
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(err.message || "Failed to delete")
+      else alert("Failed to delete")
     }
   }
 
@@ -85,8 +86,9 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
       }
       setIsModalOpen(false)
       setEditingType(null)
-    } catch (err: any) {
-      alert(err.message || "Something went wrong")
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(err.message || "Something went wrong")
+      else alert("Something went wrong")
     } finally {
       setLoading(false)
     }
@@ -108,8 +110,9 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
       setIsBalanceModalOpen(false)
       setEditingEmployee(null)
       router.refresh()
-    } catch(err: any) {
-      alert(err.message)
+    } catch(err: unknown) {
+      if (err instanceof Error) alert(err.message)
+      else alert("Error")
     } finally {
       setLoading(false)
     }
@@ -220,7 +223,7 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
               {initialTypes.length === 0 && (
                 <div className="col-span-full py-10 flex flex-col items-center justify-center text-secondary dark:text-slate-500">
                   <span className="material-symbols-outlined text-4xl mb-2">assignment</span>
-                  <p>No leave types found. Click "Add Leave Type" to create one.</p>
+                  <p>No leave types found. Click &quot;Add Leave Type&quot; to create one.</p>
                 </div>
               )}
             </div>
@@ -317,7 +320,7 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
                   await saveApprovalWorkflowSettings({ multiLevelEnabled: workflowsActive, requireHRForLongLeave: requireHR, longLeaveThresholdDays: longLeaveDays })
                   setSettingsSaved('workflow')
                   setTimeout(() => setSettingsSaved(''), 3000)
-                } catch(err: any) { alert(err.message) } finally { setLoading(false) }
+                } catch(err: unknown) { if (err instanceof Error) alert(err.message) } finally { setLoading(false) }
               }}
               disabled={loading}
               className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium text-sm w-fit transition-colors disabled:opacity-50"
@@ -375,7 +378,7 @@ export function LeaveMasterClient({ initialTypes, employees = [] }: Props) {
                   await saveFinancialYearSettings({ startMonth: finYearStart, endMonth: endMonthMap[finYearStart] || '03' })
                   setSettingsSaved('finyear')
                   setTimeout(() => setSettingsSaved(''), 3000)
-                } catch(err: any) { alert(err.message) } finally { setLoading(false) }
+                } catch(err: unknown) { if (err instanceof Error) alert(err.message) } finally { setLoading(false) }
               }}
               disabled={loading}
               className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium text-sm w-fit transition-colors disabled:opacity-50"

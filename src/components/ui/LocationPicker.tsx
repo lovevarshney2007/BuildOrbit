@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic"
 
-import { useState } from "react"
-import { Search } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Search, MapPin } from "lucide-react"
 
 // Dynamically import the Map component with ssr disabled
 const Map = dynamic(() => import("./Map"), {
@@ -37,47 +37,106 @@ export function LocationPicker({
 }: LocationPickerProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchQuery.trim() || !onChange) return
-
-    setIsSearching(true)
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`)
-      const data = await res.json()
-      if (data && data.length > 0) {
-        onChange(parseFloat(data[0].lat), parseFloat(data[0].lon))
-      } else {
-        alert("Location not found. Please try a different search term.")
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false)
       }
-    } catch (err) {
-      console.error("Geocoding failed:", err)
-    } finally {
-      setIsSearching(false)
     }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim().length > 2) {
+        setIsSearching(true)
+        try {
+          const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&limit=5`)
+          const data = await res.json()
+          if (data && data.features) {
+            setSuggestions(data.features)
+            setShowSuggestions(true)
+          }
+        } catch (err) {
+          console.error("Autocomplete failed:", err)
+        } finally {
+          setIsSearching(false)
+        }
+      } else {
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchQuery])
+
+  const handleSelect = (feature: any) => {
+    if (onChange) {
+      // Photon returns coordinates as [longitude, latitude]
+      onChange(feature.geometry.coordinates[1], feature.geometry.coordinates[0])
+    }
+    const name = feature.properties.name || ""
+    const city = feature.properties.city || feature.properties.state || ""
+    setSearchQuery([name, city].filter(Boolean).join(", "))
+    setShowSuggestions(false)
   }
 
   return (
     <div className="flex flex-col gap-2">
       {!readOnly && (
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Search for a location..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 h-10 px-3 rounded-lg border border-outline-variant bg-transparent text-on-surface dark:text-white focus:outline-none focus:border-primary text-sm"
-          />
-          <button 
-            type="submit" 
-            disabled={isSearching || !searchQuery.trim()}
-            className="h-10 px-4 flex items-center gap-2 bg-secondary/10 hover:bg-secondary/20 text-secondary rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
-          >
-            <Search className="w-4 h-4" />
-            {isSearching ? "Searching..." : "Search"}
-          </button>
-        </form>
+        <div className="relative flex gap-2" ref={wrapperRef}>
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search for a location... (e.g., Mahagun, Noida)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => {
+                if (suggestions.length > 0) setShowSuggestions(true)
+              }}
+              className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-transparent text-on-surface dark:text-white focus:outline-none focus:border-primary text-sm"
+            />
+            {isSearching && (
+              <div className="absolute right-3 top-2.5">
+                <span className="material-symbols-outlined animate-spin text-[20px] text-secondary">refresh</span>
+              </div>
+            )}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-surface dark:bg-slate-900 border border-outline-variant rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+                {suggestions.map((feature, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelect(feature)}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 border-b border-outline-variant/30 last:border-0"
+                  >
+                    <MapPin className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+                    <div className="flex flex-col gap-0.5 overflow-hidden">
+                      <span className="text-sm font-medium text-on-surface dark:text-white truncate">
+                        {feature.properties.name}
+                      </span>
+                      <span className="text-xs text-secondary dark:text-slate-400 truncate">
+                        {[
+                          feature.properties.street, 
+                          feature.properties.district,
+                          feature.properties.city, 
+                          feature.properties.state, 
+                          feature.properties.country
+                        ].filter(Boolean).join(", ")}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
       <div className={className}>
         <Map 

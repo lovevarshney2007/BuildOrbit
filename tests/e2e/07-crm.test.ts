@@ -123,7 +123,7 @@ test.describe("CRM Leads @main @crud", () => {
     await page.waitForTimeout(1000);
     await addBtn.first().click();
 
-    let titleField = page.locator('[name="title"]');
+    const titleField = page.locator('[name="title"]');
     try {
       await titleField.waitFor({ state: "visible", timeout: 3000 });
     } catch (e) {

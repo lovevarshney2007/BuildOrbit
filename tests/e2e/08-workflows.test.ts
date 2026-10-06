@@ -371,7 +371,7 @@ test.describe.serial("Workflow: Lead Creates → Pipeline Updates → Follow-up 
       await page.waitForTimeout(1000);
       await addBtn.first().click();
 
-      let titleField = page.locator('[name="title"]');
+      const titleField = page.locator('[name="title"]');
       try {
         await titleField.waitFor({ state: "visible", timeout: 3000 });
       } catch (e) {

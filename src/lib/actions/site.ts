@@ -12,11 +12,12 @@ export async function createSiteAction(data: unknown) {
     const site = await createSite(prisma, actor, data)
     revalidatePath("/hr/sites")
     return { success: true, site }
-  } catch (err: unknown) {
-    if (err instanceof LeaveError) {
+  } catch (err: any) {
+    console.error("createSiteAction Error:", err)
+    if (err?.name === "LeaveError") {
       return { success: false, message: err.message }
     }
-    return { success: false, message: "An unexpected error occurred" }
+    return { success: false, message: err?.message || "An unexpected error occurred" }
   }
 }
 
@@ -26,11 +27,11 @@ export async function updateSiteAction(id: string, data: unknown) {
     const site = await updateSite(prisma, actor, id, data)
     revalidatePath("/hr/sites")
     return { success: true, site }
-  } catch (err: unknown) {
-    if (err instanceof LeaveError) {
+  } catch (err: any) {
+    if (err?.name === "LeaveError") {
       return { success: false, message: err.message }
     }
-    return { success: false, message: "An unexpected error occurred" }
+    return { success: false, message: err?.message || "An unexpected error occurred" }
   }
 }
 
@@ -96,8 +97,8 @@ export async function setEmployeeTeamAction(employeeId: string, teamId: string |
     await setEmployeeTeam(prisma, actor, employeeId, teamId)
     revalidatePath("/hr/teams")
     return { success: true }
-  } catch (err: unknown) {
-    if (err instanceof LeaveError) {
+  } catch (err: any) {
+    if (err?.name === "LeaveError") {
       return { success: false, message: err.message }
     }
     return { success: false, message: "An unexpected error occurred" }

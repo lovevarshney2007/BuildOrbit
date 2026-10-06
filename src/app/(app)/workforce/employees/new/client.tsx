@@ -51,8 +51,12 @@ export function NewEmployeeForm({ departments, designations }: Props) {
       await createEmployee(formData)
       router.push("/workforce/employees")
       router.refresh()
-    } catch (err: any) {
-      setError(err.message || "Something went wrong")
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Something went wrong")
+      } else {
+        setError("Something went wrong")
+      }
       setLoading(false)
     }
   }

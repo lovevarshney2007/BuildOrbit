@@ -81,8 +81,12 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
       await createLead(formData)
       setIsModalOpen(false)
       router.refresh()
-    } catch (error: any) {
-      alert(error.message || "Failed to create lead")
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message || "Failed to create lead")
+      } else {
+        alert("Failed to create lead")
+      }
     } finally {
       setIsSubmitting(false)
     }

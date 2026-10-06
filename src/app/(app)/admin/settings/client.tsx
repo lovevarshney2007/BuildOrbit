@@ -1,73 +1,158 @@
 "use client"
 
 import { useState } from "react"
-import { saveApprovalWorkflowSettings } from "@/lib/actions/settings"
+import { updateOrgPolicy, addHoliday, deleteHoliday } from "@/lib/actions/settings"
 
-export function SettingsActionBar() {
+const DAYS_OF_WEEK = [
+  { id: 0, label: "Sunday" },
+  { id: 1, label: "Monday" },
+  { id: 2, label: "Tuesday" },
+  { id: 3, label: "Wednesday" },
+  { id: 4, label: "Thursday" },
+  { id: 5, label: "Friday" },
+  { id: 6, label: "Saturday" },
+]
+
+export function OrgPolicyForm({ initialData }: { initialData: { timezone: string, weeklyOffDays: number[] } }) {
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [discarded, setDiscarded] = useState(false)
+  const [timezone, setTimezone] = useState(initialData.timezone)
+  const [offDays, setOffDays] = useState<number[]>(initialData.weeklyOffDays)
 
-  async function handlePublish() {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setSaving(true)
     try {
-      // Save the current settings as published
-      await saveApprovalWorkflowSettings({
-        multiLevelEnabled: true,
-        requireHRForLongLeave: true,
-        longLeaveThresholdDays: 3,
-      })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to publish settings")
+      await updateOrgPolicy({ timezone, weeklyOffDays: offDays })
+      alert("Organization Policy saved successfully!")
+    } catch (err: any) {
+      alert(err.message || "Failed to save policy")
     } finally {
       setSaving(false)
     }
   }
 
-  function handleDiscard() {
-    setDiscarded(true)
-    setTimeout(() => setDiscarded(false), 2000)
-    // In a real multi-step settings editor, this would revert to saved state
-    // For now, we simply confirm the discard action visually
+  function toggleDay(id: number) {
+    if (offDays.includes(id)) {
+      setOffDays(offDays.filter(d => d !== id))
+    } else {
+      setOffDays([...offDays, id])
+    }
   }
 
   return (
-    <div className="fixed bottom-0 lg:left-64 left-0 right-0 bg-surface-container-lowest dark:bg-slate-950 border-t border-outline-variant dark:border-slate-800 px-6 py-2.5 z-20 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        {!discarded && (
-          <>
-            <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-            </span>
-            <span className="font-label-md text-label-md text-on-surface dark:text-white font-semibold">
-              {saved ? "✓ Policy settings saved!" : "Pending changes in Leave Policy Configuration"}
-            </span>
-          </>
-        )}
-        {discarded && (
-          <span className="text-sm text-secondary dark:text-slate-400">Changes discarded. No pending modifications.</span>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-label-sm font-label-sm text-secondary dark:text-slate-400 mb-1">Timezone</label>
+          <input
+            type="text"
+            required
+            value={timezone}
+            onChange={e => setTimezone(e.target.value)}
+            placeholder="e.g. UTC, Asia/Kolkata"
+            className="w-full bg-surface-bright border border-outline-variant dark:border-slate-800 rounded px-3 py-2 text-on-surface dark:text-white focus:outline-none focus:border-primary"
+          />
+        </div>
       </div>
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handleDiscard}
-          className="px-3.5 py-1.5 bg-surface-bright hover:bg-surface-container dark:bg-slate-950 text-on-surface dark:text-white font-label-md text-label-md rounded border border-outline-variant dark:border-slate-800 transition-colors cursor-pointer"
-          type="button"
-        >
-          Discard Changes
+
+      <div>
+        <label className="block text-label-sm font-label-sm text-secondary dark:text-slate-400 mb-2">Weekly Off Days</label>
+        <div className="flex flex-wrap gap-3">
+          {DAYS_OF_WEEK.map(day => {
+            const isSelected = offDays.includes(day.id)
+            return (
+              <label key={day.id} className={`flex items-center gap-2 px-3 py-1.5 border rounded cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400'}`}>
+                <input type="checkbox" className="hidden" checked={isSelected} onChange={() => toggleDay(day.id)} />
+                <span className="text-label-sm font-label-sm">{day.label}</span>
+                {isSelected && <span className="material-symbols-outlined text-[14px]">check</span>}
+              </label>
+            )
+          })}
+        </div>
+        <p className="text-xs text-secondary dark:text-slate-400 mt-2">These days are automatically marked as OFF/HOLIDAY for attendance and leave calculation.</p>
+      </div>
+
+      <div className="flex justify-end pt-4 border-t border-outline-variant dark:border-slate-800">
+        <button type="submit" disabled={saving} className="px-4 py-2 bg-[#0f172a] hover:bg-black text-white font-label-md text-label-md rounded transition-colors disabled:opacity-50">
+          {saving ? "Saving..." : "Save Policy"}
         </button>
-        <button
-          onClick={handlePublish}
-          disabled={saving}
-          className="px-4 py-1.5 bg-[#0f172a] hover:bg-black text-white font-label-md text-label-md rounded transition-colors flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[16px]">cloud_sync</span>
-          <span>{saving ? "Publishing..." : "Publish Policy Update"}</span>
+      </div>
+    </form>
+  )
+}
+
+export function HolidaysManager({ holidays }: { holidays: { id: string, name: string, date: Date }[] }) {
+  const [name, setName] = useState("")
+  const [date, setDate] = useState("")
+  const [adding, setAdding] = useState(false)
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    setAdding(true)
+    try {
+      await addHoliday({ name, date })
+      setName("")
+      setDate("")
+    } catch (err: any) {
+      alert(err.message || "Failed to add holiday")
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Remove this holiday?")) return
+    try {
+      await deleteHoliday(id)
+    } catch (err: any) {
+      alert(err.message || "Failed to delete holiday")
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleAdd} className="flex flex-col md:flex-row items-end gap-4 p-4 bg-surface-bright border border-outline-variant dark:border-slate-800 rounded">
+        <div className="flex-1 w-full">
+          <label className="block text-label-sm font-label-sm text-secondary dark:text-slate-400 mb-1">Holiday Name</label>
+          <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Diwali, Christmas" className="w-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded px-3 py-2 text-on-surface dark:text-white focus:outline-none focus:border-primary" />
+        </div>
+        <div className="flex-1 w-full">
+          <label className="block text-label-sm font-label-sm text-secondary dark:text-slate-400 mb-1">Date</label>
+          <input type="date" required value={date} onChange={e => setDate(e.target.value)} className="w-full bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded px-3 py-2 text-on-surface dark:text-white focus:outline-none focus:border-primary" />
+        </div>
+        <button type="submit" disabled={adding} className="w-full md:w-auto px-4 py-2 bg-primary hover:bg-primary-dark text-white font-label-md text-label-md rounded transition-colors disabled:opacity-50">
+          {adding ? "Adding..." : "Add Holiday"}
         </button>
+      </form>
+
+      <div className="border border-outline-variant dark:border-slate-800 rounded overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 font-label-sm text-label-sm text-secondary dark:text-slate-400">
+              <th className="py-2.5 px-4 font-semibold">Date</th>
+              <th className="py-2.5 px-4 font-semibold">Holiday Name</th>
+              <th className="py-2.5 px-4 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-outline-variant text-body-md font-body-md text-on-surface dark:text-white">
+            {holidays.length === 0 && (
+              <tr>
+                <td colSpan={3} className="py-8 text-center text-secondary dark:text-slate-400">No holidays declared.</td>
+              </tr>
+            )}
+            {holidays.map(h => (
+              <tr key={h.id} className="hover:bg-surface-container-lowest dark:hover:bg-slate-900 transition-colors">
+                <td className="py-3 px-4 font-tabular-data">{new Date(h.date).toLocaleDateString()}</td>
+                <td className="py-3 px-4 font-medium">{h.name}</td>
+                <td className="py-3 px-4 text-right">
+                  <button onClick={() => handleDelete(h.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 rounded transition-colors" title="Delete">
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )
