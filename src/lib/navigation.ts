@@ -59,6 +59,12 @@ export const navConfig: NavGroup[] = [
         icon: "event_busy",
         roles: ["HR", "LEAD", "ENGINEER"],
       },
+      {
+        label: "My Payslips",
+        href: "/workforce/payslip",
+        icon: "receipt_long",
+        roles: [],
+      },
     ],
   },
   {

@@ -58,7 +58,7 @@ export default async function PayslipPage() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    {ps.status === 'PAID' ? (
+                    {ps.status === 'PAID' || ps.status === 'PROCESSED' ? (
                       <Link href={`/workforce/payslip/${ps.id}/print`} target="_blank" className="text-primary hover:underline font-semibold text-sm flex items-center justify-end gap-1 w-full">
                         <span className="material-symbols-outlined text-sm">download</span> Download
                       </Link>
