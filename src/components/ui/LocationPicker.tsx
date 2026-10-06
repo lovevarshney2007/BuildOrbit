@@ -40,6 +40,7 @@ export function LocationPicker({
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const isProgrammaticChange = useRef(false)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -52,6 +53,11 @@ export function LocationPicker({
   }, [])
 
   useEffect(() => {
+    if (isProgrammaticChange.current) {
+      isProgrammaticChange.current = false
+      return
+    }
+    
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.trim().length > 2) {
         setIsSearching(true)
@@ -83,6 +89,7 @@ export function LocationPicker({
     }
     const name = feature.properties.name || ""
     const city = feature.properties.city || feature.properties.state || ""
+    isProgrammaticChange.current = true
     setSearchQuery([name, city].filter(Boolean).join(", "))
     setShowSuggestions(false)
   }
@@ -95,11 +102,32 @@ export function LocationPicker({
     
     setIsSearching(true)
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
         if (onChange) {
-          onChange(position.coords.latitude, position.coords.longitude)
+          onChange(lat, lng)
         }
-        setSearchQuery("My Location")
+        
+        try {
+          const res = await fetch(`https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}`)
+          const data = await res.json()
+          let locationName = "My Location"
+          if (data && data.features && data.features.length > 0) {
+            const feature = data.features[0]
+            const name = feature.properties.name || ""
+            const city = feature.properties.city || feature.properties.state || ""
+            locationName = [name, city].filter(Boolean).join(", ") || "My Location"
+          }
+          isProgrammaticChange.current = true
+          setSearchQuery(locationName)
+          setShowSuggestions(false)
+        } catch (err) {
+          isProgrammaticChange.current = true
+          setSearchQuery("My Location")
+          setShowSuggestions(false)
+        }
+        
         setIsSearching(false)
       },
       (error) => {
