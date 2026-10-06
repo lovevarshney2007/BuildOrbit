@@ -30,6 +30,48 @@ type UserType = {
 const SOURCES: LeadSource[] = ["WEBSITE", "REFERRAL", "SOCIAL_MEDIA", "EMAIL", "COLD_CALL", "EVENT", "OTHER"]
 const STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "CONVERTED", "LOST"]
 
+function CustomSelect({ name, options, defaultValue, placeholder }: { name: string, options: {label: string, value: string}[], defaultValue?: string, placeholder?: string }) {
+  const [open, setOpen] = useState(false)
+  const [val, setVal] = useState(defaultValue || "")
+  const selected = options.find(o => o.value === val)
+
+  return (
+    <div className="relative">
+      <input type="hidden" name={name} value={val} />
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 text-left text-on-surface dark:text-white flex justify-between items-center focus:outline-none focus:border-primary"
+      >
+        <span className={!selected ? "text-secondary/50" : ""}>{selected ? selected.label : placeholder || "Select"}</span>
+        <span className="material-symbols-outlined text-sm text-secondary">expand_more</span>
+      </button>
+      
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+          {placeholder && (
+            <div 
+              className="px-3 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-sm text-on-surface dark:text-white"
+              onClick={() => { setVal(""); setOpen(false) }}
+            >
+              {placeholder}
+            </div>
+          )}
+          {options.map(opt => (
+            <div 
+              key={opt.value} 
+              className="px-3 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-sm text-on-surface dark:text-white"
+              onClick={() => { setVal(opt.value); setOpen(false) }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const getStatusBadgeStyle = (status: string) => {
   switch (status) {
     case 'NEW': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
@@ -290,28 +332,26 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Source</label>
-                  <select 
+                  <CustomSelect 
                     name="source" 
-                    defaultValue=""
-                    className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white"
-                  >
-                    <option value="" disabled>Select source</option>
-                    {[...SOURCES].sort((a, b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{formatEnumString(s)}</option>)}
-                  </select>
+                    placeholder="Select source"
+                    options={[...SOURCES].sort((a, b) => a.localeCompare(b)).map(s => ({ label: formatEnumString(s), value: s }))} 
+                  />
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Priority</label>
-                  <select 
+                  <CustomSelect 
                     name="priority" 
-                    className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white"
-                  >
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Low">Low</option>
-                  </select>
+                    defaultValue="Medium"
+                    options={[
+                      { label: "High", value: "High" },
+                      { label: "Medium", value: "Medium" },
+                      { label: "Low", value: "Low" }
+                    ]} 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Estimated Value</label>
@@ -326,15 +366,11 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
               
               <div>
                 <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Assign To</label>
-                <select 
+                <CustomSelect 
                   name="assignedToId" 
-                  className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white"
-                >
-                  <option value="">Unassigned</option>
-                  {[...users].sort((a, b) => (a.name || "").localeCompare(b.name || "")).map(u => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
+                  placeholder="Unassigned"
+                  options={[...users].sort((a, b) => (a.name || "").localeCompare(b.name || "")).map(u => ({ label: u.name || "", value: u.id }))} 
+                />
               </div>
               
               <div className="mt-4 pt-4 border-t border-outline-variant dark:border-slate-800 flex justify-end gap-3">
