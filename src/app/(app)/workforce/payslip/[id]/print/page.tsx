@@ -7,21 +7,27 @@ export default async function PayslipPrintPage({ params }: { params: { id: strin
   const user = await getCurrentUser()
   if (!user) redirect("/login")
 
-  const employee = await prisma.employee.findUnique({
+  const currentUserEmployee = await prisma.employee.findUnique({
     where: { userId: user.userId },
-    include: { department: true, designation: true }
   })
 
-  if (!employee) redirect("/workforce/payslip")
+  if (!currentUserEmployee) redirect("/workforce/payslip")
 
   const payslip = await prisma.payroll.findUnique({
     where: { id: params.id },
+    include: {
+      employee: {
+        include: { department: true, designation: true, user: true }
+      }
+    }
   })
 
   // Security check: Only the employee (or HR) can view their own payslip
-  if (!payslip || (payslip.employeeId !== employee.id && user.role !== "HR" && user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
+  if (!payslip || (payslip.employeeId !== currentUserEmployee.id && user.role !== "HR" && user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
     redirect("/workforce/payslip")
   }
+
+  const targetEmployee = payslip.employee
 
   const monthName = new Date(payslip.year, payslip.month - 1).toLocaleString('default', { month: 'long' })
 
@@ -70,21 +76,21 @@ export default async function PayslipPrintPage({ params }: { params: { id: strin
           <div className="space-y-3">
             <div className="grid grid-cols-3">
               <span className="text-slate-500 font-medium">Employee Name:</span>
-              <span className="col-span-2 font-bold uppercase">{user.name}</span>
+              <span className="col-span-2 font-bold uppercase">{targetEmployee.user?.name || "Unknown"}</span>
             </div>
             <div className="grid grid-cols-3">
               <span className="text-slate-500 font-medium">Employee Code:</span>
-              <span className="col-span-2 font-semibold text-slate-700">{employee.employeeCode}</span>
+              <span className="col-span-2 font-semibold text-slate-700">{targetEmployee.employeeCode}</span>
             </div>
             <div className="grid grid-cols-3">
               <span className="text-slate-500 font-medium">Designation:</span>
-              <span className="col-span-2 font-semibold text-slate-700">{employee.designation?.title || "Employee"}</span>
+              <span className="col-span-2 font-semibold text-slate-700">{targetEmployee.designation?.title || "Employee"}</span>
             </div>
           </div>
           <div className="space-y-3">
             <div className="grid grid-cols-3">
               <span className="text-slate-500 font-medium">Department:</span>
-              <span className="col-span-2 font-semibold text-slate-700">{employee.department?.name || "N/A"}</span>
+              <span className="col-span-2 font-semibold text-slate-700">{targetEmployee.department?.name || "N/A"}</span>
             </div>
             <div className="grid grid-cols-3">
               <span className="text-slate-500 font-medium">Paid Leaves:</span>
