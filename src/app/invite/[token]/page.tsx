@@ -15,7 +15,7 @@ export default async function InviteAcceptPage({ params }: { params: Promise<{ t
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+    <div className="flex-1 w-full min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-8 text-center">
         {isValid ? (
           <>
