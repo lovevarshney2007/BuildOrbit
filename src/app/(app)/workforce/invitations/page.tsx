@@ -44,13 +44,13 @@ async function sendInvitationAction(formData: FormData) {
     console.error("Failed to send invitation email:", e)
   }
 
-  revalidatePath("/hr/invitations")
+  revalidatePath("/workforce/invitations")
 }
 
 async function revokeInvitationAction(id: string) {
   "use server"
   await prisma.employeeInvitation.delete({ where: { id } })
-  revalidatePath("/hr/invitations")
+  revalidatePath("/workforce/invitations")
 }
 
 export default async function InvitationsPage() {

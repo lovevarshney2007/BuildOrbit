@@ -109,9 +109,9 @@ export function Header({ user, onMobileMenuOpen }: HeaderProps) {
                   </Link>
                 )}
                 {user.role !== 'ENGINEER' && (
-                  <Link href="/workforce/employees/new" onClick={() => setShowCreate(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                  <Link href="/workforce/invitations" onClick={() => setShowCreate(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
                     <span className="material-symbols-outlined text-[18px]">person_add</span>
-                    Employee
+                    Send Invitation
                   </Link>
                 )}
                 {["HR", "SUPER_ADMIN", "ADMIN"].includes(user.role) && (
