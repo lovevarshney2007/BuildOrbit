@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, MapPin } from "lucide-react"
+import { Search, MapPin, LocateFixed } from "lucide-react"
 
 // Dynamically import the Map component with ssr disabled
 const Map = dynamic(() => import("./Map"), {
@@ -87,6 +87,29 @@ export function LocationPicker({
     setShowSuggestions(false)
   }
 
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser")
+      return
+    }
+    
+    setIsSearching(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (onChange) {
+          onChange(position.coords.latitude, position.coords.longitude)
+        }
+        setSearchQuery("My Location")
+        setIsSearching(false)
+      },
+      (error) => {
+        console.error("Error getting location:", error)
+        alert("Unable to retrieve your location. Please check your browser permissions.")
+        setIsSearching(false)
+      }
+    )
+  }
+
   return (
     <div className="flex flex-col gap-2">
       {!readOnly && (
@@ -136,6 +159,14 @@ export function LocationPicker({
               </div>
             )}
           </div>
+          <button
+            type="button"
+            onClick={handleUseMyLocation}
+            title="Use My Location"
+            className="h-10 w-10 shrink-0 rounded-lg border border-outline-variant bg-transparent text-on-surface dark:text-white focus:outline-none focus:border-primary flex items-center justify-center hover:bg-surface-variant transition-colors"
+          >
+            <LocateFixed className="w-5 h-5 text-secondary" />
+          </button>
         </div>
       )}
       <div className={className}>

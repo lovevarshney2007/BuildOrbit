@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/session"
+import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { SiteForm } from "../client-form"
@@ -7,6 +8,21 @@ export default async function NewSitePage() {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
   if (!["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role)) redirect("/dashboard")
+
+  const [allEmployees, allTeams] = await Promise.all([
+    prisma.employee.findMany({
+      where: { status: "ACTIVE" },
+      include: { user: true },
+      orderBy: { user: { name: "asc" } }
+    }),
+    prisma.team.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" }
+    })
+  ])
+
+  const employeesProp = allEmployees.map(e => ({ id: e.id, name: e.user?.name || e.employeeCode }))
+  const teamsProp = allTeams.map(t => ({ id: t.id, name: t.name }))
 
   return (
     <main className="flex-1 p-6 flex flex-col gap-6 w-full max-w-7xl mx-auto overflow-y-auto">
@@ -21,7 +37,7 @@ export default async function NewSitePage() {
         </div>
       </div>
 
-      <SiteForm />
+      <SiteForm employees={employeesProp} teams={teamsProp} />
     </main>
   )
 }

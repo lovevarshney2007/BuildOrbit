@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createSiteAction, updateSiteAction } from "@/lib/actions/site"
+import { createSiteAction, updateSiteAction, assignEmployeeSiteAction, assignTeamSiteAction } from "@/lib/actions/site"
 import { LocationPicker } from "@/components/ui/LocationPicker"
 
 type SiteFormData = {
@@ -19,14 +19,21 @@ type SiteFormData = {
 
 export function SiteForm({ 
   initialData, 
-  id 
+  id,
+  employees,
+  teams
 }: { 
   initialData?: Partial<SiteFormData> & { id?: string },
   id?: string
+  employees?: { id: string; name: string }[]
+  teams?: { id: string; name: string }[]
 }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
+  
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([])
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([])
 
   const [formData, setFormData] = useState<SiteFormData>({
     name: initialData?.name ?? "",
@@ -57,13 +64,48 @@ export function SiteForm({
     setError("")
 
     try {
-      const result = id 
-        ? await updateSiteAction(id, formData)
-        : await createSiteAction(formData)
+      let siteId = id
+      if (!siteId) {
+        const result = await createSiteAction(formData)
+        if (!result.success || !result.site) {
+          setError(result.message || "Failed to create site")
+          setIsSubmitting(false)
+          return
+        }
+        siteId = result.site.id
+      } else {
+        const result = await updateSiteAction(siteId, formData)
+        if (!result.success) {
+          setError(result.message || "Failed to update site")
+          setIsSubmitting(false)
+          return
+        }
+      }
 
-      if (!result.success) {
-        setError(result.message || "Failed to save site")
-        return
+      // Create assignments if new site and there are selections
+      if (!id && siteId && (selectedEmployees.length > 0 || selectedTeams.length > 0)) {
+        const promises = []
+        const effectiveFrom = new Date().toISOString().slice(0, 10)
+        
+        for (const empId of selectedEmployees) {
+          promises.push(assignEmployeeSiteAction({
+            siteId: siteId,
+            targetId: empId,
+            effectiveFrom: effectiveFrom,
+            effectiveUntil: null
+          }))
+        }
+
+        for (const teamId of selectedTeams) {
+          promises.push(assignTeamSiteAction({
+            siteId: siteId,
+            targetId: teamId,
+            effectiveFrom: effectiveFrom,
+            effectiveUntil: null
+          }))
+        }
+
+        await Promise.all(promises)
       }
 
       router.push("/hr/sites")
@@ -216,6 +258,59 @@ export function SiteForm({
           </label>
         </div>
       </div>
+
+      {!id && (
+        <div className="flex flex-col gap-6 pt-6 border-t border-outline-variant/30">
+          <div className="flex flex-col gap-1.5">
+            <h3 className="font-title-md text-on-surface dark:text-white font-semibold">Initial Assignments (Optional)</h3>
+            <p className="text-sm text-secondary dark:text-slate-400">Assign employees or teams to this site immediately upon creation.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-on-surface dark:text-white">Assign Employees</label>
+              <div className="h-48 overflow-y-auto border border-outline-variant/50 rounded-lg p-2 bg-background dark:bg-background-dark">
+                {employees?.map(emp => (
+                  <label key={emp.id} className="flex items-center gap-3 p-2 hover:bg-surface-variant rounded-lg cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmployees.includes(emp.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedEmployees(prev => [...prev, emp.id])
+                        else setSelectedEmployees(prev => prev.filter(id => id !== emp.id))
+                      }}
+                      className="w-4 h-4 accent-primary shrink-0"
+                    />
+                    <span className="text-sm text-on-surface dark:text-white truncate">{emp.name}</span>
+                  </label>
+                ))}
+                {!employees?.length && <p className="text-sm text-secondary p-2">No employees available.</p>}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-on-surface dark:text-white">Assign Teams</label>
+              <div className="h-48 overflow-y-auto border border-outline-variant/50 rounded-lg p-2 bg-background dark:bg-background-dark">
+                {teams?.map(team => (
+                  <label key={team.id} className="flex items-center gap-3 p-2 hover:bg-surface-variant rounded-lg cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedTeams.includes(team.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedTeams(prev => [...prev, team.id])
+                        else setSelectedTeams(prev => prev.filter(id => id !== team.id))
+                      }}
+                      className="w-4 h-4 accent-primary shrink-0"
+                    />
+                    <span className="text-sm text-on-surface dark:text-white truncate">{team.name}</span>
+                  </label>
+                ))}
+                {!teams?.length && <p className="text-sm text-secondary p-2">No teams available.</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-3 justify-end pt-4 border-t border-outline-variant/30">
         <button 
