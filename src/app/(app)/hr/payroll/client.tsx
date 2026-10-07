@@ -23,6 +23,8 @@ interface Props {
   filterMonth: number
   filterYear: number
   activeEmployees: ActiveEmployee[]
+  allowancePercent?: number
+  deductionPercent?: number
 }
 
 const MONTH_NAMES = [
@@ -30,7 +32,7 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ]
 
-export function PayrollPageClient({ records, filterMonth, filterYear, activeEmployees }: Props) {
+export function PayrollPageClient({ records, filterMonth, filterYear, activeEmployees, allowancePercent = 40, deductionPercent = 10 }: Props) {
   const router = useRouter()
   const [isGenerating, isBatchApproving, isAddModalOpen] = [useState(false), useState(false), useState(false)]
   const [generating, setGenerating] = isGenerating
@@ -48,8 +50,8 @@ export function PayrollPageClient({ records, filterMonth, filterYear, activeEmpl
       const basic = Math.round(emp.basicSalary)
       setModalForm({
         basic,
-        allowance: Math.round(basic * 0.4),
-        deduction: Math.round(basic * 0.1)
+        allowance: Math.round(basic * (allowancePercent / 100)),
+        deduction: Math.round(basic * (deductionPercent / 100))
       })
     } else {
       setModalForm({ basic: 0, allowance: 0, deduction: 0 })

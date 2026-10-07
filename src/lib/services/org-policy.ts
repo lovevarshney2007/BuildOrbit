@@ -38,3 +38,11 @@ export function toPayrollPolicy(org: OrganizationPolicy): PayrollPolicy {
     rounding: org.payrollRounding,
   }
 }
+
+/** Default allowance/deduction percentages from organisation policy. */
+export function toPayrollDefaults(org: OrganizationPolicy) {
+  return {
+    allowancePercent: org.allowancePercent,
+    deductionPercent: org.deductionPercent,
+  }
+}

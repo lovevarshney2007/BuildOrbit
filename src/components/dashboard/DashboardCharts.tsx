@@ -16,35 +16,37 @@ import {
   ResponsiveContainer
 } from "recharts"
 
-const businessData = [
-  { month: "Jan", employeeTrend: 2, attendanceRate: 98 },
-  { month: "Feb", employeeTrend: 4, attendanceRate: 95 },
-  { month: "Mar", employeeTrend: 4, attendanceRate: 97 },
-  { month: "Apr", employeeTrend: 5, attendanceRate: 99 },
-  { month: "May", employeeTrend: 6, attendanceRate: 94 },
-  { month: "Jun", employeeTrend: 7, attendanceRate: 96 },
-]
-
-const pipelineData = [
-  { week: "Week 1", openLeads: 10, won: 2 },
-  { week: "Week 2", openLeads: 15, won: 5 },
-  { week: "Week 3", openLeads: 12, won: 6 },
-  { week: "Week 4", openLeads: 18, won: 8 },
-]
-
-const COLORS = ["#10b981", "#f59e0b", "#f43f5e"] // Emerald, Amber, Rose (Generic UI colors)
+const COLORS = ["#10b981", "#f59e0b", "#f43f5e"] // Emerald, Amber, Rose
 const CHART_PRIMARY = "#0ea5e9" // Light Blue
 const CHART_SECONDARY = "#64748b" // Slate
 
-export function BusinessWorkforceChart() {
+export interface WorkforceDataPoint {
+  month: string
+  employeeTrend: number
+  attendanceRate: number
+}
+
+export interface LeadPipelineDataPoint {
+  status: string
+  count: number
+}
+
+export function BusinessWorkforceChart({ data }: { data: WorkforceDataPoint[] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[300px] w-full flex items-center justify-center text-slate-400 text-sm">
+        No workforce data available yet
+      </div>
+    )
+  }
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={businessData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
           <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
           <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-          <Tooltip 
+          <Tooltip
             contentStyle={{ backgroundColor: 'var(--color-surface-container, #ffffff)', borderColor: 'var(--color-outline-variant, #e2e8f0)', borderRadius: '8px' }}
             itemStyle={{ color: 'var(--color-on-surface, #0f172a)' }}
           />
@@ -57,34 +59,39 @@ export function BusinessWorkforceChart() {
   )
 }
 
-export function CRMLeadPipelineChart() {
+export function CRMLeadPipelineChart({ data }: { data: LeadPipelineDataPoint[] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[300px] w-full flex items-center justify-center text-slate-400 text-sm">
+        No CRM data available yet
+      </div>
+    )
+  }
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={pipelineData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.2} />
-          <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-          <Tooltip 
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" opacity={0.2} />
+          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
+          <YAxis type="category" dataKey="status" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} width={90} />
+          <Tooltip
             contentStyle={{ backgroundColor: 'var(--color-surface-container, #ffffff)', borderColor: 'var(--color-outline-variant, #e2e8f0)', borderRadius: '8px' }}
           />
-          <Legend wrapperStyle={{ fontSize: '12px' }} />
-          <Line type="monotone" dataKey="openLeads" name="Open Leads" stroke={CHART_PRIMARY} strokeWidth={3} activeDot={{ r: 6 }} />
-          <Line type="monotone" dataKey="won" name="Won Deals" stroke={COLORS[0]} strokeWidth={3} activeDot={{ r: 6 }} />
-        </LineChart>
+          <Bar dataKey="count" name="Leads" fill={CHART_PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={30} />
+        </BarChart>
       </ResponsiveContainer>
     </div>
   )
 }
 
-export function AttendanceDonutChart({ 
-  present, 
-  onLeave, 
-  absent 
-}: { 
-  present: number, 
-  onLeave: number, 
-  absent: number 
+export function AttendanceDonutChart({
+  present,
+  onLeave,
+  absent
+}: {
+  present: number,
+  onLeave: number,
+  absent: number
 }) {
   const data = [
     { name: "Present", value: present || 1 }, // Fallback to 1 to show a circle if 0
@@ -111,12 +118,12 @@ export function AttendanceDonutChart({
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip 
+          <Tooltip
             contentStyle={{ backgroundColor: 'var(--color-surface-container, #ffffff)', borderColor: 'var(--color-outline-variant, #e2e8f0)', borderRadius: '8px' }}
           />
         </PieChart>
       </ResponsiveContainer>
-      
+
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-3xl font-bold text-on-surface dark:text-white">
           {total}

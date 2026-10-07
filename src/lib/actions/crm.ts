@@ -15,6 +15,7 @@ export async function createLead(formData: FormData) {
   }
 
   const title = formData.get("title") as string
+  const contactName = (formData.get("contactName") as string) || title
   const contactEmail = formData.get("email") as string
   const contactPhone = formData.get("phone") as string
   const company = formData.get("company") as string
@@ -29,7 +30,7 @@ export async function createLead(formData: FormData) {
   await prisma.lead.create({
     data: {
       title,
-      contactName: title, // use title as contactName as fallback
+      contactName,
       contactEmail,
       contactPhone,
       company,

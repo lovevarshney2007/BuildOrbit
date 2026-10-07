@@ -325,29 +325,13 @@ export default async function DashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-on-surface dark:text-white flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">calendar_month</span>
-                  Upcoming Events
+                  Upcoming Holidays
                 </h3>
               </div>
               <div className="space-y-3">
-                <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex flex-col items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold uppercase">Oct</span>
-                    <span className="text-sm font-bold leading-tight">15</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-on-surface dark:text-white">Townhall Meeting</p>
-                    <p className="text-xs text-secondary dark:text-slate-400 mt-0.5">10:00 AM - Main Boardroom</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex flex-col items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold uppercase">Oct</span>
-                    <span className="text-sm font-bold leading-tight">24</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-on-surface dark:text-white">Diwali Celebration</p>
-                    <p className="text-xs text-secondary dark:text-slate-400 mt-0.5">4:00 PM - Cafeteria</p>
-                  </div>
+                <div className="text-sm text-secondary dark:text-slate-400">
+                  Holidays are managed by HR in <Link href="/admin/settings" className="text-primary hover:underline font-medium">Settings</Link>. 
+                  Check with your HR team for upcoming company holidays.
                 </div>
               </div>
             </AnimatedCard>
@@ -476,6 +460,43 @@ export default async function DashboardPage() {
   const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0
   const draftPayrolls = currentMonthPayrolls.filter(p => p.status === "DRAFT").length
   const totalPipelineValue = leadValues.reduce((sum: number, l: { value: unknown }) => sum + Number(l.value || 0), 0)
+  const activeUsersCount = await prisma.user.count({ where: { isActive: true } })
+  // Workforce trend: last 6 months employee headcount + attendance rate
+  const workforceChartData = await (async () => {
+    const months = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today)
+      d.setMonth(d.getMonth() - i)
+      const monthStart = new Date(d.getFullYear(), d.getMonth(), 1)
+      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+      monthEnd.setHours(23, 59, 59, 999)
+      const [empCount, presentCount, totalAttendance] = await Promise.all([
+        prisma.employee.count({ where: { status: "ACTIVE", joiningDate: { lte: monthEnd } } }),
+        prisma.attendance.count({ where: { date: { gte: monthStart, lte: monthEnd }, status: "PRESENT" } }),
+        prisma.attendance.count({ where: { date: { gte: monthStart, lte: monthEnd } } }),
+      ])
+      months.push({
+        month: d.toLocaleString('default', { month: 'short' }),
+        employeeTrend: empCount,
+        attendanceRate: totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0,
+      })
+    }
+    return months
+  })()
+
+  // CRM pipeline: lead count by status
+  const crmPipelineData = isLeadOrAdmin ? await (async () => {
+    const statuses = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "CONVERTED", "LOST"]
+    const counts = await Promise.all(statuses.map(s => prisma.lead.count({ where: { status: s as any } })))
+    return statuses.map((s, i) => ({ status: s.charAt(0) + s.slice(1).toLowerCase(), count: counts[i] })).filter(d => d.count > 0)
+  })() : []
+
+  // Recent login activity (real data)
+  const recentLoginActivity = isAdminLike ? await prisma.loginActivity.findMany({
+    orderBy: { loginAt: "desc" },
+    take: 5,
+    include: { user: { select: { name: true, email: true } } },
+  }) : []
 
   const hour = today.getHours()
   const greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening"
@@ -561,7 +582,7 @@ export default async function DashboardPage() {
           </AnimatedCard>
         </Link>
 
-        <Link href="/workforce/employees">
+        <Link href="/admin/login-activity">
           <AnimatedCard delay={0.10} className="p-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-full">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-bold text-secondary dark:text-slate-400 uppercase tracking-wider">Active Users</span>
@@ -570,10 +591,10 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div>
-              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{totalEmployees}</span>
+              <span className="text-2xl font-bold text-on-surface dark:text-white font-tabular-data">{activeUsersCount}</span>
               <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1 mt-1">
                 <span className="material-symbols-outlined text-[12px]">arrow_outward</span>
-                vs. last 7 days
+                Active accounts
               </p>
             </div>
           </AnimatedCard>
@@ -655,13 +676,15 @@ export default async function DashboardPage() {
           {/* CHARTS CONTAINER */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
-              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">Business & Workforce</h2>
-              <BusinessWorkforceChart />
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-2">Business &amp; Workforce</h2>
+              <p className="text-xs text-secondary dark:text-slate-400 mb-4">Last 6 months — employee headcount &amp; attendance rate</p>
+              <BusinessWorkforceChart data={workforceChartData} />
             </div>
-            
+
             <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
-              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-6">CRM & Lead Pipeline</h2>
-              <CRMLeadPipelineChart />
+              <h2 className="text-xl font-semibold text-on-surface dark:text-white tracking-tight mb-2">CRM &amp; Lead Pipeline</h2>
+              <p className="text-xs text-secondary dark:text-slate-400 mb-4">Active leads by current status</p>
+              <CRMLeadPipelineChart data={crmPipelineData} />
             </div>
           </div>
           {/* ATTENDANCE DONUT (Only for Super Admin/Admin) */}
@@ -766,44 +789,29 @@ export default async function DashboardPage() {
             </div>
           </div>
           
-          {/* LOGIN & SECURITY ACTIVITY WIDGET */}
+          {/* REAL LOGIN ACTIVITY WIDGET */}
           {isAdminLike && (
             <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded-xl shadow-sm overflow-hidden p-6">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-outline-variant dark:border-slate-800">
                 <span className="material-symbols-outlined text-slate-500">security</span>
-                <h3 className="text-lg font-semibold text-on-surface dark:text-white tracking-tight">Login Activity</h3>
+                <h3 className="text-lg font-semibold text-on-surface dark:text-white tracking-tight">Recent Login Activity</h3>
               </div>
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[16px]">login</span>
+                {recentLoginActivity.map(activity => (
+                  <div key={activity.id} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[16px]">login</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-on-surface dark:text-white">{activity.user?.name || activity.email}</p>
+                      <p className="text-xs text-secondary dark:text-slate-400">{activity.browser || "Browser"} · {activity.role}</p>
+                      <p className="text-[10px] text-tertiary mt-0.5">{new Date(activity.loginAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-on-surface dark:text-white">Successful login (New Device)</p>
-                    <p className="text-xs text-secondary dark:text-slate-400">Chrome on Mac OS • Mumbai, India</p>
-                    <p className="text-[10px] text-tertiary mt-0.5">2 mins ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[16px]">gpp_bad</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-on-surface dark:text-white">Failed login attempt</p>
-                    <p className="text-xs text-secondary dark:text-slate-400">Invalid password • Unknown IP</p>
-                    <p className="text-[10px] text-tertiary mt-0.5">1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[16px]">vpn_key</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-on-surface dark:text-white">Password Changed</p>
-                    <p className="text-xs text-secondary dark:text-slate-400">User: hr_lead@buildorbit.com</p>
-                    <p className="text-[10px] text-tertiary mt-0.5">Yesterday, 10:45 AM</p>
-                  </div>
-                </div>
+                ))}
+                {recentLoginActivity.length === 0 && (
+                  <p className="text-sm text-secondary dark:text-slate-400">No recent login activity recorded.</p>
+                )}
               </div>
             </div>
           )}

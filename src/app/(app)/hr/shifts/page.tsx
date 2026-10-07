@@ -25,6 +25,34 @@ async function toggleShiftAction(id: string, isActive: boolean) {
   revalidatePath("/hr/shifts")
 }
 
+async function assignEmployeeToShiftAction(formData: FormData) {
+  "use server"
+  const user = await getCurrentUser()
+  if (!user || !["HR","ADMIN","SUPER_ADMIN"].includes(user.role)) redirect("/dashboard")
+
+  const shiftId = formData.get("shiftId") as string
+  const employeeId = formData.get("employeeId") as string
+
+  if (shiftId && employeeId) {
+    // Check if assignment exists
+    const existing = await prisma.shiftAssignment.findFirst({
+      where: { employeeId, shiftId }
+    })
+    
+    if (existing) {
+      await prisma.shiftAssignment.update({
+        where: { id: existing.id },
+        data: { isActive: true }
+      })
+    } else {
+      await prisma.shiftAssignment.create({
+        data: { shiftId, employeeId, isActive: true, effectiveFrom: new Date() }
+      })
+    }
+    revalidatePath("/hr/shifts")
+  }
+}
+
 export default async function ShiftsPage() {
   const user = await getCurrentUser()
   if (!user || !["HR", "ADMIN", "SUPER_ADMIN"].includes(user.role)) redirect("/dashboard")
@@ -114,9 +142,21 @@ export default async function ShiftsPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-secondary dark:text-slate-500 uppercase tracking-wider mb-2">
-                    Assigned Employees ({shift.assignments.length})
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-secondary dark:text-slate-500 uppercase tracking-wider">
+                      Assigned Employees ({shift.assignments.length})
+                    </p>
+                    <form action={assignEmployeeToShiftAction} className="flex items-center gap-2">
+                      <input type="hidden" name="shiftId" value={shift.id} />
+                      <select name="employeeId" required className="text-xs bg-surface-container dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded px-2 py-1 text-on-surface dark:text-white max-w-[150px]">
+                        <option value="">Add employee...</option>
+                        {employees.filter(e => !shift.assignments.some(a => a.employeeId === e.id)).map(e => (
+                          <option key={e.id} value={e.id}>{e.user.name || e.employeeCode}</option>
+                        ))}
+                      </select>
+                      <button type="submit" className="text-xs bg-primary text-white px-2 py-1 rounded hover:bg-primary/90">+</button>
+                    </form>
+                  </div>
                   {shift.assignments.length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No employees assigned yet.</p>
                   ) : (

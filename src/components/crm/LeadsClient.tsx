@@ -291,14 +291,24 @@ export function LeadsClient({ leads, users }: { leads: LeadType[], users: UserTy
             </div>
             
             <form onSubmit={handleCreateSubmit} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[80vh]">
-              <div>
-                <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Name *</label>
-                <input 
-                  required 
-                  name="title" 
-                  placeholder="Lead name" 
-                  className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white placeholder:text-secondary/50" 
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Lead Name / Title *</label>
+                  <input 
+                    required 
+                    name="title" 
+                    placeholder="e.g. Acme Corp Redesign" 
+                    className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white placeholder:text-secondary/50" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-on-surface dark:text-white mb-1">Contact Person Name</label>
+                  <input 
+                    name="contactName" 
+                    placeholder="e.g. John Doe" 
+                    className="w-full bg-transparent border border-outline-variant dark:border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-on-surface dark:text-white placeholder:text-secondary/50" 
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">

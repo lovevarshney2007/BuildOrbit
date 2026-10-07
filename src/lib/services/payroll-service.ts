@@ -20,7 +20,7 @@ import { classifyLeave, LeaveError } from "@/lib/domain/leave-policy"
 import { LeaveDayEntry, calculatePayrollImpact, LeavePayrollImpact } from "@/lib/domain/payroll-calc"
 import { Actor, assertCan } from "@/lib/domain/permissions"
 import { Db, writeAudit } from "./audit"
-import { getOrganizationPolicy, loadWorkingCalendar, toPayrollPolicy } from "./org-policy"
+import { getOrganizationPolicy, loadWorkingCalendar, toPayrollPolicy, toPayrollDefaults } from "./org-policy"
 
 const r2 = (n: number) => Math.round(n * 100) / 100
 const num = (d: Prisma.Decimal | number | null | undefined) => (d == null ? 0 : Number(d))
@@ -344,15 +344,18 @@ export async function generatePayrollForPeriod(
   })
   let created = 0
   let skipped = 0
+  const org = await getOrganizationPolicy(db)
+  const defaults = toPayrollDefaults(org)
+
   for (const emp of employees) {
     const existing = await db.payroll.findUnique({
       where: { employeeId_month_year: { employeeId: emp.id, month: args.month, year: args.year } },
     })
     if (existing) { skipped++; continue }
     const basic = Math.round(num(emp.basicSalary))
-    // Existing company defaults: allowances 40% of basic, standard deductions 10% of basic.
-    const allowances = Math.round(basic * 0.4)
-    const standardDeductions = Math.round(basic * 0.1)
+    // Allowance and standard-deduction percentages are configured per organisation.
+    const allowances = Math.round(basic * (defaults.allowancePercent / 100))
+    const standardDeductions = Math.round(basic * (defaults.deductionPercent / 100))
     await db.$transaction((tx) =>
       createPayrollRecord(tx, {
         employeeId: emp.id, month: args.month, year: args.year,

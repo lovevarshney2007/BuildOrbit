@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { PayrollPageClient } from "./client"
 import { PayrollRowActions } from "./row-actions"
+import { getOrganizationPolicy, toPayrollDefaults } from "@/lib/services/org-policy"
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -47,6 +48,9 @@ export default async function PayrollPage({
     include: { user: { select: { name: true, email: true } } },
     orderBy: { employeeCode: "asc" },
   })
+
+  const org = await getOrganizationPolicy(prisma)
+  const defaults = toPayrollDefaults(org)
 
   const formatCurrency = (val: unknown) =>
     val ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(Number(val)) : "—"
@@ -106,6 +110,8 @@ export default async function PayrollPage({
               employeeCode: e.employeeCode,
               basicSalary: Number(e.basicSalary),
             }))}
+            allowancePercent={defaults.allowancePercent}
+            deductionPercent={defaults.deductionPercent}
           />
         </div>
       </section>

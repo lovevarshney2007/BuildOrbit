@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
-import { FileText, Download, Plus } from "lucide-react"
+import { FileText, Download } from "lucide-react"
 import Link from "next/link"
+import { InvoiceCreateDialog } from "@/components/crm/InvoiceCreateDialog"
 
 export default async function InvoicesPage() {
   const user = await requireAuth()
@@ -23,15 +24,16 @@ export default async function InvoicesPage() {
     orderBy: { createdAt: "desc" }
   })
 
+  const clients = await prisma.client.findMany({
+    select: { id: true, name: true, company: true },
+    orderBy: { name: "asc" }
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <PageHeader title="Invoices" />
-        {/* Placeholder for future New Invoice form dialog */}
-        <Button disabled>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Invoice
-        </Button>
+        <InvoiceCreateDialog clients={clients} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
