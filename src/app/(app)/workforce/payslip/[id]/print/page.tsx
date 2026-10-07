@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/session"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { PrintButton } from "./print-button"
 
 export default async function PayslipPrintPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
@@ -50,12 +51,7 @@ export default async function PayslipPrintPage({ params }: { params: Promise<{ i
         <Link href="/workforce/payslip" className="text-primary font-medium flex items-center gap-2 hover:underline">
           <span className="material-symbols-outlined">arrow_back</span> Back to Payslips
         </Link>
-        <button 
-          onClick={() => window.print()}
-          className="bg-primary text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-primary/90 flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined">print</span> Print / Save PDF
-        </button>
+        <PrintButton />
       </div>
 
       {/* Printable Area */}
