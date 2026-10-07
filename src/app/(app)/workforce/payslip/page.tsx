@@ -53,7 +53,7 @@ export default async function PayslipPage({
             <thead>
               <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm">
                 <th className="py-3 px-4 font-semibold">Month / Year</th>
-                <th className="py-3 px-4 font-semibold">Basic Salary</th>
+                <th className="py-3 px-4 font-semibold">Gross Salary</th>
                 <th className="py-3 px-4 font-semibold">Net Salary</th>
                 <th className="py-3 px-4 font-semibold">Status</th>
                 <th className="py-3 px-4 font-semibold text-right">Action</th>
@@ -65,7 +65,7 @@ export default async function PayslipPage({
                   <td className="py-3 px-4 font-medium">
                     {ps.month.toString().padStart(2, '0')} / {ps.year}
                   </td>
-                  <td className="py-3 px-4 text-secondary dark:text-slate-400">₹{ps.basicSalary.toString()}</td>
+                  <td className="py-3 px-4 text-secondary dark:text-slate-400">₹{(Number(ps.basicSalary) + Number(ps.allowances)).toString()}</td>
                   <td className="py-3 px-4 font-bold text-on-surface dark:text-white">₹{ps.netSalary.toString()}</td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider

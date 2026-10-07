@@ -34,15 +34,19 @@ export default async function PayslipPrintPage({ params }: { params: Promise<{ i
 
   const monthName = new Date(payslip.year, payslip.month - 1).toLocaleString('default', { month: 'long' })
 
-  // Breakdown Calculations based on the basicSalary + Unpaid Leave Deductions
   const basicSalary = Number(payslip.basicSalary)
-  const deductions = Number(payslip.deductions)
+  const allowances = Number(payslip.allowances)
+  const grossEarnings = basicSalary + allowances
+  const totalDeductions = Number(payslip.deductions)
   const netSalary = Number(payslip.netSalary)
 
-  // Standard HRA / Allowances formula (Just for visual breakdown, since payroll model just has basicSalary)
-  const basicPayBreakdown = basicSalary * 0.5;
-  const hra = basicSalary * 0.3;
-  const specialAllowance = basicSalary * 0.2;
+  const leaveDeduction = Number(payslip.leaveDeduction)
+  const otherDeductions = Number(payslip.otherDeductions || 0)
+  const carriedAdjustments = Number(payslip.carriedAdjustments || 0)
+
+  // Validate the payroll calculation mathematically before rendering
+  const expectedNet = grossEarnings - totalDeductions
+  const isValid = Math.abs(expectedNet - netSalary) < 0.01
 
   return (
     <div className="bg-slate-50 min-h-screen text-slate-900 font-sans p-4 sm:p-8">
@@ -111,20 +115,16 @@ export default async function PayslipPrintPage({ params }: { params: Promise<{ i
             <div className="flex-1 border-r border-slate-300 p-4 space-y-4 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium">Basic Pay</span>
-                <span>₹ {basicPayBreakdown.toFixed(2)}</span>
+                <span>₹ {basicSalary.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-medium">HRA</span>
-                <span>₹ {hra.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Special Allowance</span>
-                <span>₹ {specialAllowance.toFixed(2)}</span>
+                <span className="font-medium">Allowances</span>
+                <span>₹ {allowances.toFixed(2)}</span>
               </div>
             </div>
             <div className="bg-slate-50 p-4 border-t border-slate-300 border-r flex justify-between font-bold text-lg">
               <span>Gross Earnings</span>
-              <span>₹ {basicSalary.toFixed(2)}</span>
+              <span>₹ {grossEarnings.toFixed(2)}</span>
             </div>
           </div>
 
@@ -134,11 +134,27 @@ export default async function PayslipPrintPage({ params }: { params: Promise<{ i
               Deductions
             </div>
             <div className="flex-1 p-4 space-y-4 text-sm">
-              {deductions > 0 ? (
-                <div className="flex justify-between text-red-600">
-                  <span className="font-medium">Unpaid Leave (LWP) Deduction</span>
-                  <span>- ₹ {deductions.toFixed(2)}</span>
-                </div>
+              {totalDeductions > 0 ? (
+                <>
+                  {leaveDeduction > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span className="font-medium">Unpaid Leave (LWP)</span>
+                      <span>- ₹ {leaveDeduction.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {otherDeductions > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span className="font-medium">Other Deductions</span>
+                      <span>- ₹ {otherDeductions.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {carriedAdjustments > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span className="font-medium">Carried Adjustments</span>
+                      <span>- ₹ {carriedAdjustments.toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-slate-400 italic text-center mt-4">
                   No Deductions
@@ -147,10 +163,16 @@ export default async function PayslipPrintPage({ params }: { params: Promise<{ i
             </div>
             <div className="bg-slate-50 p-4 border-t border-slate-300 flex justify-between font-bold text-lg text-red-600">
               <span>Total Deductions</span>
-              <span>₹ {deductions.toFixed(2)}</span>
+              <span>₹ {totalDeductions.toFixed(2)}</span>
             </div>
           </div>
         </div>
+
+        {!isValid && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+            <strong>Calculation Error:</strong> The payroll mathematical equation does not balance. Gross Earnings (₹{grossEarnings.toFixed(2)}) - Total Deductions (₹{totalDeductions.toFixed(2)}) ≠ Net Salary (₹{netSalary.toFixed(2)}). Please contact the administrator.
+          </div>
+        )}
 
         {/* Net Salary */}
         <div className="bg-slate-900 text-white p-6 rounded-lg flex items-center justify-between shadow-lg">

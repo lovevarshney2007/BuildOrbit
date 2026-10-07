@@ -554,6 +554,11 @@ model OrganizationPolicy {
   requireSiteAssignment    Boolean            @default(true)
   checkoutRequiresGeofence Boolean            @default(false)
   maxDocumentSizeMb        Int                @default(5)
+  // Default payroll composition applied when generating DRAFT payroll records.
+  // allowancePercent  — default allowances as % of basic salary (e.g. 40).
+  // deductionPercent    — standard deductions as % of basic salary (e.g. 10).
+  allowancePercent         Int                @default(40)
+  deductionPercent         Int                @default(10)
   updatedAt                DateTime           @updatedAt
 
   @@map("organization_policy")

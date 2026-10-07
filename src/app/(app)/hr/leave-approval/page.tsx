@@ -13,7 +13,10 @@ export default async function LeaveApprovalPage() {
     redirect("/dashboard")
   }
 
-  const [pending, activeOnLeaveToday, approvedThisMonth] = await Promise.all([
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const [pending, activeOnLeaveToday, approvedThisMonth, upcomingHoliday] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { status: LeaveStatus.PENDING },
       include: {
@@ -26,8 +29,8 @@ export default async function LeaveApprovalPage() {
     prisma.leaveRequest.count({
       where: {
         status: LeaveStatus.APPROVED,
-        startDate: { lte: new Date() },
-        endDate: { gte: new Date() },
+        startDate: { lte: today },
+        endDate: { gte: today },
       },
     }),
     // Count approved this month
@@ -35,9 +38,14 @@ export default async function LeaveApprovalPage() {
       where: {
         status: LeaveStatus.APPROVED,
         approvedAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          gte: new Date(today.getFullYear(), today.getMonth(), 1),
         },
       },
+    }),
+    // Fetch upcoming holiday from database
+    prisma.holiday.findFirst({
+      where: { date: { gte: today } },
+      orderBy: { date: "asc" },
     }),
   ])
 
@@ -51,9 +59,8 @@ export default async function LeaveApprovalPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight">Leave Requests &amp; Time-Off Management</h1>
-            <span className="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded font-medium">Cycle Q4-2026</span>
           </div>
-          <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">Manage departmental quotas, multi-level authorizations, and mandatory squad coverage continuity.</p>
+          <p className="font-body-md text-body-md text-secondary dark:text-slate-400 mt-0.5">Manage leave requests, approvals, and team coverage.</p>
         </div>
         {/* Controls: Actions */}
         <div className="flex items-center gap-2.5">
@@ -72,7 +79,7 @@ export default async function LeaveApprovalPage() {
         </div>
       </div>
 
-      {/* SECTION 1: MetricStrip & Attention High-Density Summary */}
+      {/* SECTION 1: MetricStrip */}
       <section className="grid grid-cols-1 xl:grid-cols-4 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded divide-y xl:divide-y-0 xl:divide-x divide-outline-variant shadow-xs">
         {/* Cell 1 */}
         <div className="p-4 flex flex-col justify-between">
@@ -107,15 +114,21 @@ export default async function LeaveApprovalPage() {
             <span className="font-body-sm text-body-sm text-secondary dark:text-slate-400">approvals</span>
           </div>
         </div>
-        {/* Cell 4 */}
+        {/* Cell 4 - Upcoming Holiday from DB */}
         <div className="p-4 flex flex-col justify-between bg-surface-bright/40">
           <div className="flex items-center justify-between">
             <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400">Upcoming Holiday</span>
             <span className="material-symbols-outlined text-primary text-[18px]">event</span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white font-semibold">Veterans Day</span>
-            <span className="font-tabular-data text-body-sm text-secondary dark:text-slate-400">(Nov 11)</span>
+            {upcomingHoliday ? (
+              <>
+                <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white font-semibold">{upcomingHoliday.name}</span>
+                <span className="font-tabular-data text-body-sm text-secondary dark:text-slate-400">({formatDate(upcomingHoliday.date)})</span>
+              </>
+            ) : (
+              <span className="font-headline-sm text-headline-sm text-secondary dark:text-slate-400">No upcoming holidays</span>
+            )}
           </div>
         </div>
       </section>
@@ -149,15 +162,10 @@ export default async function LeaveApprovalPage() {
       <div className="bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 rounded overflow-hidden shadow-xs flex flex-col">
         <div className="flex items-center justify-between px-4 py-2 bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400">
           <div className="flex items-center gap-3">
-            <input className="rounded border-outline text-primary focus:ring-primary h-3.5 w-3.5" type="checkbox" />
             <span className="font-label-sm text-label-sm text-on-surface dark:text-white font-medium">{pending.length} pending items</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="font-label-sm text-label-sm text-secondary dark:text-slate-400">Batch Actions:</span>
-            <button className="h-7 px-2.5 bg-surface-container-lowest dark:bg-slate-950 border border-outline-variant dark:border-slate-800 hover:bg-surface-container dark:bg-slate-950 font-label-sm text-label-sm text-on-surface dark:text-white rounded transition-colors" type="button">Quick Approve Selected</button>
-          </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           {pending.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
@@ -168,7 +176,6 @@ export default async function LeaveApprovalPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-bright border-b border-outline-variant dark:border-slate-800 text-secondary dark:text-slate-400 font-label-sm text-label-sm select-none">
-                  <th className="py-2.5 px-3 w-8"></th>
                   <th className="py-2.5 px-3 font-semibold">Request ID</th>
                   <th className="py-2.5 px-3 font-semibold">Employee</th>
                   <th className="py-2.5 px-3 font-semibold">Leave Type</th>
@@ -181,9 +188,6 @@ export default async function LeaveApprovalPage() {
               <tbody className="divide-y divide-outline-variant font-body-md text-body-md">
                 {pending.map((req) => (
                   <tr key={req.id} className="hover:bg-surface-bright/70 transition-colors">
-                    <td className="py-3 px-3">
-                      <input className="rounded border-outline text-primary focus:ring-primary h-3.5 w-3.5" type="checkbox" />
-                    </td>
                     <td className="py-3 px-3">
                       <span className="font-tabular-data text-primary font-semibold hover:underline cursor-pointer">#{req.id.substring(0, 8)}</span>
                     </td>
