@@ -3,20 +3,36 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 
-export default async function PayslipPage() {
+export default async function PayslipPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ employeeId?: string }>
+}) {
   const user = await getCurrentUser()
   if (!user) redirect("/login")
 
-  const employee = await prisma.employee.findUnique({
-    where: { userId: user.userId },
-  })
+  const params = await searchParams
+  
+  let targetEmployeeId = undefined
+  // If HR/ADMIN is trying to view another employee's payslip
+  if (params.employeeId && ["SUPER_ADMIN", "ADMIN", "HR"].includes(user.role)) {
+    targetEmployeeId = params.employeeId
+  } else {
+    // Otherwise find their own employee record
+    const ownEmployee = await prisma.employee.findUnique({
+      where: { userId: user.userId },
+    })
+    if (ownEmployee) {
+      targetEmployeeId = ownEmployee.id
+    }
+  }
 
-  if (!employee) {
+  if (!targetEmployeeId) {
     return <div className="p-8">No employee record found.</div>
   }
 
   const payslips = await prisma.payroll.findMany({
-    where: { employeeId: employee.id },
+    where: { employeeId: targetEmployeeId },
     orderBy: [{ year: "desc" }, { month: "desc" }],
   })
 
