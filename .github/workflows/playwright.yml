@@ -1,9 +1,11 @@
 name: Playwright Tests
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
 jobs:
   test:
     timeout-minutes: 60
@@ -41,14 +43,22 @@ jobs:
       run: npx prisma db seed
       env:
         DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+        SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL || 'admin@buildorbit.dev' }}
+        SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD || 'password123' }}
     - name: Build Next.js App
       run: npm run build
       env:
         DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+        SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL || 'admin@buildorbit.dev' }}
+        SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD || 'password123' }}
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'supersecretkeyforjwttokengeneration123456789' }}
     - name: Run Playwright tests
       run: npx playwright test
       env:
         DATABASE_URL: postgresql://prisma:prisma@localhost:5432/buildorbit_test
+        SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL || 'admin@buildorbit.dev' }}
+        SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD || 'password123' }}
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'supersecretkeyforjwttokengeneration123456789' }}
         PLAYWRIGHT_BASE_URL: http://localhost:3000
     - uses: actions/upload-artifact@v4
       if: always()
